@@ -50,7 +50,7 @@ right_col=[
 ]
 layout = [[sg.Column(left_col, element_justification='l' ),
            sg.Column(right_col, element_justification='l')]] 
-window = sg.Window("DeepFaune predition",layout).Finalize()
+window = sg.Window("DeepFaune GUI",layout).Finalize()
 window['-SAVECSV-'].Update(disabled=True)
 window['-SAVEXLSX-'].Update(disabled=True)
 window['-TABROW-'].Update(disabled=True)
@@ -95,7 +95,13 @@ while True:
           testdir = values['-FOLDER-']
           print(testdir)
           ### GENERATOR
-          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in listdir(testdir)]})
+          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in listdir(testdir)
+                                                  if filename.endswith(".jpg") or filename.endswith(".JPG")
+                                                  or filename.endswith(".jpeg") or filename.endswith(".JPEG")
+                                                  or filename.endswith(".bmp") or filename.endswith(".BMP")
+                                                  or filename.endswith(".tif") or filename.endswith(".TIF")
+                                                  or filename.endswith(".gif") or filename.endswith(".GIF")
+                                                  or filename.endswith(".png") or filename.endswith(".PNG")]})
           data_generator = ImageDataGenerator(preprocessing_function = preprocess_input)
           test_generator = data_generator.flow_from_dataframe(
                df_filename,
@@ -127,13 +133,13 @@ while True:
                window['-SAVEXLSX-'].Update(disabled=False)
      elif event == '-SAVECSV-':
           preddf  = pd.DataFrame({'filename':test_generator.filenames, 'prediction':predictedclass})
-          confirm = sg.popup_yes_no("Do you want to save results in"+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
+          confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.csv"))
                preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
      elif event == '-SAVEXLSX-':
           preddf  = pd.DataFrame({'filename':test_generator.filenames, 'prediction':predictedclass})
-          confirm = sg.popup_yes_no("Do you want to save results in"+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
+          confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.xlsx"))
                preddf.to_excel(join(testdir,"deepfaune.xlsx"), index=False)
