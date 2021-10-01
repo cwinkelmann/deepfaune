@@ -46,7 +46,7 @@ WARNING: during installation, you will be asked to choose a path to install Anan
 
 ---
 
-**Linux:**
+**Linux**
 
 In a terminal, launch `python deepfauneGUI.py`
 
