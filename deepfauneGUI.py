@@ -32,7 +32,7 @@ classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","lagomorph
 prediction = [[],[]]
 threshold = threshold_default = 0.99
 left_col = [
-     [sg.Image(filename=r'cameratrap-nb.png'),sg.Image(filename=r'logoINEE.png')],
+     [sg.Image(filename=r'img/cameratrap-nb.png'),sg.Image(filename=r'img/logoINEE.png')],
      [sg.Text("DEEPFAUNE GUI",size=(17,1), font=("Helvetica", 35))],
      [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True ,key='-FOLDER-'), sg.FolderBrowse()],
      #[sg.Spin([i for i in range(1,11)], initial_value=10, k='-SPIN-'), sg.Text('Spin')],
@@ -94,6 +94,7 @@ while True:
      elif event == '-FOLDER-':
           testdir = values['-FOLDER-']
           print(testdir)
+          print("Warning: no recursive search")
           ### GENERATOR
           df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in listdir(testdir)
                                                   if filename.endswith(".jpg") or filename.endswith(".JPG")
