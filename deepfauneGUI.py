@@ -25,8 +25,9 @@ sg.ChangeLookAndFeel('DarkGrey1')
 backbone = "efficientnet"
 batch_size = 16
 workers = 1
-hdf5 = "efficientnet11spVide.hdf5"
-classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","lagomorphe","loup","mustelide","renard","sanglier","vide"]
+hdf5 = "efficientnet.hdf5"
+classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule","vide"]
+
 
 ### GUI WINDOW
 prediction = [[],[]]
