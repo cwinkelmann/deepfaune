@@ -1,5 +1,4 @@
-#  DeepFaune GUI
-
+#  DEEPFAUNEGUI
 
 
 ---
@@ -8,14 +7,17 @@
 
 ---
 
-** STEP 1 **
+**STEP 1**
+
 First of all, get the `zip` archive by clicking on the button ![button](img/button.jpg) on the top right of this page.
 
-This will open this window where you can dowload the whole directory as a `zip` file (warning, it's a huge file) ![button](img/buttonzip.jpg) 
+This will open the following window where you can dowload the whole directory as a `zip` file (warning, it's a huge file):
 
-Uncompress the zip file on your Desktop.
+![button](img/buttonzip.jpg) 
 
-** STEP 2 **
+Then, uncompress the zip file on your Desktop.
+
+**STEP 2**
 
 **Linux:**
 
@@ -24,7 +26,7 @@ Uncompress the zip file on your Desktop.
 - Pandas: `pip install pandas`
 - Numpy: `pip install numpy`
 - PIL: `pip install pillow`
-- openpyxl (optionnel): `pip install openpyxl`
+- (optional) openpyxl: `pip install openpyxl`
 
 Alternatively, you can use `conda`.
 
@@ -34,7 +36,9 @@ Alternatively, you can use `conda`.
 
 WARNING: during installation, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE.
 
-- Open Anaconda window, search for `tensorflow` and click to install it.
+- Open Anaconda window, search for `tensorflow` and click to install it
+
+- (optional) Open Anaconda window, search for `openpyxl` and click to install it
 
 - Edit file `deepfauneGUI.bat` and replace `\Users\Laurie\anaconda3` by the path that you chose just before
 
@@ -44,7 +48,7 @@ WARNING: during installation, you will be asked to choose a path to install Anan
 
 ---
 
-**Linux:**
+**Linux**
 
 In a terminal, launch `python deepfauneGUI.py`
 
