@@ -36,7 +36,7 @@ Alternatively, you can use `conda`.
 
 WARNING: during installation, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE.
 
-- Open Anaconda window, search for `tensorflow` and click to install it
+- Open Anaconda window, search for `tensorflow` and click to install it, , as explained [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)
 
 - (optional) Open Anaconda window, search for `openpyxl` and click to install it
 
