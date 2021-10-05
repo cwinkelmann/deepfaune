@@ -39,7 +39,8 @@ left_col = [
      #[sg.Spin([i for i in range(1,11)], initial_value=10, k='-SPIN-'), sg.Text('Spin')],
      [sg.Text('Confidence\t'), sg.Slider(range=(50,99), default_value=threshold_default*100, orientation='h', size=(12,10), change_submits=True, key='-THRESHOLD-')],
      [sg.Text('Progress bar'), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
-     [sg.Button('Run', key='-RUN-'), sg.Button('Save in CSV', key='-SAVECSV-'), sg.Button('Save in XSLX', key='-SAVEXLSX-')]
+     [sg.Button('Run', key='-RUN-'), sg.Button('Save in CSV', key='-SAVECSV-'), sg.Button('Save in XSLX', key='-SAVEXLSX-')],
+     [sg.Button('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
 ]
 right_col=[
      [sg.Multiline(size=(60, 10), write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
@@ -47,7 +48,7 @@ right_col=[
                vertical_scroll_only=False, auto_size_columns=False, col_widths=[30, 17], 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                key='-TABRESULTS-')],      
-     [sg.Button('Show selected image', key='-TABROW-')]
+     [sg.Button('Show all images', key='-ALLTABROW-'),sg.Button('Show selected image', key='-TABROW-')]
 ]
 layout = [[sg.Column(left_col, element_justification='l' ),
            sg.Column(right_col, element_justification='l')]] 
@@ -55,6 +56,10 @@ window = sg.Window("DeepFaune GUI",layout).Finalize()
 window['-SAVECSV-'].Update(disabled=True)
 window['-SAVEXLSX-'].Update(disabled=True)
 window['-TABROW-'].Update(disabled=True)
+window['-ALLTABROW-'].Update(disabled=True)
+window['-SUBFOLDERS-'].Update(disabled=True)
+window['-CP-'].Update(disabled=True)
+window['-MV-'].Update(disabled=True)
 
 
 ### LOADING MODEL 
@@ -133,6 +138,7 @@ while True:
           window['-SAVECSV-'].Update(disabled=False)
           if pkgutil.find_loader("openpyxl"):
                window['-SAVEXLSX-'].Update(disabled=False)
+          window['-ALLTABROW-'].Update(disabled=False)
      elif event == '-SAVECSV-':
           preddf  = pd.DataFrame({'filename':test_generator.filenames, 'prediction':predictedclass})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
@@ -148,29 +154,61 @@ while True:
      elif event == '-TABRESULTS-':
           rowidx = values['-TABRESULTS-']
           window['-TABROW-'].Update(disabled=False)
-     elif event == '-TABROW-':
-          if rowidx[0]>=0:
-               ### SHOWING IMAGE
-               layout = [[sg.Image(key="-IMAGE-")],
-                         [sg.Text('Prediction:', size=(15, 1)),sg.InputText(predictedclass[rowidx[0]], key="-CORRECTION-")], [sg.Submit(), sg.Cancel()]]
-               windowimg = sg.Window(basename(df_filename['filename'][rowidx[0]]), layout, finalize=True)
-               image = Image.open(df_filename['filename'][rowidx[0]])
-               image.thumbnail((300, 300))
-               bio = io.BytesIO()
-               image.save(bio, format="PNG")
-               windowimg["-IMAGE-"].update(data=bio.getvalue())
-               ### CORRECTING PREDICTION
-               while True:
-                    eventimg, valuesimg = windowimg.read()
-                    if eventimg in (sg.WIN_CLOSED, 'Cancel'):
-                         break
-                    elif eventimg == 'Submit':
-                         predictedclass[rowidx[0]] = valuesimg["-CORRECTION-"]
-                         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
-                         break
-               windowimg.close()
+     elif event == '-ALLTABROW-' or event == '-TABROW-':
+          if event == '-TABROW-' and rowidx[0]>=0:
+               curridx = rowidx[0]
           else:
-               window['-TABROW-'].Update(disabled=True)
+               curridx = 0
+          ### SHOWING IMAGE
+          window['-TABROW-'].Update(disabled=True)
+          window['-ALLTABROW-'].Update(disabled=True)
+          window['-SAVECSV-'].Update(disabled=True)
+          window['-SAVEXLSX-'].Update(disabled=True)
+          layout = [[sg.Image(key="-IMAGE-")],
+                    [sg.Text('Prediction:', size=(15, 1)),sg.InputText(predictedclass[curridx], key="-CORRECTION-")],
+                    [sg.Button('Save', key='-SAVE-'),sg.Button('Close', key='-CLOSE-'),sg.Button('Next image', bind_return_key=True, key='-NEXT-'),
+                     sg.Checkbox('Only undefined', default=True, key="-NEXTUNDEFINED-")]]
+          windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, finalize=True)
+          image = Image.open(df_filename['filename'][curridx])
+          #image.thumbnail((400, 400))
+          image = image.resize((350,300))
+          bio = io.BytesIO()
+          image.save(bio, format="PNG")
+          windowimg["-IMAGE-"].update(data=bio.getvalue())
+          ### CORRECTING PREDICTION
+          while True:
+               eventimg, valuesimg = windowimg.read()
+               if eventimg in (sg.WIN_CLOSED, '-CLOSE-'):
+                    break
+               elif eventimg == '-SAVE-':
+                    predictedclass[curridx] = valuesimg["-CORRECTION-"]
+                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
+               elif eventimg == '-NEXT-': # button will save and show next image, return_key as well
+                    predictedclass[curridx] = valuesimg["-CORRECTION-"]
+                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
+                    curridxinit = curridx
+                    curridx = curridx+1
+                    if curridx==len(predictedclass):
+                         curridx = 0
+                    if valuesimg['-NEXTUNDEFINED-']: # search for the next undefined image, if it exists
+                         while predictedclass[curridx]!="undefined" and curridx!=curridxinit:
+                              curridx = curridx+1
+                              if curridx==len(predictedclass):
+                                   curridx = 0
+                    image = Image.open(df_filename['filename'][curridx])
+                    #image.thumbnail((400, 400))
+                    image = image.resize((350,300))
+                    bio = io.BytesIO()
+                    image.save(bio, format="PNG")
+                    windowimg["-IMAGE-"].update(data=bio.getvalue())
+                    windowimg["-CORRECTION-"].Update(predictedclass[curridx])
+          windowimg.close()
+          window['-SAVECSV-'].Update(disabled=False)
+          window['-SAVEXLSX-'].Update(disabled=False)
+          window['-TABROW-'].Update(disabled=False)
+          window['-ALLTABROW-'].Update(disabled=False)
+     else:
+          window['-TABROW-'].Update(disabled=True)
                
                
                
