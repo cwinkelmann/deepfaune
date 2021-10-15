@@ -17,26 +17,28 @@ import io
 
 
 ### SETTINGS
-#sg.ChangeLookAndFeel('Reddit')
+sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('Dark2')
 #sg.ChangeLookAndFeel('DarkBlue1')
-sg.ChangeLookAndFeel('DarkGrey1')
+#sg.ChangeLookAndFeel('DarkGrey1')
 
 backbone = "efficientnet"
-batch_size = 8
+batch_size = 16
 workers = 1
 #hdf5 = "efficientnet11spVide.hdf5"
 #classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","lagomorphe","loup","mustelide","renard","sanglier","vide"] 
-hdf5 = "efficientnet.hdf5"
-classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule","vide"]
+#hdf5 = "efficientnet.hdf5"
+#classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule","vide"]
+hdf5 = "efficientnetNosmall.hdf5"
+classes = ["blaireau","bouquetin","cerf","chamois","chevreuil","chien","felinae","humain","lagomorphe","loup","mouflon","mouton","mustelide","renard","sanglier","vache","vehicule","vide"]
 
 
 ### GUI WINDOW
 prediction = [[],[]]
-threshold = threshold_default = 0.99
+threshold = threshold_default = 0.9
 left_col = [
      [sg.Image(filename=r'img/cameratrap-nb.png'),sg.Image(filename=r'img/logoINEE.png')],
-     [sg.Text("DEEPFAUNE GUI",size=(17,1), font=("Helvetica", 35))],
+     [sg.Text("DEEPFAUNE GUI",size=(17,1), font=("Helvetica", 35))],[sg.Text("\n\n\n")],
      [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True ,key='-FOLDER-'), sg.FolderBrowse()],
      #[sg.Spin([i for i in range(1,11)], initial_value=10, k='-SPIN-'), sg.Text('Spin')],
      [sg.Text('Confidence\t'), sg.Slider(range=(50,99), default_value=threshold_default*100, orientation='h', size=(12,10), change_submits=True, key='-THRESHOLD-')],
@@ -47,7 +49,7 @@ left_col = [
 right_col=[
      [sg.Multiline(size=(60, 10), write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
      [sg.Table(values=prediction, headings=['filename','prediction'], justification = "c", 
-               vertical_scroll_only=False, auto_size_columns=False, col_widths=[30, 17], 
+               vertical_scroll_only=False, auto_size_columns=False, col_widths=[30, 17], num_rows=batch_size, 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                key='-TABRESULTS-')],      
      [sg.Button('Show all images', key='-ALLTABROW-'),sg.Button('Show selected image', key='-TABROW-')]
@@ -104,7 +106,7 @@ while True:
           print(testdir)
           print("Warning: no recursive search")
           ### GENERATOR
-          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in listdir(testdir)
+          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in sorted(listdir(testdir))
                                                   if filename.endswith(".jpg") or filename.endswith(".JPG")
                                                   or filename.endswith(".jpeg") or filename.endswith(".JPEG")
                                                   or filename.endswith(".bmp") or filename.endswith(".BMP")
@@ -171,11 +173,12 @@ while True:
           window['-SAVEXLSX-'].Update(disabled=True)
           layout = [[sg.Image(key="-IMAGE-")],
                     [sg.Text('Prediction:', size=(15, 1)),sg.InputText(predictedclass[curridx], key="-CORRECTION-")],
-                    [sg.Button('Save', key='-SAVE-'),sg.Button('Close', key='-CLOSE-'),sg.Button('Next image', bind_return_key=True, key='-NEXT-'),
-                     sg.Checkbox('Only undefined', default=True, key="-NEXTUNDEFINED-")]]
+                    [sg.Button('Save', key='-SAVE-'),sg.Button('Close', key='-CLOSE-'),
+                     sg.Button('Previous', key='-PREVIOUS-'),
+                     sg.Button('Next', bind_return_key=True, key='-NEXT-'),
+                     sg.Checkbox('Only undefined', default=True, key="-ONLYUNDEFINED-")]]
           windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, finalize=True)
           image = Image.open(df_filename['filename'][curridx])
-          #image.thumbnail((400, 400))
           image = image.resize((350,300))
           bio = io.BytesIO()
           image.save(bio, format="PNG")
@@ -189,19 +192,29 @@ while True:
                     predictedclass[curridx] = valuesimg["-CORRECTION-"]
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
                     window['-TABROW-'].Update(disabled=True)
-               elif eventimg == '-NEXT-': # button will save and show next image, return_key as well
+               elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
                     predictedclass[curridx] = valuesimg["-CORRECTION-"]
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
                     window['-TABROW-'].Update(disabled=True)
                     curridxinit = curridx
-                    curridx = curridx+1
-                    if curridx==len(predictedclass):
-                         curridx = 0
-                    if valuesimg['-NEXTUNDEFINED-']: # search for the next undefined image, if it exists
-                         while predictedclass[curridx]!="undefined" and curridx!=curridxinit:
-                              curridx = curridx+1
-                              if curridx==len(predictedclass):
-                                   curridx = 0
+                    if eventimg == '-PREVIOUS-':
+                         curridx = curridx-1
+                         if curridx==-1:
+                              curridx = len(predictedclass)-1
+                         if valuesimg['-ONLYUNDEFINED-']: # search for the previous undefined image, if it exists
+                              while predictedclass[curridx]!="undefined" and curridx!=curridxinit:
+                                   curridx = curridx-1
+                                   if curridx==-1:
+                                        curridx = len(predictedclass)-1
+                    else: # eventimg == '-NEXT-'
+                         curridx = curridx+1
+                         if curridx==len(predictedclass):
+                              curridx = 0
+                         if valuesimg['-ONLYUNDEFINED-']: # search for the next undefined image, if it exists
+                              while predictedclass[curridx]!="undefined" and curridx!=curridxinit:
+                                   curridx = curridx+1
+                                   if curridx==len(predictedclass):
+                                        curridx = 0
                     image = Image.open(df_filename['filename'][curridx])
                     #image.thumbnail((400, 400))
                     image = image.resize((350,300))
