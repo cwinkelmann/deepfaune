@@ -221,6 +221,7 @@ while True:
                     bio = io.BytesIO()
                     image.save(bio, format="PNG")
                     windowimg["-IMAGE-"].update(data=bio.getvalue())
+                    windowimg.TKroot.title(basename(df_filename['filename'][curridx]))
                     windowimg["-CORRECTION-"].Update(predictedclass[curridx])
           windowimg.close()
           window['-SAVECSV-'].Update(disabled=False)
