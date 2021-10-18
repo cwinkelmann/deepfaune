@@ -29,7 +29,7 @@ workers = 1
 #classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","lagomorphe","loup","mustelide","renard","sanglier","vide"] 
 #hdf5 = "efficientnet.hdf5"
 #classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule","vide"]
-hdf5 = "efficientnetNosmall.hdf5"
+hdf5 = "efficientnetNosmallAug.hdf5"
 classes = ["blaireau","bouquetin","cerf","chamois","chevreuil","chien","felinae","humain","lagomorphe","loup","mouflon","mouton","mustelide","renard","sanglier","vache","vehicule","vide"]
 
 
