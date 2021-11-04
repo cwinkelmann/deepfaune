@@ -29,7 +29,7 @@ workers = 1
 #classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","lagomorphe","loup","mustelide","renard","sanglier","vide"] 
 #hdf5 = "efficientnet.hdf5"
 #classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule","vide"]
-hdf5 = "efficientnetNosmallAug.hdf5"
+hdf5 = "efficientnet_MDcheckNosmallWithcroppedImgAugB4.hdf5"
 classes = ["blaireau","bouquetin","cerf","chamois","chevreuil","chien","felinae","humain","lagomorphe","loup","mouflon","mouton","mustelide","renard","sanglier","vache","vehicule","vide"]
 
 
@@ -74,9 +74,11 @@ if backbone == "resnet":
      from tensorflow.keras.applications.resnet_v2 import preprocess_input, decode_predictions
      base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
 elif backbone == "efficientnet":
-     from tensorflow.keras.applications.efficientnet import EfficientNetB2
+     ##from tensorflow.keras.applications.efficientnet import EfficientNetB2
+     from tensorflow.keras.applications.efficientnet import EfficientNetB4
      from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
-     base_model = EfficientNetB2(include_top=False, weights=None, input_shape=(300,300,3))
+     ## base_model = EfficientNetB2(include_top=False, weights=None, input_shape=(300,300,3))
+     base_model = EfficientNetB4(include_top=False, weights=None, input_shape=(380,380,3))
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 #x = Dense(512)(x) #256,1024, etc. may work as well
