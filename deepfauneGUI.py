@@ -22,6 +22,7 @@ sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('DarkBlue1')
 #sg.ChangeLookAndFeel('DarkGrey1')
 
+DEBUG = True
 backbone = "efficientnet"
 batch_size = 16
 workers = 1
@@ -139,6 +140,14 @@ while True:
           output = OutputCallback()
           ### PREDICTING
           prediction = model.predict(test_generator, workers=workers, callbacks=[output])
+          if DEBUG:
+               pdprediction = pd.DataFrame(prediction)
+               pdprediction.columns = classes
+               pdprediction.index = test_generator.filenames
+               from tempfile import mkstemp
+               tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
+               print("DEBUG: saving scores to",tmpcsv)
+               pdprediction.to_csv(tmpcsv, float_format='%.2g')
           predictedclass = prediction2class(prediction,threshold)         
           window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
           window['-SAVECSV-'].Update(disabled=False)
