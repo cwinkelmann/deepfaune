@@ -22,6 +22,8 @@ sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('DarkBlue1')
 #sg.ChangeLookAndFeel('DarkGrey1')
 
+
+
 DEBUG = False
 backbone = "efficientnet"
 BATCH_SIZE = 8
@@ -187,13 +189,13 @@ while True:
                window['-SAVEXLSX-'].Update(disabled=False)
           window['-ALLTABROW-'].Update(disabled=False)
      elif event == '-SAVECSV-':
-          preddf  = pd.DataFrame({'filename':test_generator.filenames, 'prediction':predictedclass})
+          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'prediction':predictedclass})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.csv"))
                preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
      elif event == '-SAVEXLSX-':
-          preddf  = pd.DataFrame({'filename':test_generator.filenames, 'prediction':predictedclass})
+          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'prediction':predictedclass})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.xlsx"))
@@ -233,11 +235,11 @@ while True:
                     break
                elif eventimg == '-SAVE-':
                     predictedclass[curridx] = valuesimg["-CORRECTION-"]
-                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
+                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass].tolist())
                     window['-TABROW-'].Update(disabled=True)
                elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
                     predictedclass[curridx] = valuesimg["-CORRECTION-"]
-                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
+                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass].tolist())
                     window['-TABROW-'].Update(disabled=True)
                     curridxinit = curridx
                     if eventimg == '-PREVIOUS-':
