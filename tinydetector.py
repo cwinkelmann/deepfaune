@@ -1,7 +1,7 @@
 import tensorflow as tf
-saved_model_loaded = tf.saved_model.load("checkpoints/yolov4-tiny-416/")
+saved_model_loaded = tf.saved_model.load("checkpoints/yolov4-608/")
 infer = saved_model_loaded.signatures['serving_default']
-YOLO_SIZE=416
+YOLO_SIZE=608
 CROP_SIZE=300
 BATCH_SIZE=16
 

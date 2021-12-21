@@ -22,27 +22,27 @@ sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('DarkBlue1')
 #sg.ChangeLookAndFeel('DarkGrey1')
 
-DEBUG = True
+DEBUG = False
 backbone = "efficientnet"
-batch_size = 16
+BATCH_SIZE = 8
 workers = 1
-#hdf5 = "efficientnet11spVide.hdf5"
-#classes = ["blaireau","cerf","chamois","chevreuil","chien","ecureuil","lagomorphe","loup","mustelide","renard","sanglier","vide"] 
-hdf5 = "efficientnetMDcheckWithcroppedImgAugB4.hdf5"
-classes = ["blaireau","bouquetin","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule","vide"]
-#hdf5 = "efficientnet_MDcheckNosmallWithcroppedImgAugB4.hdf5"
-#classes = ["blaireau","bouquetin","cerf","chamois","chevreuil","chien","felinae","humain","lagomorphe","loup","mouflon","mouton","mustelide","renard","sanglier","vache","vehicule","vide"]
+hdf5 = "efficientnet_MDcheckOnlycroppedImgAug.hdf5"
+classes = ["blaireau","bouquetin","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"]
+classesempty = classes + ["vide"]
 
+YOLO_SIZE=608
+CROP_SIZE=300
+savedmodel = "checkpoints/yolov4-608/"
 
 ### GUI WINDOW
 prediction = [[],[]]
-threshold = threshold_default = 0.9
+threshold = threshold_default = 0.5
 left_col = [
      [sg.Image(filename=r'img/cameratrap-nb.png'),sg.Image(filename=r'img/logoINEE.png')],
      [sg.Text("DEEPFAUNE GUI",size=(17,1), font=("Helvetica", 35))],[sg.Text("\n\n\n")],
      [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True ,key='-FOLDER-'), sg.FolderBrowse()],
      #[sg.Spin([i for i in range(1,11)], initial_value=10, k='-SPIN-'), sg.Text('Spin')],
-     [sg.Text('Confidence\t'), sg.Slider(range=(50,99), default_value=threshold_default*100, orientation='h', size=(12,10), change_submits=True, key='-THRESHOLD-')],
+     [sg.Text('Confidence\t'), sg.Slider(range=(25,99), default_value=threshold_default*100, orientation='h', size=(12,10), change_submits=True, key='-THRESHOLD-')],
      [sg.Text('Progress bar'), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
      [sg.Button('Run', key='-RUN-'), sg.Button('Save in CSV', key='-SAVECSV-'), sg.Button('Save in XSLX', key='-SAVEXLSX-')],
      [sg.Button('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
@@ -50,7 +50,7 @@ left_col = [
 right_col=[
      [sg.Multiline(size=(60, 10), write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
      [sg.Table(values=prediction, headings=['filename','prediction'], justification = "c", 
-               vertical_scroll_only=False, auto_size_columns=False, col_widths=[30, 17], num_rows=batch_size, 
+               vertical_scroll_only=False, auto_size_columns=False, col_widths=[30, 17], num_rows=BATCH_SIZE, 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                key='-TABRESULTS-')],      
      [sg.Button('Show all images', key='-ALLTABROW-'),sg.Button('Show selected image', key='-TABROW-')]
@@ -67,19 +67,18 @@ window['-CP-'].Update(disabled=True)
 window['-MV-'].Update(disabled=True)
 
 
-### LOADING MODEL 
+### LOADING CLASSIFIER 
 nbclasses=len(classes)
-labels=["daisy","iris","tulip"]
 if backbone == "resnet":
      from tensorflow.keras.applications.resnet_v2 import ResNet50V2
      from tensorflow.keras.applications.resnet_v2 import preprocess_input, decode_predictions
      base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
 elif backbone == "efficientnet":
-     ##from tensorflow.keras.applications.efficientnet import EfficientNetB2
-     from tensorflow.keras.applications.efficientnet import EfficientNetB4
+     from tensorflow.keras.applications.efficientnet import EfficientNetB2
+     ##from tensorflow.keras.applications.efficientnet import EfficientNetB4
      from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
-     ## base_model = EfficientNetB2(include_top=False, weights=None, input_shape=(300,300,3))
-     base_model = EfficientNetB4(include_top=False, weights=None, input_shape=(380,380,3))
+     base_model = EfficientNetB2(include_top=False, weights=None, input_shape=(300,300,3))
+     ##base_model = EfficientNetB4(include_top=False, weights=None, input_shape=(380,380,3))
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 #x = Dense(512)(x) #256,1024, etc. may work as well
@@ -88,13 +87,17 @@ preds = Activation("softmax")(x)
 model = Model(inputs=base_model.input,outputs=preds)
 model.load_weights(hdf5)
 
+### LOADING YOLO 
+saved_model_loaded = tf.saved_model.load(savedmodel)
+infer = saved_model_loaded.signatures['serving_default']
+
 ### PREDICTION TOOL
 def prediction2class(prediction, threshold):
      class_pred = ['undefined' for i in range(len(prediction))] 
      for i in range(len(prediction)):
           pred = prediction[i]
           if(max(pred)>=threshold):
-               class_pred[i] = classes[np.argmax(pred)]
+               class_pred[i] = classesempty[np.argmax(pred)]
      return(class_pred)
 
 ### PREDICTION & GUI ACTIONS
@@ -116,40 +119,69 @@ while True:
                                                   or filename.endswith(".tif") or filename.endswith(".TIF")
                                                   or filename.endswith(".gif") or filename.endswith(".GIF")
                                                   or filename.endswith(".png") or filename.endswith(".PNG")]})
-          data_generator = ImageDataGenerator(preprocessing_function = preprocess_input)
-          test_generator = data_generator.flow_from_dataframe(
-               df_filename,
-               target_size=model.input_shape[1:3],
-               batch_size=batch_size,
-               class_mode=None,
-               shuffle=False
-          )
+          nbfiles = df_filename.shape[0]
+          print("Number of images:", nfiles)
      elif event == '-THRESHOLD-':
           threshold = values['-THRESHOLD-']/100.
      elif event == '-RUN-':
           sg.cprint('Running....', c='white on green', end='')
           sg.cprint('')
-          ### CALLBACK
-          class OutputCallback(tf.keras.callbacks.Callback):
-               def on_predict_batch_end(self, batch, logs=None):
-                    window['-PROGBAR-'].update_bar((batch+1)*batch_size/test_generator.samples)
-                    print("Processing batch of images",batch+1,": done", flush=True)
-                    #print(logs['outputs'])
-                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames[slice(batch*batch_size,min(test_generator.samples,(batch+1)*batch_size))]],
-                                                                       prediction2class(logs['outputs'],threshold)].tolist())
-          output = OutputCallback()
           ### PREDICTING
-          prediction = model.predict(test_generator, workers=workers, callbacks=[output])
+          prediction = np.zeros(shape=(nbfiles,nbclasses+1), dtype=np.float32)
+          prediction[:,nbclasses] = 1 # by default, predicted as empty
+          k1 = 0
+          k2 = min(k1+BATCH_SIZE,nbfiles)
+          batch = 1
+          images_data = np.empty(shape=(1,YOLO_SIZE,YOLO_SIZE,3), dtype=np.float32)
+          while(k1<nbfiles):
+               cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
+               idxnonempty = []
+               for k in range(k1,k2):
+                    ## LOADING image and convert ton float 32 numpy array
+                    image_path = df_filename["filename"][k]
+                    original_image = Image.open(image_path)
+                    resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
+                    image_data = np.asarray(resized_image).astype(np.float32)
+                    image_data = image_data / 255. # PIL image is int8, this array is float32 and divided by 255
+                    images_data[0,:,:,:] = image_data
+                    ## INFERING boxes and retain the most confident one (if it exists)
+                    batch_data = tf.constant(images_data)
+                    pred_bbox = infer(input_1=batch_data)
+                    for key, value in pred_bbox.items():
+                         boxes = value[:, :, 0:4]
+                         pred_conf = value[:, :, 4:]
+                    if boxes.shape[1]>0: # not empty
+                         idxnonempty.append(k)
+                         idxmax  = np.unravel_index(np.argmax(pred_conf.numpy()[0,:,:]), pred_conf.shape[1:])
+                         bestbox = boxes[0,idxmax[0],:].numpy()
+                         ## CROPPING a single box
+                         NUM_BOXES = 1 # boxes.numpy().shape[1]
+                         box_indices = tf.random.uniform(shape=(NUM_BOXES,), minval=0, maxval=1, dtype=tf.int32)
+                         output = tf.image.crop_and_resize(batch_data, boxes[0,idxmax[0]:(idxmax[0]+1),:], box_indices, (CROP_SIZE,CROP_SIZE))
+                         output.shape
+                         cropped_data[k-k1,:,:,:] = preprocess_input(output[0].numpy()*255)
+               if len(idxnonempty):
+                    prediction[idxnonempty,0:nbclasses] = model.predict(cropped_data[[idx-k1 for idx in idxnonempty],:,:,:], workers=workers)
+                    prediction[idxnonempty,nbclasses] = 0 # not empty
+               ## Update
+               window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
+               print("Processing batch of images",batch,": done", flush=True)
+               #print(logs['outputs'])
+               window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]],
+                                                                   prediction2class(prediction[k1:k2,],threshold)].tolist())
+               k1 = k2
+               k2 = min(k1+BATCH_SIZE,nbfiles)
+               batch = batch+1
           if DEBUG:
                pdprediction = pd.DataFrame(prediction)
-               pdprediction.columns = classes
-               pdprediction.index = test_generator.filenames
+               pdprediction.columns = classesempty
+               pdprediction.index = df_filename["filename"]
                from tempfile import mkstemp
                tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
                print("DEBUG: saving scores to",tmpcsv)
                pdprediction.to_csv(tmpcsv, float_format='%.2g')
           predictedclass = prediction2class(prediction,threshold)         
-          window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in test_generator.filenames],predictedclass].tolist())
+          window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass].tolist())
           window['-SAVECSV-'].Update(disabled=False)
           if pkgutil.find_loader("openpyxl"):
                window['-SAVEXLSX-'].Update(disabled=False)
