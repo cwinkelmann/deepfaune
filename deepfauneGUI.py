@@ -1,27 +1,9 @@
 import PySimpleGUI as sg
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras.applications.imagenet_utils import preprocess_input, decode_predictions
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import numpy as np
-import pandas as pd
-from os import listdir
-from os.path import join, basename
-import pkgutil
-from PIL import Image
-import io
-
-
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('Dark2')
 #sg.ChangeLookAndFeel('DarkBlue1')
 #sg.ChangeLookAndFeel('DarkGrey1')
-
 
 
 DEBUG = False
@@ -50,7 +32,7 @@ left_col = [
      [sg.Button('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
 ]
 right_col=[
-     [sg.Multiline(size=(60, 10), write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
+     [sg.Multiline(size=(60, 10), default_text='Loading model parameters... ', write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
      [sg.Table(values=prediction, headings=['filename','prediction'], justification = "c", 
                vertical_scroll_only=False, auto_size_columns=False, col_widths=[30, 17], num_rows=BATCH_SIZE, 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
@@ -69,7 +51,21 @@ window['-CP-'].Update(disabled=True)
 window['-MV-'].Update(disabled=True)
 
 
-### LOADING CLASSIFIER 
+### LOADING CLASSIFIER
+import tensorflow as tf
+from tensorflow.keras.applications.imagenet_utils import preprocess_input
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from PIL import Image
+import numpy as np
+import pandas as pd
+from os import listdir
+from os.path import join, basename
+import pkgutil
+import io
 nbclasses=len(classes)
 if backbone == "resnet":
      from tensorflow.keras.applications.resnet_v2 import ResNet50V2
@@ -105,13 +101,14 @@ def prediction2class(prediction, threshold):
 ### PREDICTION & GUI ACTIONS
 testdir = ""
 rowidx = [-1]
+print("done")
 while True:
-     event, values = window.read()
+     event, values = window.read(timeout=10)
      if event in (sg.WIN_CLOSED, 'Exit'):
           break
      elif event == '-FOLDER-':
           testdir = values['-FOLDER-']
-          print(testdir)
+          print("Selected folder:", testdir)
           print("Warning: no recursive search")
           ### GENERATOR
           df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in sorted(listdir(testdir))
@@ -168,7 +165,6 @@ while True:
                ## Update
                window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
                print("Processing batch of images",batch,": done", flush=True)
-               #print(logs['outputs'])
                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]],
                                                                    prediction2class(prediction[k1:k2,],threshold)].tolist())
                k1 = k2
@@ -185,7 +181,8 @@ while True:
           predictedclass = prediction2class(prediction,threshold)         
           window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass].tolist())
           window['-SAVECSV-'].Update(disabled=False)
-          if pkgutil.find_loader("openpyxl"):
+          if pkgutil.find_loader("openpyxl") is not None:
+               import openpyxl
                window['-SAVEXLSX-'].Update(disabled=False)
           window['-ALLTABROW-'].Update(disabled=False)
      elif event == '-SAVECSV-':
@@ -221,7 +218,7 @@ while True:
                     [sg.Button('Save', key='-SAVE-'),sg.Button('Close', key='-CLOSE-'),
                      sg.Button('Previous', key='-PREVIOUS-'),
                      sg.Button('Next', bind_return_key=True, key='-NEXT-'),
-                     sg.Checkbox('Only undefined', default=True, key="-ONLYUNDEFINED-")]]
+                     sg.Checkbox('Only undefined', default=False, key="-ONLYUNDEFINED-")]]
           windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, finalize=True)
           image = Image.open(df_filename['filename'][curridx])
           image = image.resize((350,300))
@@ -272,6 +269,8 @@ while True:
           window['-SAVECSV-'].Update(disabled=False)
           window['-SAVEXLSX-'].Update(disabled=False)
           window['-ALLTABROW-'].Update(disabled=False)
+     elif event == sg.TIMEOUT_KEY:
+          window.refresh()
      else:
           window['-TABROW-'].Update(disabled=True)
                
