@@ -120,7 +120,7 @@ while True:
                                                   or filename.endswith(".gif") or filename.endswith(".GIF")
                                                   or filename.endswith(".png") or filename.endswith(".PNG")]})
           nbfiles = df_filename.shape[0]
-          print("Number of images:", nfiles)
+          print("Number of images:", nbfiles)
      elif event == '-THRESHOLD-':
           threshold = values['-THRESHOLD-']/100.
      elif event == '-RUN-':
