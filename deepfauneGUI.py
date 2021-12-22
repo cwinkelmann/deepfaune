@@ -138,27 +138,32 @@ while True:
                for k in range(k1,k2):
                     ## LOADING image and convert ton float 32 numpy array
                     image_path = df_filename["filename"][k]
-                    original_image = Image.open(image_path)
-                    resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
-                    image_data = np.asarray(resized_image).astype(np.float32)
-                    image_data = image_data / 255. # PIL image is int8, this array is float32 and divided by 255
-                    images_data[0,:,:,:] = image_data
-                    ## INFERING boxes and retain the most confident one (if it exists)
-                    batch_data = tf.constant(images_data)
-                    pred_bbox = infer(input_1=batch_data)
-                    for key, value in pred_bbox.items():
-                         boxes = value[:, :, 0:4]
-                         pred_conf = value[:, :, 4:]
-                    if boxes.shape[1]>0: # not empty
-                         idxnonempty.append(k)
-                         idxmax  = np.unravel_index(np.argmax(pred_conf.numpy()[0,:,:]), pred_conf.shape[1:])
-                         bestbox = boxes[0,idxmax[0],:].numpy()
-                         ## CROPPING a single box
-                         NUM_BOXES = 1 # boxes.numpy().shape[1]
-                         box_indices = tf.random.uniform(shape=(NUM_BOXES,), minval=0, maxval=1, dtype=tf.int32)
-                         output = tf.image.crop_and_resize(batch_data, boxes[0,idxmax[0]:(idxmax[0]+1),:], box_indices, (CROP_SIZE,CROP_SIZE))
-                         output.shape
-                         cropped_data[k-k1,:,:,:] = preprocess_input(output[0].numpy()*255)
+                    try:
+                         original_image = Image.open(image_path)
+                         original_image.getdata()[0]
+                    except OSError:
+                         break
+                    else:
+                         resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
+                         image_data = np.asarray(resized_image).astype(np.float32)
+                         image_data = image_data / 255. # PIL image is int8, this array is float32 and divided by 255
+                         images_data[0,:,:,:] = image_data
+                         ## INFERING boxes and retain the most confident one (if it exists)
+                         batch_data = tf.constant(images_data)
+                         pred_bbox = infer(input_1=batch_data)
+                         for key, value in pred_bbox.items():
+                              boxes = value[:, :, 0:4]
+                              pred_conf = value[:, :, 4:]
+                         if boxes.shape[1]>0: # not empty
+                              idxnonempty.append(k)
+                              idxmax  = np.unravel_index(np.argmax(pred_conf.numpy()[0,:,:]), pred_conf.shape[1:])
+                              bestbox = boxes[0,idxmax[0],:].numpy()
+                              ## CROPPING a single box
+                              NUM_BOXES = 1 # boxes.numpy().shape[1]
+                              box_indices = tf.random.uniform(shape=(NUM_BOXES,), minval=0, maxval=1, dtype=tf.int32)
+                              output = tf.image.crop_and_resize(batch_data, boxes[0,idxmax[0]:(idxmax[0]+1),:], box_indices, (CROP_SIZE,CROP_SIZE))
+                              output.shape
+                              cropped_data[k-k1,:,:,:] = preprocess_input(output[0].numpy()*255)
                if len(idxnonempty):
                     prediction[idxnonempty,0:nbclasses] = model.predict(cropped_data[[idx-k1 for idx in idxnonempty],:,:,:], workers=workers)
                     prediction[idxnonempty,nbclasses] = 0 # not empty
