@@ -229,8 +229,6 @@ while True:
                window['-TABROW-'].Update(disabled=True)
           ### SHOWING IMAGE
           window['-ALLTABROW-'].Update(disabled=True)
-          window['-SAVECSV-'].Update(disabled=True)
-          window['-SAVEXLSX-'].Update(disabled=True)
           layout = [[sg.Image(key="-IMAGE-")],
                     [sg.Text('Prediction:', size=(15, 1)),sg.InputText(predictedclass[curridx], key="-CORRECTION-")],
                     [sg.Button('Save', key='-SAVE-'),sg.Button('Close', key='-CLOSE-'),
@@ -293,8 +291,6 @@ while True:
                     windowimg.TKroot.title(basename(df_filename['filename'][curridx]))
                     windowimg["-CORRECTION-"].Update(predictedclass[curridx])
           windowimg.close()
-          window['-SAVECSV-'].Update(disabled=False)
-          window['-SAVEXLSX-'].Update(disabled=False)
           window['-ALLTABROW-'].Update(disabled=False)
      elif event == sg.TIMEOUT_KEY:
           window.refresh()
