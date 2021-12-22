@@ -34,14 +34,15 @@ left_col = [
 right_col=[
      [sg.Multiline(size=(60, 10), default_text='Loading model parameters... ', write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
      [sg.Table(values=prediction, headings=['filename','prediction'], justification = "c", 
-               vertical_scroll_only=False, auto_size_columns=False, col_widths=[30, 17], num_rows=BATCH_SIZE, 
+               vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17], num_rows=BATCH_SIZE, 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                key='-TABRESULTS-')],      
      [sg.Button('Show all images', key='-ALLTABROW-'),sg.Button('Show selected image', key='-TABROW-')]
 ]
 layout = [[sg.Column(left_col, element_justification='l' ),
            sg.Column(right_col, element_justification='l')]] 
-window = sg.Window("DeepFaune GUI",layout).Finalize()
+window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14)).Finalize()
+window['-RUN-'].Update(disabled=True)
 window['-SAVECSV-'].Update(disabled=True)
 window['-SAVEXLSX-'].Update(disabled=True)
 window['-TABROW-'].Update(disabled=True)
@@ -120,6 +121,18 @@ while True:
                                                   or filename.endswith(".png") or filename.endswith(".PNG")]})
           nbfiles = df_filename.shape[0]
           print("Number of images:", nbfiles)
+          if nbfiles>0:
+               predictedclass = ['' for i in range(nbfiles)] 
+               window['-RUN-'].Update(disabled=False)
+               window['-TABROW-'].Update(disabled=False)
+               window['-ALLTABROW-'].Update(disabled=False)
+               window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
+                                                                  predictedclass].tolist())
+          else:
+               sg.popup_error('Incorrect image folder - no image found')
+               window['-RUN-'].Update(disabled=True)
+               window['-TABROW-'].Update(disabled=True)
+               window['-ALLTABROW-'].Update(disabled=True)
      elif event == '-THRESHOLD-':
           threshold = values['-THRESHOLD-']/100.
      elif event == '-RUN-':
@@ -142,7 +155,7 @@ while True:
                          original_image = Image.open(image_path)
                          original_image.getdata()[0]
                     except OSError:
-                         break
+                         print("Corrupted image, considered as empty: ",image_path)
                     else:
                          resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
                          image_data = np.asarray(resized_image).astype(np.float32)
@@ -223,10 +236,15 @@ while True:
                     [sg.Button('Save', key='-SAVE-'),sg.Button('Close', key='-CLOSE-'),
                      sg.Button('Previous', key='-PREVIOUS-'),
                      sg.Button('Next', bind_return_key=True, key='-NEXT-'),
-                     sg.Checkbox('Only undefined', default=False, key="-ONLYUNDEFINED-")]]
-          windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, finalize=True)
-          image = Image.open(df_filename['filename'][curridx])
-          image = image.resize((350,300))
+                     sg.Checkbox('Only\nundefined', default=False, key="-ONLYUNDEFINED-")]]
+          windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(490, 400), font = ("Arial", 14), finalize=True)
+          try:
+               image = Image.open(df_filename['filename'][curridx])
+               image.getdata()[0]
+          except OSError:
+               image = Image.new('RGB', (400, 300))
+          else:
+               image = image.resize((400,300))
           bio = io.BytesIO()
           image.save(bio, format="PNG")
           windowimg["-IMAGE-"].update(data=bio.getvalue())
@@ -262,9 +280,13 @@ while True:
                                    curridx = curridx+1
                                    if curridx==len(predictedclass):
                                         curridx = 0
-                    image = Image.open(df_filename['filename'][curridx])
-                    #image.thumbnail((400, 400))
-                    image = image.resize((350,300))
+                    try:
+                         image = Image.open(df_filename['filename'][curridx])
+                         image.getdata()[0]
+                    except OSError:
+                         image = Image.new('RGB', (400, 300))
+                    else:
+                         image = image.resize((400,300))
                     bio = io.BytesIO()
                     image.save(bio, format="PNG")
                     windowimg["-IMAGE-"].update(data=bio.getvalue())
