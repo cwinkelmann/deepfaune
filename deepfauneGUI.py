@@ -241,7 +241,6 @@ while True:
                          for key, value in pred_bbox.items():
                               boxes = value[:, :, 0:4]
                               pred_conf = value[:, :, 4:]
-                         print("BEFORE",boxes,pred_conf)
                          if boxes.shape[1]>0: # not empty
                               boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
                                    boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
@@ -252,7 +251,6 @@ while True:
                                    iou_threshold=0.45,
                                    score_threshold=0.25
                               )
-                              print("AFTER",boxes,scores)
                               idxnonempty.append(k)
                               idxmax  = np.unravel_index(np.argmax(scores.numpy()[0,:]), scores.shape[1])
                               bestbox = boxes[0,idxmax[0],:].numpy()
