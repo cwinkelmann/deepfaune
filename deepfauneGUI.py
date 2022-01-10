@@ -32,9 +32,9 @@ left_col = [
      [sg.Button('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
 ]
 right_col=[
-     [sg.Multiline(size=(60, 10), default_text='Loading model parameters... ', write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
-     [sg.Table(values=prediction, headings=['filename','prediction'], justification = "c", 
-               vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17], num_rows=BATCH_SIZE, 
+     [sg.Multiline(size=(69, 10), default_text='Loading model parameters... ', write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
+     [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
+               vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                key='-TABRESULTS-')],      
      [sg.Button('Show all images', key='-ALLTABROW-'),sg.Button('Show selected image', key='-TABROW-')]
@@ -93,11 +93,13 @@ infer = saved_model_loaded.signatures['serving_default']
 ### PREDICTION TOOL
 def prediction2class(prediction, threshold):
      class_pred = ['undefined' for i in range(len(prediction))] 
+     score_pred = [0. for i in range(len(prediction))] 
      for i in range(len(prediction)):
           pred = prediction[i]
           if(max(pred)>=threshold):
                class_pred[i] = classesempty[np.argmax(pred)]
-     return(class_pred)
+          score_pred[i] = int(max(pred)*100)/100.
+     return class_pred, score_pred
 
 ### PREDICTION & GUI ACTIONS
 testdir = ""
@@ -123,11 +125,12 @@ while True:
           print("Number of images:", nbfiles)
           if nbfiles>0:
                predictedclass = ['' for i in range(nbfiles)] 
+               predictedscore = ['' for i in range(nbfiles)] 
                window['-RUN-'].Update(disabled=False)
                window['-TABROW-'].Update(disabled=False)
                window['-ALLTABROW-'].Update(disabled=False)
                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
-                                                                  predictedclass].tolist())
+                                                                  predictedclass, predictedscore].tolist())
           else:
                sg.popup_error('Incorrect image folder - no image found')
                window['-RUN-'].Update(disabled=True)
@@ -136,6 +139,9 @@ while True:
      elif event == '-THRESHOLD-':
           threshold = values['-THRESHOLD-']/100.
      elif event == '-RUN-':
+          window['-RUN-'].Update(disabled=True)
+          window['-TABROW-'].Update(disabled=True)
+          window['-ALLTABROW-'].Update(disabled=True)
           sg.cprint('Running....', c='white on green', end='')
           sg.cprint('')
           ### PREDICTING
@@ -183,8 +189,8 @@ while True:
                ## Update
                window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
                print("Processing batch of images",batch,": done", flush=True)
-               window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]],
-                                                                   prediction2class(prediction[k1:k2,],threshold)].tolist())
+               predictedclass_batch, predictedscore_batch = prediction2class(prediction[k1:k2,],threshold)
+               window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
                k1 = k2
                k2 = min(k1+BATCH_SIZE,nbfiles)
                batch = batch+1
@@ -196,21 +202,22 @@ while True:
                tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
                print("DEBUG: saving scores to",tmpcsv)
                pdprediction.to_csv(tmpcsv, float_format='%.2g')
-          predictedclass = prediction2class(prediction,threshold)         
-          window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass].tolist())
+          predictedclass, predictedscore = prediction2class(prediction,threshold)         
+          window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
+          window['-RUN-'].Update(disabled=True)
           window['-SAVECSV-'].Update(disabled=False)
           if pkgutil.find_loader("openpyxl") is not None:
                import openpyxl
                window['-SAVEXLSX-'].Update(disabled=False)
           window['-ALLTABROW-'].Update(disabled=False)
      elif event == '-SAVECSV-':
-          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'prediction':predictedclass})
+          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'prediction':predictedclass, 'score':predictedscore})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.csv"))
                preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
      elif event == '-SAVEXLSX-':
-          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'prediction':predictedclass})
+          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'prediction':predictedclass, 'score':predictedscore})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.xlsx"))
@@ -253,11 +260,13 @@ while True:
                     break
                elif eventimg == '-SAVE-':
                     predictedclass[curridx] = valuesimg["-CORRECTION-"]
-                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass].tolist())
+                    predictedscore[curridx] = 1.0
+                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
                elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
                     predictedclass[curridx] = valuesimg["-CORRECTION-"]
-                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass].tolist())
+                    predictedscore[curridx] = 1.0
+                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
                     curridxinit = curridx
                     if eventimg == '-PREVIOUS-':

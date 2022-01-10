@@ -17,6 +17,7 @@ nbfiles = df_filename.shape[0]
 predictedclass = ['test' for i in range(nbfiles)]
 
 
+## Getting date from exif, or draw random fake date
 from PIL import Image
 def get_date_taken(path):
    try:
@@ -24,15 +25,37 @@ def get_date_taken(path):
    except:
        date = None
    return(date)
-       
-       
-dates = np.array([get_date_taken(file) for file in df_filename["filename"]])
-withdate = np.where(dates != None)
 
-dates = dates[withdate]
-from datetime import datetime
+import random
+from time import time
+def randomDate(seed):
+    random.seed(seed)
+    d = random.randint(1, int(time()))
+    return datetime.fromtimestamp(d).strftime("%Y:%m:%d %H:%M:%S")
+
+dates = np.array([get_date_taken(file) for file in df_filename["filename"]])
+withoutdate = np.where(dates == None)[0]
+dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
+
+## Sorting dates and computing lag
+from datetime import datetime, timedelta
 datesstrip =  np.array([datetime.strptime(date, "%Y:%m:%d %H:%M:%S") for date in dates])
 datesorder = np.argsort(datesstrip)
-lag =  datesstrip[datesorder][2:dates.shape[0]] - datesstrip[datesorder][1:(dates.shape[0]-1)]
-from datetime import timedelta
-np.where(lag<timedelta(seconds=10))
+lagv =  datesstripSorted[2:len(datesstripSorted)] - datesstripSorted[1:(len(datesstripSorted)-1)]
+np.where(lagv<timedelta(seconds=20))[0]
+
+## Treating sequences
+i1 = i2 = 0 # sequences boundaries
+for i in range(1,len(datesstripSorted)):
+   lag = datesstripSorted[i]-datesstripSorted[i-1]
+   if lag<timedelta(seconds=20): # subsequent images in sequence
+      pass
+   else: # sequence change
+      print("treating sequence ",i1,i2)
+      print(datesstrip[datesorder[i1]],datesstrip[datesorder[i2]])
+      i1 = i
+   i2 = i
+print("treating sequence ",i1,i2)   
+
+def predictionWithSequence(i1, i2):
+   [predictedclass[k] for k in datesorder[i1:(i2+1)]]
