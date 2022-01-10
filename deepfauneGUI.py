@@ -18,7 +18,9 @@ YOLO_SIZE=608
 CROP_SIZE=300
 savedmodel = "checkpoints/yolov4-608/"
 
+####################################################################################
 ### GUI WINDOW
+####################################################################################
 prediction = [[],[]]
 threshold = threshold_default = 0.5
 left_col = [
@@ -52,7 +54,9 @@ window['-CP-'].Update(disabled=True)
 window['-MV-'].Update(disabled=True)
 
 
+####################################################################################
 ### LOADING CLASSIFIER
+####################################################################################
 import tensorflow as tf
 from tensorflow.keras.applications.imagenet_utils import preprocess_input
 from tensorflow.keras.models import load_model
@@ -86,11 +90,15 @@ preds = Activation("softmax")(x)
 model = Model(inputs=base_model.input,outputs=preds)
 model.load_weights(hdf5)
 
+####################################################################################
 ### LOADING YOLO 
+####################################################################################
 saved_model_loaded = tf.saved_model.load(savedmodel)
 infer = saved_model_loaded.signatures['serving_default']
 
+####################################################################################
 ### PREDICTION TOOL
+####################################################################################
 def prediction2class(prediction, threshold):
      class_pred = ['undefined' for i in range(len(prediction))] 
      score_pred = [0. for i in range(len(prediction))] 
@@ -101,7 +109,9 @@ def prediction2class(prediction, threshold):
           score_pred[i] = int(max(pred)*100)/100.
      return class_pred, score_pred
 
-### PREDICTION TOOL USING EXIF INFO & SEQUENCES
+####################################################################################
+### PREDICTION TOOL USING EXIF INFO & SEQUENCES, TIME DELTA = 20s
+####################################################################################
 import random
 from time import time
 from datetime import datetime
@@ -157,7 +167,9 @@ def correctPredictionWithSequence(df_filename, predictedclass, predictedscore):
    return predictedclass, predictedscore
 
 
-### PREDICTION & GUI ACTIONS
+####################################################################################
+### GUI IN ACTION
+####################################################################################
 testdir = ""
 rowidx = [-1]
 print("done")
@@ -229,9 +241,20 @@ while True:
                          for key, value in pred_bbox.items():
                               boxes = value[:, :, 0:4]
                               pred_conf = value[:, :, 4:]
+                         print("BEFORE",boxes,pred_conf)
                          if boxes.shape[1]>0: # not empty
+                              boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
+                                   boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
+                                   scores=tf.reshape(
+                                        pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
+                                   max_output_size_per_class=5,
+                                   max_total_size=5,
+                                   iou_threshold=0.45,
+                                   score_threshold=0.25
+                              )
+                              print("AFTER",boxes,scores)
                               idxnonempty.append(k)
-                              idxmax  = np.unravel_index(np.argmax(pred_conf.numpy()[0,:,:]), pred_conf.shape[1:])
+                              idxmax  = np.unravel_index(np.argmax(scores.numpy()[0,:]), scores.shape[1])
                               bestbox = boxes[0,idxmax[0],:].numpy()
                               ## CROPPING a single box
                               NUM_BOXES = 1 # boxes.numpy().shape[1]
