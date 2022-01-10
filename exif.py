@@ -58,8 +58,9 @@ def correctPredictionWithSequence():
          best = np.argmax(majority['score']) # selecting class with best total score
          majorityclass = majority.index[best]
          majorityscore = df.groupby(['prediction']).mean()['score'][best] # overall score as the mean for this class
-         predictedclass[i1:(i2+1)] = np.repeat(majorityclass, i2-i1+1)
-         predictedscore[i1:(i2+1)] = np.repeat(majorityscore, i2-i1+1)
+         for k in datesorder[i1:(i2+1)]:
+            predictedclass[k] = majorityclass 
+            predictedscore[k] = majorityscore
       
    ## Treating sequences
    i1 = i2 = 0 # sequences boundaries
