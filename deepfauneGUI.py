@@ -25,7 +25,7 @@ prediction = [[],[]]
 threshold = threshold_default = 0.5
 left_col = [
      [sg.Image(filename=r'img/cameratrap-nb.png'),sg.Image(filename=r'img/logoINEE.png')],
-     [sg.Text("DEEPFAUNE GUI",size=(17,1), font=("Helvetica", 35))],[sg.Text("\n\n\n")],
+     [sg.Text("DEEPFAUNE",size=(17,1), font=("Helvetica", 35))],[sg.Text("\n\n\n")],
      [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True ,key='-FOLDER-'), sg.FolderBrowse()],
      #[sg.Spin([i for i in range(1,11)], initial_value=10, k='-SPIN-'), sg.Text('Spin')],
      [sg.Text('Confidence\t'), sg.Slider(range=(25,99), default_value=threshold_default*100, orientation='h', size=(12,10), change_submits=True, key='-THRESHOLD-')],
@@ -344,7 +344,6 @@ while True:
                     window['-TABROW-'].Update(disabled=True)
                elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
                     predictedclass[curridx] = valuesimg["-CORRECTION-"]
-                    predictedscore[curridx] = 1.0
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
                     curridxinit = curridx
