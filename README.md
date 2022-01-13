@@ -95,7 +95,10 @@ For any question, bug or feedback, feel free to send an email to [Vincent Miele]
 
 You can watch these [series of 3 french videos](https://imaginecology.sciencesconf.org) (video 1 is the easiest).
 
+<br>
+<br>
+
+---
 ---
 Logo artwork: Rochak Shukla - www.freepik.com
----
 
