@@ -1,6 +1,10 @@
 #  DEEPFAUNE SOFTWARE
 
 
+<img src="img/1316.png" width="50%"/>
+<img src="img/logoINEE.png" width="50%"/>
+
+
 ---
 
 # 1. INSTALLING DEEPFAUNE SOFTWARE
@@ -42,9 +46,21 @@ WARNING: during installation, you will be asked to choose a path to install Anan
 
 - Edit file `deepfauneGUI.bat` and replace `\Users\Laurie\anaconda3` by the path that you chose just before
 
+
 ---
 
-# 2. RUNNING DEEPFAUNE SOFTWARE
+# 2. DOWNLOADING DEEPFAUNE MODEL PARAMETERS (unavailable - in progress)
+---
+Download the model parameters inside the folder where you can find `deepfauneGUI.py`:
+
+-Animal detector parameters: [checkpoints.zip](http://)
+-Classifier parameters: [efficientnet_MDcheckOnlycroppedImgAug.hdf5](http://)
+
+Then unzip the file `checkpoints.zip` and you are done !
+
+---
+
+# 3. RUNNING DEEPFAUNE SOFTWARE
 
 ---
 
@@ -60,7 +76,7 @@ HAVE FUN NOW !!
 
 ---
 
-# 3. CONTACT
+# 4. CONTACT
 
 ---
 
@@ -68,7 +84,7 @@ For any question, bug or feedback, feel free to send an email to [Vincent Miele]
 
 ---
 
-# 4. TROUBLESHOOTING
+# 5. TROUBLESHOOTING
 
 ---
 
