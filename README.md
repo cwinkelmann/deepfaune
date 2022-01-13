@@ -5,7 +5,7 @@
 <img src="img/logoINEE.png" width="50%" align=right>
 
 ---
-WARNING : our software is still under development. Model parameters (section 3) are not yet publicly available. 
+WARNING : our software is still under development. Model parameters (section 3) are not publicly available yet. 
 ---
 
 ---
