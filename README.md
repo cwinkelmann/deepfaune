@@ -1,9 +1,9 @@
-#  DEEPFAUNEGUI
+#  DEEPFAUNE SOFTWARE
 
 
 ---
 
-# 1. INSTALLING DEEPFAUNEGUI
+# 1. INSTALLING DEEPFAUNE SOFTWARE
 
 ---
 
@@ -44,7 +44,7 @@ WARNING: during installation, you will be asked to choose a path to install Anan
 
 ---
 
-# 2. RUNNING DEEPFAUNEGUI
+# 2. RUNNING DEEPFAUNE SOFTWARE
 
 ---
 
