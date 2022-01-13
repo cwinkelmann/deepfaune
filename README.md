@@ -1,9 +1,12 @@
-#  DEEPFAUNE SOFTWARE
+#  WELCOME TO DEEPFAUNE SOFTWARE REPOSITORY
 
 
-<img src="img/1316.png" width="50%"/>
-<img src="img/logoINEE.png" width="50%"/>
+<img src="img/1316.jpg" width="20%">
+<img src="img/logoINEE.png" width="50%" align=right>
 
+---
+WARNING : our software is still under development. Model parameters (section 3) are not yet publicly available. 
+---
 
 ---
 
@@ -49,7 +52,7 @@ WARNING: during installation, you will be asked to choose a path to install Anan
 
 ---
 
-# 2. DOWNLOADING DEEPFAUNE MODEL PARAMETERS (unavailable - in progress)
+# 2. DOWNLOADING DEEPFAUNE MODEL PARAMETERS (not available - in progress)
 ---
 Download the model parameters inside the folder where you can find `deepfauneGUI.py`:
 
