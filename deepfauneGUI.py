@@ -132,6 +132,7 @@ import numpy as np
 import pandas as pd
 from os import listdir
 from os.path import join, basename
+from pathlib import Path
 import pkgutil
 import io
 nbclasses=len(classes)
@@ -252,6 +253,14 @@ while True:
                                                   or filename.endswith(".tif") or filename.endswith(".TIF")
                                                   or filename.endswith(".gif") or filename.endswith(".GIF")
                                                   or filename.endswith(".png") or filename.endswith(".PNG")]})
+#          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in sorted(
+#              [f for f in  Path('data').rglob('*.jpg')] + [f for f in  Path('data').rglob('*.JPG')] +
+#              [f for f in  Path('data').rglob('*.jpeg')] + [f for f in  Path('data').rglob('*.JPEG')] +
+#              [f for f in  Path('data').rglob('*.bmp')] + [f for f in  Path('data').rglob('*.BMP')] +
+#              [f for f in  Path('data').rglob('*.tif')] + [f for f in  Path('data').rglob('*.TIF')] +
+#              [f for f in  Path('data').rglob('*.gif')] + [f for f in  Path('data').rglob('*.GIF')] +
+#              [f for f in  Path('data').rglob('*.png')] + [f for f in  Path('data').rglob('*.PNG')]
+#          )]})
           nbfiles = df_filename.shape[0]
           print("Number of images:", nbfiles)
           if nbfiles>0:
