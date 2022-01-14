@@ -4,6 +4,7 @@ sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('Dark2')
 #sg.ChangeLookAndFeel('DarkBlue1')
 #sg.ChangeLookAndFeel('DarkGrey1')
+sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 
 
 DEBUG = False
@@ -19,6 +20,68 @@ CROP_SIZE=300
 savedmodel = "checkpoints/yolov4-608/"
 
 ####################################################################################
+### ROUNDED BUTTON
+####################################################################################
+from base64 import b64encode
+from PIL import Image, ImageDraw
+from PySimpleGUI import Button, BUTTON_TYPE_READ_FORM, FILE_TYPES_ALL_FILES, theme_background_color, theme_button_color
+import io
+from base64 import b64encode
+
+def RButton(button_text=' ', corner_radius=0.5, button_type=BUTTON_TYPE_READ_FORM, target=(None, None),
+            tooltip=None, file_types=FILE_TYPES_ALL_FILES, initial_folder=None, default_extension='',
+            disabled=False, change_submits=False, enable_events=False,
+            image_size=(None, None), image_subsample=None, border_width=0, size=(None, None),
+            auto_size_button=None, button_color=None, disabled_button_color=("white","white"), highlight_colors=None, 
+            mouseover_colors=(None, None), use_ttk_buttons=None, font=None, bind_return_key=False, focus=False, 
+            pad=None, key=None, right_click_menu=None, expand_x=False, expand_y=False, visible=True, 
+            metadata=None):
+    if None in size:
+        multi = 5
+        size = (((len(button_text) if size[0] is None else size[0]) * 5 + 20) * multi,
+                20 * multi if size[1] is None else size[1])
+    if button_color is None:
+        button_color = theme_button_color()
+    btn_img = Image.new('RGBA', size, (0, 0, 0, 0))
+    corner_radius = int(corner_radius/2*min(size))
+    poly_coords = (
+        (corner_radius, 0),
+        (size[0] - corner_radius, 0),
+        (size[0], corner_radius),
+        (size[0], size[1] - corner_radius),
+        (size[0] - corner_radius, size[1]),
+        (corner_radius, size[1]),
+        (0, size[1] - corner_radius),
+        (0, corner_radius),
+    )
+    pie_coords = [
+        [(size[0] - corner_radius * 2, size[1] - corner_radius * 2, size[0], size[1]),
+         [0, 90]],
+        [(0, size[1] - corner_radius * 2, corner_radius * 2, size[1]), [90, 180]],
+        [(0, 0, corner_radius * 2, corner_radius * 2), [180, 270]],
+        [(size[0] - corner_radius * 2, 0, size[0], corner_radius * 2), [270, 360]],
+    ]
+    brush = ImageDraw.Draw(btn_img)
+    brush.polygon(poly_coords, button_color[1])
+    for coord in pie_coords:
+        brush.pieslice(coord[0], coord[1][0], coord[1][1], button_color[1])
+    data = io.BytesIO()
+    btn_img.thumbnail((size[0] // 3, size[1] // 3), resample=Image.LANCZOS)
+    btn_img.save(data, format='png', quality=95)
+    btn_img = b64encode(data.getvalue())
+    return Button(button_text=button_text, button_type=button_type, target=target, tooltip=tooltip,
+                  file_types=file_types, initial_folder=initial_folder, default_extension=default_extension,
+                  disabled=disabled, change_submits=change_submits, enable_events=enable_events,
+                  image_data=btn_img, image_size=image_size,
+                  image_subsample=image_subsample, border_width=border_width, size=size,
+                  auto_size_button=auto_size_button, button_color=(button_color[0], theme_background_color()),
+                  disabled_button_color=disabled_button_color, highlight_colors=highlight_colors,
+                  mouseover_colors=mouseover_colors, use_ttk_buttons=use_ttk_buttons, font=font,
+                  bind_return_key=bind_return_key, focus=focus, pad=pad, key=key, right_click_menu=right_click_menu,
+                  expand_x=expand_x, expand_y=expand_y, visible=visible, metadata=metadata)
+
+
+####################################################################################
 ### GUI WINDOW
 ####################################################################################
 prediction = [[],[]]
@@ -30,8 +93,8 @@ left_col = [
      #[sg.Spin([i for i in range(1,11)], initial_value=10, k='-SPIN-'), sg.Text('Spin')],
      [sg.Text('Confidence\t'), sg.Slider(range=(25,99), default_value=threshold_default*100, orientation='h', size=(12,10), change_submits=True, key='-THRESHOLD-')],
      [sg.Text('Progress bar'), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
-     [sg.Button('Run', key='-RUN-'), sg.Button('Save in CSV', key='-SAVECSV-'), sg.Button('Save in XSLX', key='-SAVEXLSX-')],
-     [sg.Button('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
+     [RButton('Run', key='-RUN-'), RButton('Save in CSV', key='-SAVECSV-'), RButton('Save in XSLX', key='-SAVEXLSX-')],
+     [RButton('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
 ]
 right_col=[
      [sg.Multiline(size=(69, 10), default_text='Loading model parameters... ', write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
@@ -39,12 +102,12 @@ right_col=[
                vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                key='-TABRESULTS-')],      
-     [sg.Button('Show all images', key='-ALLTABROW-'),sg.Button('Show selected image', key='-TABROW-')]
+     [RButton('Show all images', key='-ALLTABROW-'),RButton('Show selected image', key='-TABROW-')]
 ]
 layout = [[sg.Column(left_col, element_justification='l' ),
            sg.Column(right_col, element_justification='l')]] 
 window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14)).Finalize()
-window['-RUN-'].Update(disabled=True)
+window['-RUN-'].Update(disabled=True, button_color=("#FFFFFF","#FFFFFF"), disabled_button_color=["white","white"])
 window['-SAVECSV-'].Update(disabled=True)
 window['-SAVEXLSX-'].Update(disabled=True)
 window['-TABROW-'].Update(disabled=True)
@@ -210,7 +273,7 @@ while True:
           window['-RUN-'].Update(disabled=True)
           window['-TABROW-'].Update(disabled=True)
           window['-ALLTABROW-'].Update(disabled=True)
-          sg.cprint('Running....', c='white on green', end='')
+          sg.cprint('Running', c='white on green', end='')
           sg.cprint('')
           ### PREDICTING
           prediction = np.zeros(shape=(nbfiles,nbclasses+1), dtype=np.float32)
@@ -220,6 +283,7 @@ while True:
           batch = 1
           images_data = np.empty(shape=(1,YOLO_SIZE,YOLO_SIZE,3), dtype=np.float32)
           while(k1<nbfiles):
+               print("Processing batch of images ", batch, "...", sep='', end="")
                cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
                idxnonempty = []
                for k in range(k1,k2):
@@ -265,7 +329,7 @@ while True:
                     prediction[idxnonempty,nbclasses] = 0 # not empty
                ## Update
                window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-               print("Processing batch of images",batch,": done", flush=True)
+               print(" done", flush=True)
                predictedclass_batch, predictedscore_batch = prediction2class(prediction[k1:k2,],threshold)
                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
                k1 = k2
@@ -279,9 +343,10 @@ while True:
                tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
                print("DEBUG: saving scores to",tmpcsv)
                pdprediction.to_csv(tmpcsv, float_format='%.2g')
+          print("Autocorrecting using exif information...", end="")
           predictedclass, predictedscore = prediction2class(prediction, threshold)
-          print("Autocorrecting using exif information", flush=True)
-          predictedclass, predictedscore = correctPredictionWithSequence(df_filename, predictedclass, predictedscore)       
+          predictedclass, predictedscore = correctPredictionWithSequence(df_filename, predictedclass, predictedscore)
+          print(" done", flush=True)
           window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
           window['-RUN-'].Update(disabled=True)
           window['-SAVECSV-'].Update(disabled=False)
@@ -317,18 +382,18 @@ while True:
           window['-ALLTABROW-'].Update(disabled=True)
           layout = [[sg.Image(key="-IMAGE-")],
                     [sg.Text('Prediction:', size=(15, 1)),sg.InputText(predictedclass[curridx], key="-CORRECTION-")],
-                    [sg.Button('Save', key='-SAVE-'),sg.Button('Close', key='-CLOSE-'),
-                     sg.Button('Previous', key='-PREVIOUS-'),
-                     sg.Button('Next', bind_return_key=True, key='-NEXT-'),
+                    [RButton('Save', key='-SAVE-'),RButton('Close', key='-CLOSE-'),
+                     RButton('Previous', key='-PREVIOUS-'),
+                     RButton('Next', bind_return_key=True, key='-NEXT-'),
                      sg.Checkbox('Only\nundefined', default=False, key="-ONLYUNDEFINED-")]]
-          windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(490, 400), font = ("Arial", 14), finalize=True)
+          windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True)
           try:
                image = Image.open(df_filename['filename'][curridx])
                image.getdata()[0]
           except OSError:
-               image = Image.new('RGB', (400, 300))
+               image = Image.new('RGB', (600, 500))
           else:
-               image = image.resize((400,300))
+               image = image.resize((600,500))
           bio = io.BytesIO()
           image.save(bio, format="PNG")
           windowimg["-IMAGE-"].update(data=bio.getvalue())
@@ -369,9 +434,9 @@ while True:
                          image = Image.open(df_filename['filename'][curridx])
                          image.getdata()[0]
                     except OSError:
-                         image = Image.new('RGB', (400, 300))
+                         image = Image.new('RGB', (600, 500))
                     else:
-                         image = image.resize((400,300))
+                         image = image.resize((600,500))
                     bio = io.BytesIO()
                     image.save(bio, format="PNG")
                     windowimg["-IMAGE-"].update(data=bio.getvalue())
