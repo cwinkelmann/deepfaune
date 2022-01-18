@@ -263,21 +263,14 @@ while True:
           print("Selected folder:", testdir)
           print("Warning: no recursive search")
           ### GENERATOR
-          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in sorted(listdir(testdir))
-                                                  if filename.endswith(".jpg") or filename.endswith(".JPG")
-                                                  or filename.endswith(".jpeg") or filename.endswith(".JPEG")
-                                                  or filename.endswith(".bmp") or filename.endswith(".BMP")
-                                                  or filename.endswith(".tif") or filename.endswith(".TIF")
-                                                  or filename.endswith(".gif") or filename.endswith(".GIF")
-                                                  or filename.endswith(".png") or filename.endswith(".PNG")]})
-#          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in sorted(
-#              [f for f in  Path('data').rglob('*.jpg')] + [f for f in  Path('data').rglob('*.JPG')] +
-#              [f for f in  Path('data').rglob('*.jpeg')] + [f for f in  Path('data').rglob('*.JPEG')] +
-#              [f for f in  Path('data').rglob('*.bmp')] + [f for f in  Path('data').rglob('*.BMP')] +
-#              [f for f in  Path('data').rglob('*.tif')] + [f for f in  Path('data').rglob('*.TIF')] +
-#              [f for f in  Path('data').rglob('*.gif')] + [f for f in  Path('data').rglob('*.GIF')] +
-#              [f for f in  Path('data').rglob('*.png')] + [f for f in  Path('data').rglob('*.PNG')]
-#          )]})
+          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in sorted(
+              [f for f in  Path(testdir).rglob('*.jpg')] + [f for f in  Path(testdir).rglob('*.JPG')] +
+              [f for f in  Path(testdir).rglob('*.jpeg')] + [f for f in  Path(testdir).rglob('*.JPEG')] +
+              [f for f in  Path(testdir).rglob('*.bmp')] + [f for f in  Path(testdir).rglob('*.BMP')] +
+              [f for f in  Path(testdir).rglob('*.tif')] + [f for f in  Path(testdir).rglob('*.TIF')] +
+              [f for f in  Path(testdir).rglob('*.gif')] + [f for f in  Path(testdir).rglob('*.GIF')] +
+              [f for f in  Path(testdir).rglob('*.png')] + [f for f in  Path(testdir).rglob('*.PNG')]
+          )]})
           nbfiles = df_filename.shape[0]
           print("Number of images:", nbfiles)
           if nbfiles>0:
@@ -320,7 +313,7 @@ while True:
                          original_image = Image.open(image_path)
                          original_image.getdata()[0]
                     except OSError:
-                         print("Corrupted image, considered as empty: ",image_path)
+                         pass # print("Corrupted image, considered as empty: ",image_path)
                     else:
                          resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
                          image_data = np.asarray(resized_image).astype(np.float32)
