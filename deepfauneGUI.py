@@ -19,6 +19,8 @@ YOLO_SIZE=608
 CROP_SIZE=300
 savedmodel = "checkpoints/yolov4-608/"
 
+PYINSTALLERMODE = True
+
 ####################################################################################
 ### ROUNDED BUTTON
 ####################################################################################
@@ -89,7 +91,7 @@ threshold = threshold_default = 0.5
 left_col = [
      [sg.Image(filename=r'img/cameratrap-nb.png'),sg.Image(filename=r'img/logoINEE.png')],
      [sg.Text("DEEPFAUNE",size=(17,1), font=("Helvetica", 35))],[sg.Text("\n\n\n")],
-     [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True ,key='-FOLDER-'), sg.FolderBrowse()],
+     [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(key='-FOLDERBROWSE-')],
      #[sg.Spin([i for i in range(1,11)], initial_value=10, k='-SPIN-'), sg.Text('Spin')],
      [sg.Text('Confidence\t'), sg.Slider(range=(25,99), default_value=threshold_default*100, orientation='h', size=(12,10), change_submits=True, key='-THRESHOLD-')],
      [sg.Text('Progress bar'), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
@@ -107,7 +109,8 @@ right_col=[
 layout = [[sg.Column(left_col, element_justification='l' ),
            sg.Column(right_col, element_justification='l')]] 
 window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14)).Finalize()
-window['-RUN-'].Update(disabled=True, button_color=("#FFFFFF","#FFFFFF"), disabled_button_color=["white","white"])
+window['-FOLDERBROWSE-'].Update(disabled=True)
+window['-RUN-'].Update(disabled=True)
 window['-SAVECSV-'].Update(disabled=True)
 window['-SAVEXLSX-'].Update(disabled=True)
 window['-TABROW-'].Update(disabled=True)
@@ -115,18 +118,22 @@ window['-ALLTABROW-'].Update(disabled=True)
 window['-SUBFOLDERS-'].Update(disabled=True)
 window['-CP-'].Update(disabled=True)
 window['-MV-'].Update(disabled=True)
+window.read(timeout=0) # trick to make the button disabled at first
 
 
 ####################################################################################
 ### LOADING CLASSIFIER
 ####################################################################################
 import tensorflow as tf
-from tensorflow.keras.applications.imagenet_utils import preprocess_input
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+if PYINSTALLERMODE:
+    import keras
+    from keras.layers import Dense,GlobalAveragePooling2D,Activation
+    from keras.models import Model
+    from keras.preprocessing.image import ImageDataGenerator
+else:
+    from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from PIL import Image
 import numpy as np
 import pandas as pd
@@ -137,15 +144,24 @@ import pkgutil
 import io
 nbclasses=len(classes)
 if backbone == "resnet":
-     from tensorflow.keras.applications.resnet_v2 import ResNet50V2
-     from tensorflow.keras.applications.resnet_v2 import preprocess_input, decode_predictions
-     base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
+    if PYINSTALLERMODE:
+        from keras.applications.resnet_v2 import ResNet50V2
+        from .keras.applications.resnet_v2 import preprocess_input, decode_predictions
+    else:
+        from keras.applications.resnet_v2 import ResNet50V2
+        from keras.applications.resnet_v2 import preprocess_input, decode_predictions
+    base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
 elif backbone == "efficientnet":
-     from tensorflow.keras.applications.efficientnet import EfficientNetB2
-     ##from tensorflow.keras.applications.efficientnet import EfficientNetB4
-     from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
-     base_model = EfficientNetB2(include_top=False, weights=None, input_shape=(300,300,3))
-     ##base_model = EfficientNetB4(include_top=False, weights=None, input_shape=(380,380,3))
+    if PYINSTALLERMODE:
+        from keras.applications.efficientnet import EfficientNetB2
+        ##from tensorflow.keras.applications.efficientnet import EfficientNetB4
+        from keras.applications.efficientnet import preprocess_input, decode_predictions
+    else:
+        from tensorflow.keras.applications.efficientnet import EfficientNetB2
+        ##from tensorflow.keras.applications.efficientnet import EfficientNetB4
+        from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
+    base_model = EfficientNetB2(include_top=False, weights=None, input_shape=(300,300,3))
+    ##base_model = EfficientNetB4(include_top=False, weights=None, input_shape=(380,380,3))
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 #x = Dense(512)(x) #256,1024, etc. may work as well
@@ -237,6 +253,7 @@ def correctPredictionWithSequence(df_filename, predictedclass, predictedscore):
 testdir = ""
 rowidx = [-1]
 print("done")
+window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
      event, values = window.read(timeout=10)
      if event in (sg.WIN_CLOSED, 'Exit'):
@@ -280,6 +297,7 @@ while True:
           threshold = values['-THRESHOLD-']/100.
      elif event == '-RUN-':
           window['-RUN-'].Update(disabled=True)
+          window['-FOLDERBROWSE-'].Update(disabled=True)
           window['-TABROW-'].Update(disabled=True)
           window['-ALLTABROW-'].Update(disabled=True)
           sg.cprint('Running', c='white on green', end='')
@@ -358,6 +376,7 @@ while True:
           print(" done", flush=True)
           window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
           window['-RUN-'].Update(disabled=True)
+          window['-FOLDERBROWSE-'].Update(disabled=False)
           window['-SAVECSV-'].Update(disabled=False)
           if pkgutil.find_loader("openpyxl") is not None:
                import openpyxl
