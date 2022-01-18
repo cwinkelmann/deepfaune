@@ -19,7 +19,7 @@ YOLO_SIZE=608
 CROP_SIZE=300
 savedmodel = "checkpoints/yolov4-608/"
 
-PYINSTALLERMODE = True
+PYINSTALLERMODE = False
 
 ####################################################################################
 ### ROUNDED BUTTON
