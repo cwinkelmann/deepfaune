@@ -87,12 +87,13 @@ def RButton(button_text=' ', corner_radius=0.5, button_type=BUTTON_TYPE_READ_FOR
 ####################################################################################
 prediction = [[],[]]
 threshold = threshold_default = 0.5
+maxlag = maxlag_default = 20 # seconds
 left_col = [
      [sg.Image(filename=r'img/cameratrap-nb.png'),sg.Image(filename=r'img/logoINEE.png')],
      [sg.Text("DEEPFAUNE",size=(17,1), font=("Helvetica", 35))],[sg.Text("\n\n\n")],
      [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(key='-FOLDERBROWSE-')],
-     #[sg.Spin([i for i in range(1,11)], initial_value=10, k='-SPIN-'), sg.Text('Spin')],
-     [sg.Text('Confidence\t'), sg.Slider(range=(25,99), default_value=threshold_default*100, orientation='h', size=(12,10), change_submits=True, key='-THRESHOLD-')],
+     [sg.Text('Confidence threshold\t'), sg.Spin(values=[i for i in range(25, 99)], initial_value=int(threshold_default*100), size=(4, 1), change_submits=True, key='-THRESHOLD-')],
+     [sg.Text('Sequence max lag (seconds)\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, key='-LAG-')],
      [sg.Text('Progress bar'), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
      [RButton('Run', key='-RUN-'), RButton('Save in CSV', key='-SAVECSV-'), RButton('Save in XSLX', key='-SAVEXLSX-')],
      [RButton('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
@@ -110,6 +111,8 @@ layout = [[sg.Column(left_col, element_justification='l' ),
 window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14)).Finalize()
 window['-FOLDERBROWSE-'].Update(disabled=True)
 window['-RUN-'].Update(disabled=True)
+window['-THRESHOLD-'].Update(disabled=True)
+window['-LAG-'].Update(disabled=True)
 window['-SAVECSV-'].Update(disabled=True)
 window['-SAVEXLSX-'].Update(disabled=True)
 window['-TABROW-'].Update(disabled=True)
@@ -276,6 +279,8 @@ while True:
                predictedclass = ['' for k in range(nbfiles)] 
                predictedscore = ['' for k in range(nbfiles)] 
                window['-RUN-'].Update(disabled=False)
+               window['-THRESHOLD-'].Update(disabled=False)
+               window['-LAG-'].Update(disabled=False)
                window['-TABROW-'].Update(disabled=False)
                window['-ALLTABROW-'].Update(disabled=False)
                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
@@ -286,12 +291,18 @@ while True:
                window['-TABROW-'].Update(disabled=True)
                window['-ALLTABROW-'].Update(disabled=True)
      elif event == '-THRESHOLD-':
-          threshold = values['-THRESHOLD-']/100.
+          threshold = float(values['-THRESHOLD-'])/100.
+          print(threshold)
+     elif event == '-LAG-':
+          maxlag = float(values['-LAG-'])
+          print(maxlag)
      elif event == '-RUN-':
           window['-RUN-'].Update(disabled=True)
           window['-FOLDERBROWSE-'].Update(disabled=True)
           window['-TABROW-'].Update(disabled=True)
           window['-ALLTABROW-'].Update(disabled=True)
+          window['-THRESHOLD-'].Update(disabled=True)
+          window['-LAG-'].Update(disabled=True)
           sg.cprint('Running', c='white on green', end='')
           sg.cprint('')
           ### PREDICTING
