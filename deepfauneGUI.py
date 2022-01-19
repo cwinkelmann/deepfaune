@@ -19,7 +19,6 @@ YOLO_SIZE=608
 CROP_SIZE=300
 savedmodel = "checkpoints/yolov4-608/"
 
-PYINSTALLERMODE = False
 
 ####################################################################################
 ### ROUNDED BUTTON
@@ -125,41 +124,26 @@ window.read(timeout=0) # trick to make the button disabled at first
 ### LOADING CLASSIFIER
 ####################################################################################
 import tensorflow as tf
-if PYINSTALLERMODE:
-    import keras
-    from keras.layers import Dense,GlobalAveragePooling2D,Activation
-    from keras.models import Model
-    from keras.preprocessing.image import ImageDataGenerator
-else:
-    from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from PIL import Image
 import numpy as np
 import pandas as pd
-from os import listdir
+from os import listdir, mkdir
 from os.path import join, basename
 from pathlib import Path
 import pkgutil
 import io
 nbclasses=len(classes)
 if backbone == "resnet":
-    if PYINSTALLERMODE:
-        from keras.applications.resnet_v2 import ResNet50V2
-        from .keras.applications.resnet_v2 import preprocess_input, decode_predictions
-    else:
-        from keras.applications.resnet_v2 import ResNet50V2
-        from keras.applications.resnet_v2 import preprocess_input, decode_predictions
+    from keras.applications.resnet_v2 import ResNet50V2
+    from keras.applications.resnet_v2 import preprocess_input, decode_predictions
     base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
 elif backbone == "efficientnet":
-    if PYINSTALLERMODE:
-        from keras.applications.efficientnet import EfficientNetB2
-        ##from tensorflow.keras.applications.efficientnet import EfficientNetB4
-        from keras.applications.efficientnet import preprocess_input, decode_predictions
-    else:
-        from tensorflow.keras.applications.efficientnet import EfficientNetB2
-        ##from tensorflow.keras.applications.efficientnet import EfficientNetB4
-        from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
+    from tensorflow.keras.applications.efficientnet import EfficientNetB2
+    ##from tensorflow.keras.applications.efficientnet import EfficientNetB4
+    from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
     base_model = EfficientNetB2(include_top=False, weights=None, input_shape=(300,300,3))
     ##base_model = EfficientNetB4(include_top=False, weights=None, input_shape=(380,380,3))
 x = base_model.output
@@ -261,7 +245,6 @@ while True:
      elif event == '-FOLDER-':
           testdir = values['-FOLDER-']
           print("Selected folder:", testdir)
-          print("Warning: no recursive search")
           ### GENERATOR
           df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in sorted(
               [f for f in  Path(testdir).rglob('*.jpg')] + [f for f in  Path(testdir).rglob('*.JPG')] +
@@ -274,8 +257,8 @@ while True:
           nbfiles = df_filename.shape[0]
           print("Number of images:", nbfiles)
           if nbfiles>0:
-               predictedclass = ['' for i in range(nbfiles)] 
-               predictedscore = ['' for i in range(nbfiles)] 
+               predictedclass = ['' for k in range(nbfiles)] 
+               predictedscore = ['' for k in range(nbfiles)] 
                window['-RUN-'].Update(disabled=False)
                window['-TABROW-'].Update(disabled=False)
                window['-ALLTABROW-'].Update(disabled=False)
@@ -348,10 +331,10 @@ while True:
                     prediction[idxnonempty,0:nbclasses] = model.predict(cropped_data[[idx-k1 for idx in idxnonempty],:,:,:], workers=workers)
                     prediction[idxnonempty,nbclasses] = 0 # not empty
                ## Update
-               window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
+               #window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
                print(" done", flush=True)
                predictedclass_batch, predictedscore_batch = prediction2class(prediction[k1:k2,],threshold)
-               window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
+               #window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
                k1 = k2
                k2 = min(k1+BATCH_SIZE,nbfiles)
                batch = batch+1
@@ -370,6 +353,9 @@ while True:
           window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
           window['-RUN-'].Update(disabled=True)
           window['-FOLDERBROWSE-'].Update(disabled=False)
+          window['-SUBFOLDERS-'].Update(disabled=False)
+          window['-CP-'].Update(disabled=False)
+          window['-MV-'].Update(disabled=False)
           window['-SAVECSV-'].Update(disabled=False)
           if pkgutil.find_loader("openpyxl") is not None:
                import openpyxl
@@ -465,13 +451,37 @@ while True:
                     windowimg["-CORRECTION-"].Update(predictedclass[curridx])
           windowimg.close()
           window['-ALLTABROW-'].Update(disabled=False)
+     elif event == '-SUBFOLDERS-':
+         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+         if values["-CP-"] == True:
+             confirm = sg.popup_yes_no("Do you want to copy images in subfolders of "+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
+             if confirm:
+                 print("Copying to",join(testdir,"deepfaune_"+now))
+         if values["-MV-"] == True:
+             confirm = sg.popup_yes_no("Do you want to move images in subfolders of "+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
+             if confirm:
+                 print("Moving to",join(testdir,"deepfaune_"+now))
+         if confirm:
+             import shutil
+             mkdir(join(testdir,"deepfaune_"+now))
+             for subfolder in  set(predictedclass):
+                 mkdir(join(testdir,"deepfaune_"+now,subfolder))
+             if values["-CP-"] == True:
+                 for k in range(nbfiles):
+                     shutil.copyfile(df_filename["filename"][k],
+                                     join(testdir,"deepfaune_"+now,predictedclass[k],basename(df_filename['filename'][k])))
+             if values["-MV-"] == True:
+                 for k in range(nbfiles):
+                     shutil.move(df_filename["filename"][k],
+                                 join(testdir,"deepfaune_"+now,predictedclass[k],basename(df_filename['filename'][k])))
+         window['-SUBFOLDERS-'].Update(disabled=True)
+         window['-CP-'].Update(disabled=True)
+         window['-MV-'].Update(disabled=True)                     
      elif event == sg.TIMEOUT_KEY:
-          window.refresh()
+         window.refresh()
      else:
-          window['-TABROW-'].Update(disabled=True)
-               
-               
-               
+         window['-TABROW-'].Update(disabled=True)
+                              
 window.close()  
 
 
