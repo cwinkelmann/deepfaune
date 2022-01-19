@@ -98,7 +98,7 @@ left_col = [
      [RButton('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
 ]
 right_col=[
-     [sg.Multiline(size=(69, 10), default_text='Loading model parameters... ', write_only=True, key="-ML_KEY-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
+     [sg.Multiline(size=(69, 10), default_text='Loading model parameters... ', write_only=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
      [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
                vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
@@ -191,7 +191,8 @@ def get_date_taken(path):
       date = None
    return date
     
-def correctPredictionWithSequence(df_filename, predictedclass, predictedscore):
+def correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base):
+   seqnum = np.repeat(0, df_filename.shape[0])
    ## Getting date from exif, or draw random fake date
    dates = np.array([get_date_taken(file) for file in df_filename["filename"]])
    withoutdate = np.where(dates == None)[0]
@@ -204,7 +205,7 @@ def correctPredictionWithSequence(df_filename, predictedclass, predictedscore):
    datesstripSorted = np.sort(datesstrip)
    
    def majorityVotingInSequence(i1, i2):
-      df = pd.DataFrame({'prediction':[predictedclass[k] for k in datesorder[i1:(i2+1)]], 'score':[predictedscore[k] for k in datesorder[i1:(i2+1)]]})
+      df = pd.DataFrame({'prediction':[predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
       majority = df.groupby(['prediction']).sum()
       if list(majority.index) == ['vide']:
          pass # only empty images
@@ -214,11 +215,15 @@ def correctPredictionWithSequence(df_filename, predictedclass, predictedscore):
          majorityclass = majority.index[best]
          majorityscore = df.groupby(['prediction']).mean()['score'][best] # overall score as the mean for this class
          for k in datesorder[i1:(i2+1)]:
-             if predictedclass[k]!= 'vide':
+             if predictedclass_base[k]!= 'vide':
                  predictedclass[k] = majorityclass 
                  predictedscore[k] = int(majorityscore*100)/100.
+             else:
+                 predictedclass[k] = 'vide'
+                 predictedscore[k] = predictedscore_base[k]
             
    ## Treating sequences
+   curseqnum = 1
    i1 = i2 = 0 # sequences boundaries
    for i in range(1,len(datesstripSorted)):
       lag = datesstripSorted[i]-datesstripSorted[i-1]
@@ -226,10 +231,13 @@ def correctPredictionWithSequence(df_filename, predictedclass, predictedscore):
          pass
       else: # sequence change
          majorityVotingInSequence(i1, i2)
+         seqnum[datesorder[i1:(i2+1)]] = curseqnum
+         curseqnum += 1
          i1 = i
       i2 = i
    majorityVotingInSequence(i1, i2)
-   return predictedclass, predictedscore
+   seqnum[datesorder[i1:(i2+1)]] = curseqnum
+   return predictedclass, predictedscore, seqnum
 
 
 ####################################################################################
@@ -244,20 +252,27 @@ while True:
      if event in (sg.WIN_CLOSED, 'Exit'):
           break
      elif event == '-FOLDER-':
+          window['-SAVECSV-'].Update(disabled=True)
+          window['-SAVEXLSX-'].Update(disabled=True)
+          window['-SUBFOLDERS-'].Update(disabled=True)
+          window['-CP-'].Update(disabled=True)
+          window['-MV-'].Update(disabled=True)
           testdir = values['-FOLDER-']
           print("Selected folder:", testdir)
           ### GENERATOR
-          df_filename = pd.DataFrame({'filename':[join(testdir,filename) for filename in sorted(
+          df_filename = pd.DataFrame({'filename':sorted(
               [f for f in  Path(testdir).rglob('*.jpg')] + [f for f in  Path(testdir).rglob('*.JPG')] +
               [f for f in  Path(testdir).rglob('*.jpeg')] + [f for f in  Path(testdir).rglob('*.JPEG')] +
               [f for f in  Path(testdir).rglob('*.bmp')] + [f for f in  Path(testdir).rglob('*.BMP')] +
               [f for f in  Path(testdir).rglob('*.tif')] + [f for f in  Path(testdir).rglob('*.TIF')] +
               [f for f in  Path(testdir).rglob('*.gif')] + [f for f in  Path(testdir).rglob('*.GIF')] +
               [f for f in  Path(testdir).rglob('*.png')] + [f for f in  Path(testdir).rglob('*.PNG')]
-          )]})
+          )})
           nbfiles = df_filename.shape[0]
           print("Number of images:", nbfiles)
           if nbfiles>0:
+               predictedclass_base = ['' for k in range(nbfiles)] # before autocorrect with sequences
+               predictedscore_base = ['' for k in range(nbfiles)] # idem
                predictedclass = ['' for k in range(nbfiles)] 
                predictedscore = ['' for k in range(nbfiles)] 
                window['-RUN-'].Update(disabled=False)
@@ -332,10 +347,10 @@ while True:
                     prediction[idxnonempty,0:nbclasses] = model.predict(cropped_data[[idx-k1 for idx in idxnonempty],:,:,:], workers=workers)
                     prediction[idxnonempty,nbclasses] = 0 # not empty
                ## Update
-               #window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
+               window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
                print(" done", flush=True)
                predictedclass_batch, predictedscore_batch = prediction2class(prediction[k1:k2,],threshold)
-               #window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
+               window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
                k1 = k2
                k2 = min(k1+BATCH_SIZE,nbfiles)
                batch = batch+1
@@ -348,8 +363,8 @@ while True:
                print("DEBUG: saving scores to",tmpcsv)
                pdprediction.to_csv(tmpcsv, float_format='%.2g')
           print("Autocorrecting using exif information...", end="")
-          predictedclass, predictedscore = prediction2class(prediction, threshold)
-          predictedclass, predictedscore = correctPredictionWithSequence(df_filename, predictedclass, predictedscore)
+          predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)
+          predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base)
           print(" done", flush=True)
           window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
           window['-RUN-'].Update(disabled=True)
@@ -363,13 +378,17 @@ while True:
                window['-SAVEXLSX-'].Update(disabled=False)
           window['-ALLTABROW-'].Update(disabled=False)
      elif event == '-SAVECSV-':
-          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'prediction':predictedclass, 'score':predictedscore})
+          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
+                                  'prediction':predictedclass, 'score':predictedscore,
+                                  'predictionbase':predictedclass_base, 'scorebase':predictedscore_base})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.csv"))
                preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
      elif event == '-SAVEXLSX-':
-          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'prediction':predictedclass, 'score':predictedscore})
+          preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
+                                  'prediction':predictedclass, 'score':predictedscore,
+                                  'predictionbase':predictedclassbase, 'scorebase':predictedscorebase})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.xlsx"))
