@@ -214,8 +214,9 @@ def correctPredictionWithSequence(df_filename, predictedclass, predictedscore):
          majorityclass = majority.index[best]
          majorityscore = df.groupby(['prediction']).mean()['score'][best] # overall score as the mean for this class
          for k in datesorder[i1:(i2+1)]:
-            predictedclass[k] = majorityclass 
-            predictedscore[k] = int(majorityscore*100)/100.
+             if predictedclass[k]!= 'vide':
+                 predictedclass[k] = majorityclass 
+                 predictedscore[k] = int(majorityscore*100)/100.
             
    ## Treating sequences
    i1 = i2 = 0 # sequences boundaries
