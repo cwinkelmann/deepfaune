@@ -211,7 +211,9 @@ def correctPredictionWithSequence(df_filename, predictedclass_base, predictedsco
       df = pd.DataFrame({'prediction':[predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
       majority = df.groupby(['prediction']).sum()
       if list(majority.index) == ['vide']:
-         pass # only empty images
+         for k in datesorder[i1:(i2+1)]:
+             predictedclass[k] = 'vide'
+             predictedscore[k] = predictedscore_base[k]
       else:
          majority = majority[majority.index != 'vide'] # skipping empty images in sequence
          best = np.argmax(majority['score']) # selecting class with best total score
