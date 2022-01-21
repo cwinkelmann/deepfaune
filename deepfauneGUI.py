@@ -11,7 +11,7 @@ DEBUG = False
 backbone = "efficientnet"
 BATCH_SIZE = 8
 workers = 1
-hdf5 = "efficientnet_MDcheckOnlycroppedImgAug.hdf5"
+hdf5 = "efficientnet_MDcheckOnlycroppedImgAugB3.hdf5"
 classes = ["blaireau","bouquetin","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"]
 classesempty = classes + ["vide"]
 
@@ -92,8 +92,8 @@ left_col = [
      [sg.Image(filename=r'img/cameratrap-nb.png'),sg.Image(filename=r'img/logoINEE.png')],
      [sg.Text("DEEPFAUNE",size=(17,1), font=("Helvetica", 35))],[sg.Text("\n\n\n")],
      [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(key='-FOLDERBROWSE-')],
-     [sg.Text('Confidence threshold\t'), sg.Spin(values=[i for i in range(25, 99)], initial_value=int(threshold_default*100), size=(4, 1), change_submits=True, key='-THRESHOLD-')],
-     [sg.Text('Sequence max lag (seconds)\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, key='-LAG-')],
+     [sg.Text('Confidence threshold\t'), sg.Spin(values=[i for i in range(25, 99)], initial_value=int(threshold_default*100), size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
+     [sg.Text('Sequence max lag (seconds)\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
      [sg.Text('Progress bar'), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
      [RButton('Run', key='-RUN-'), RButton('Save in CSV', key='-SAVECSV-'), RButton('Save in XSLX', key='-SAVEXLSX-')],
      [RButton('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
@@ -144,11 +144,9 @@ if backbone == "resnet":
     from keras.applications.resnet_v2 import preprocess_input, decode_predictions
     base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
 elif backbone == "efficientnet":
-    from tensorflow.keras.applications.efficientnet import EfficientNetB2
-    ##from tensorflow.keras.applications.efficientnet import EfficientNetB4
+    from tensorflow.keras.applications.efficientnet import EfficientNetB3
     from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
-    base_model = EfficientNetB2(include_top=False, weights=None, input_shape=(300,300,3))
-    ##base_model = EfficientNetB4(include_top=False, weights=None, input_shape=(380,380,3))
+    base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(300,300,3))
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
 #x = Dense(512)(x) #256,1024, etc. may work as well
@@ -392,16 +390,16 @@ while True:
           window['-ALLTABROW-'].Update(disabled=False)
      elif event == '-SAVECSV-':
           preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
-                                  'prediction':predictedclass, 'score':predictedscore,
-                                  'predictionbase':predictedclass_base, 'scorebase':predictedscore_base})
+                                  'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
+                                  'prediction':predictedclass, 'score':predictedscore})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.csv"))
                preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
      elif event == '-SAVEXLSX-':
           preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
-                                  'prediction':predictedclass, 'score':predictedscore,
-                                  'predictionbase':predictedclassbase, 'scorebase':predictedscorebase})
+                                  'predictionbase':predictedclassbase, 'scorebase':predictedscorebase,
+                                  'prediction':predictedclass, 'score':predictedscore})
           confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
           if confirm:
                print("Saving to",join(testdir,"deepfaune.xlsx"))
@@ -421,7 +419,10 @@ while True:
           ### SHOWING IMAGE
           window['-ALLTABROW-'].Update(disabled=True)
           layout = [[sg.Image(key="-IMAGE-")],
-                    [sg.Text('Prediction:', size=(15, 1)),sg.InputText(predictedclass[curridx], key="-CORRECTION-")],
+                    [sg.Text('Prediction:', size=(15, 1)),
+                     #sg.InputText(predictedclass[curridx], key="-CORRECTION-")],
+                     #sg.Combo(values=list(classes+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key="-CORRECTION-")],
+                     sg.Combo(values=list(classesempty+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key="-CORRECTION-")],
                     [RButton('Save', key='-SAVE-'),RButton('Close', key='-CLOSE-'),
                      RButton('Previous', key='-PREVIOUS-'),
                      RButton('Next', bind_return_key=True, key='-NEXT-'),
@@ -448,7 +449,6 @@ while True:
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
                elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
-                    predictedclass[curridx] = valuesimg["-CORRECTION-"]
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
                     curridxinit = curridx
@@ -457,7 +457,7 @@ while True:
                          if curridx==-1:
                               curridx = len(predictedclass)-1
                          if valuesimg['-ONLYUNDEFINED-']: # search for the previous undefined image, if it exists
-                              while predictedclass[curridx]!="undefined" and curridx!=curridxinit:
+                              while predictedclass[curridx]!='undefined' and curridx!=curridxinit:
                                    curridx = curridx-1
                                    if curridx==-1:
                                         curridx = len(predictedclass)-1
@@ -466,7 +466,7 @@ while True:
                          if curridx==len(predictedclass):
                               curridx = 0
                          if valuesimg['-ONLYUNDEFINED-']: # search for the next undefined image, if it exists
-                              while predictedclass[curridx]!="undefined" and curridx!=curridxinit:
+                              while predictedclass[curridx]!='undefined' and curridx!=curridxinit:
                                    curridx = curridx+1
                                    if curridx==len(predictedclass):
                                         curridx = 0
