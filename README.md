@@ -85,9 +85,20 @@ HAVE FUN NOW !!
 
 For any question, bug or feedback, feel free to send an email to [Vincent Miele](https://lbbe.univ-lyon1.fr/-Miele-Vincent-.html) <!--or use the Gitlab Service Desk-->
 
+
 ---
 
-# 5. TROUBLESHOOTING
+# 5. LICENCE
+
+---
+
+`deepfaune` is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html)
+
+Commercial use of any element of `deepfaune` is forbidden.
+
+---
+
+# 6. TROUBLESHOOTING
 
 ---
 
