@@ -430,6 +430,7 @@ while True:
           if confirm:
                print("Saving to",join(testdir,"deepfaune.csv"))
                preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
+               window['-SAVECSV-'].Update(disabled=True)
      elif event == '-SAVEXLSX-':
           preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
                                   'predictionbase':predictedclassbase, 'scorebase':predictedscorebase,
@@ -438,6 +439,7 @@ while True:
           if confirm:
                print("Saving to",join(testdir,"deepfaune.xlsx"))
                preddf.to_excel(join(testdir,"deepfaune.xlsx"), index=False)
+               window['-SAVEXLSX-'].Update(disabled=True)
      elif event == '-TABRESULTS-':
           rowidx = values['-TABRESULTS-']
           if len(rowidx)==0:
@@ -482,6 +484,8 @@ while True:
                     predictedscore[curridx] = 1.0
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
+                    window['-SAVECSV-'].Update(disabled=False)
+                    window['-SAVEXLSX-'].Update(disabled=False)
                elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
