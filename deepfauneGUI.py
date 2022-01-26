@@ -41,15 +41,55 @@ sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 
 
+
+####################################################################################
+### ROUNDED BUTTON
+####################################################################################
+
+txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
+              'gb':["badger","ibex","red deer","chamois","roe deer","dog","squirrel","felinae","human","lagomorph","wolf","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicule"]}
+txt_empty = {'fr':"vide", 'gb':"empty"}
+txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
+txt_imagefolder = {'fr':"", 'gb':"Image folder"}
+txt_browse = {'fr':"Choisir un dossier d'images", 'gb':"Select an image folder"}
+txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
+txt_sequencemaxlag = {'fr':"Délai max / sequence (secondes)", 'gb':"Sequence max lag (seconds)"}
+txt_progressbar = {'fr':"Barre d'état", 'gb':"Progress bar"}
+txt_run = {'fr':"Lancer", 'gb':"Run"}
+txt_save = {'fr':"Enregistrer en ", 'gb':"Save in "}
+txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders"}
+txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
+txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
+txt_loading = {'fr':"Chargement des paramètres... ", 'gb':"Loading model parameters... "}
+txt_showall = {'fr':"Afficher les images", 'gb':"Show all images"}
+txt_showselected = {'fr':"Afficher l'image sélectionnée", 'gb':"Show selected image"}
+txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
+txt_wanttocopy = {'fr':"Voulez-vous copier les images vers des sous-dossiers de ", 'gb':"Do you want to copy images in subfolders of "}
+txt_wanttomove = {'fr':"Voulez-vous déplacer les images vers des sous-dossiers de ", 'gb':"Do you want to move images in subfolders of "}
+txt_savepred = {'fr':"Enregistrer", 'gb':"Save"}
+txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
+txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
+txt_restrict = {'fr':["Undéfini seulement"], 'gb':["Only undefined"]}
+
+def frgbprint(txt_fr, txt_gb, end='\n'):
+    if LANG=="fr":
+        print(txt_fr, end=end)
+    if LANG=="gb":
+        print(txt_gb, end=end)
+    
+
+####################################################################################
+### PARAMETERS
+####################################################################################
 VERSION = "0.1"
+LANG = "fr"
 DEBUG = False
 backbone = "efficientnet"
+hdf5 = "efficientnet_MDcheckOnlycroppedImgAugB3.hdf5"
 BATCH_SIZE = 8
 workers = 1
-hdf5 = "efficientnet_MDcheckOnlycroppedImgAugB3.hdf5"
-classes = ["blaireau","bouquetin","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"]
-classesempty = classes + ["vide"]
-
+classes = txt_classes[LANG]
+classesempty = classes + [txt_empty[LANG]]
 YOLO_SIZE=608
 CROP_SIZE=300
 savedmodel = "checkpoints/yolov4-608/"
@@ -126,20 +166,20 @@ maxlag = maxlag_default = 20 # seconds
 left_col = [
      [sg.Image(filename=r'img/cameratrap-nb.png'),sg.Image(filename=r'img/logoINEE.png')],
      [sg.Text("DEEPFAUNE",size=(12,1), font=("Helvetica", 35)), sg.Text("version "+VERSION)],[sg.Text("\n\n\n")],
-     [sg.Text('Image folder'), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(key='-FOLDERBROWSE-')],
-     [sg.Text('Confidence threshold\t'), sg.Spin(values=[i for i in range(25, 99)], initial_value=int(threshold_default*100), size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
-     [sg.Text('Sequence max lag (seconds)\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
-     [sg.Text('Progress bar'), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
-     [RButton('Run', key='-RUN-'), RButton('Save in CSV', key='-SAVECSV-'), RButton('Save in XSLX', key='-SAVEXLSX-')],
-     [RButton('Create separate folders', key='-SUBFOLDERS-'), sg.Radio('Copy files', 1, key='-CP-', default=True),sg.Radio('Move files', 1, key='-MV-')]
+     [sg.Text(txt_imagefolder[LANG]), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
+     [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i for i in range(25, 99)], initial_value=int(threshold_default*100), size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
+     [sg.Text(txt_sequencemaxlag[LANG]+'\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
+     [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
+     [RButton(txt_run[LANG], key='-RUN-'), RButton(txt_save[LANG]+'CSV', key='-SAVECSV-'), RButton(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
+     [RButton(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
 ]
 right_col=[
-     [sg.Multiline(size=(69, 10), default_text='Loading model parameters... ', write_only=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
+     [sg.Multiline(size=(69, 10), default_text=txt_loading[LANG], write_only=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
      [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
                vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
                enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                key='-TABRESULTS-')],      
-     [RButton('Show all images', key='-ALLTABROW-'),RButton('Show selected image', key='-TABROW-')]
+     [RButton(txt_showall[LANG], key='-ALLTABROW-'),RButton(txt_showselected[LANG], key='-TABROW-')]
 ]
 layout = [[sg.Column(left_col, element_justification='l' ),
            sg.Column(right_col, element_justification='l')]] 
@@ -200,7 +240,7 @@ infer = saved_model_loaded.signatures['serving_default']
 ### PREDICTION TOOL
 ####################################################################################
 def prediction2class(prediction, threshold):
-     class_pred = ['undefined' for i in range(len(prediction))] 
+     class_pred = [txt_undefined[LANG] for i in range(len(prediction))] 
      score_pred = [0. for i in range(len(prediction))] 
      for i in range(len(prediction)):
           pred = prediction[i]
@@ -243,21 +283,21 @@ def correctPredictionWithSequence(df_filename, predictedclass_base, predictedsco
    def majorityVotingInSequence(i1, i2):
       df = pd.DataFrame({'prediction':[predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
       majority = df.groupby(['prediction']).sum()
-      if list(majority.index) == ['vide']:
+      if list(majority.index) == [txt_empty[LANG]]:
          for k in datesorder[i1:(i2+1)]:
-             predictedclass[k] = 'vide'
+             predictedclass[k] = txt_empty[LANG]
              predictedscore[k] = predictedscore_base[k]
       else:
-         majority = majority[majority.index != 'vide'] # skipping empty images in sequence
+         majority = majority[majority.index != txt_empty[LANG]] # skipping empty images in sequence
          best = np.argmax(majority['score']) # selecting class with best total score
          majorityclass = majority.index[best]
          majorityscore = df.groupby(['prediction']).mean()['score'][best] # overall score as the mean for this class
          for k in datesorder[i1:(i2+1)]:
-             if predictedclass_base[k]!= 'vide':
+             if predictedclass_base[k]!= txt_empty[LANG]:
                  predictedclass[k] = majorityclass 
                  predictedscore[k] = int(majorityscore*100)/100.
              else:
-                 predictedclass[k] = 'vide'
+                 predictedclass[k] = txt_empty[LANG]
                  predictedscore[k] = predictedscore_base[k]
             
    ## Treating sequences
@@ -283,7 +323,7 @@ def correctPredictionWithSequence(df_filename, predictedclass_base, predictedsco
 ####################################################################################
 testdir = ""
 rowidx = [-1]
-print("done")
+frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
      event, values = window.read(timeout=10)
@@ -296,7 +336,7 @@ while True:
           window['-CP-'].Update(disabled=True)
           window['-MV-'].Update(disabled=True)
           testdir = values['-FOLDER-']
-          print("Selected folder:", testdir)
+          frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
           ### GENERATOR
           df_filename = pd.DataFrame({'filename':sorted(
               [f for f in  Path(testdir).rglob('*.jpg') if not f.parents[0].match('*deepfaune_*')] +
@@ -313,7 +353,7 @@ while True:
               [f for f in  Path(testdir).rglob('*.PNG') if not f.parents[0].match('*deepfaune_*')]
           )})
           nbfiles = df_filename.shape[0]
-          print("Number of images:", nbfiles)
+          frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
           if nbfiles>0:
                predictedclass_base = ['' for k in range(nbfiles)] # before autocorrect with sequences
                predictedscore_base = ['' for k in range(nbfiles)] # idem
@@ -333,10 +373,8 @@ while True:
                window['-ALLTABROW-'].Update(disabled=True)
      elif event == '-THRESHOLD-':
           threshold = float(values['-THRESHOLD-'])/100.
-          print(threshold)
      elif event == '-LAG-':
           maxlag = float(values['-LAG-'])
-          print(maxlag)
      elif event == '-RUN-':
           window['-RUN-'].Update(disabled=True)
           window['-FOLDERBROWSE-'].Update(disabled=True)
@@ -344,7 +382,10 @@ while True:
           window['-ALLTABROW-'].Update(disabled=True)
           window['-THRESHOLD-'].Update(disabled=True)
           window['-LAG-'].Update(disabled=True)
-          sg.cprint('Running', c='white on green', end='')
+          if LANG=="fr":
+              sg.cprint('Calcul en cours', c='white on green', end='')
+          if LANG=="gb":
+              sg.cprint('Running', c='white on green', end='')
           sg.cprint('')
           ### PREDICTING
           prediction = np.zeros(shape=(nbfiles,nbclasses+1), dtype=np.float32)
@@ -354,7 +395,7 @@ while True:
           batch = 1
           images_data = np.empty(shape=(1,YOLO_SIZE,YOLO_SIZE,3), dtype=np.float32)
           while(k1<nbfiles):
-               print("Processing batch of images ", batch, "...", sep='', end="")
+               frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
                cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
                idxnonempty = []
                for k in range(k1,k2):
@@ -364,7 +405,7 @@ while True:
                          original_image = Image.open(image_path)
                          original_image.getdata()[0]
                     except OSError:
-                         pass # print("Corrupted image, considered as empty: ",image_path)
+                         pass # Corrupted image, considered as empty
                     else:
                          resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
                          image_data = np.asarray(resized_image).astype(np.float32)
@@ -400,7 +441,7 @@ while True:
                     prediction[idxnonempty,nbclasses] = 0 # not empty
                ## Update
                window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-               print(" done", flush=True)
+               frgbprint(" terminé", " done")
                predictedclass_batch, predictedscore_batch = prediction2class(prediction[k1:k2,],threshold)
                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
                k1 = k2
@@ -414,10 +455,10 @@ while True:
                tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
                print("DEBUG: saving scores to",tmpcsv)
                pdprediction.to_csv(tmpcsv, float_format='%.2g')
-          print("Autocorrecting using exif information...", end="")
+          frgbprint("Autocorrection en utilisant les exif...", "Autocorrecting using exif information...", end="")
           predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)
           predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base)
-          print(" done", flush=True)
+          frgbprint(" terminé", " done")
           window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
           window['-RUN-'].Update(disabled=True)
           window['-FOLDERBROWSE-'].Update(disabled=False)
@@ -433,18 +474,18 @@ while True:
           preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
                                   'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                   'prediction':predictedclass, 'score':predictedscore})
-          confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
+          confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
           if confirm:
-               print("Saving to",join(testdir,"deepfaune.csv"))
+               frgbprint("Enregistrement dans "+join(testdir,"deepfaune.csv"), "Saving to "+join(testdir,"deepfaune.csv"))
                preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
                window['-SAVECSV-'].Update(disabled=True)
      elif event == '-SAVEXLSX-':
           preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
                                   'predictionbase':predictedclassbase, 'scorebase':predictedscorebase,
                                   'prediction':predictedclass, 'score':predictedscore})
-          confirm = sg.popup_yes_no("Do you want to save predictions in "+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
+          confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
           if confirm:
-               print("Saving to",join(testdir,"deepfaune.xlsx"))
+               frgbprint("Enregistrement dans "+join(testdir,"deepfaune.xlsx"), "Saving to "+join(testdir,"deepfaune.xlsx"))
                preddf.to_excel(join(testdir,"deepfaune.xlsx"), index=False)
                window['-SAVEXLSX-'].Update(disabled=True)
      elif event == '-TABRESULTS-':
@@ -463,12 +504,11 @@ while True:
           window['-ALLTABROW-'].Update(disabled=True)
           layout = [[sg.Image(key="-IMAGE-")],
                     [sg.Text('Prediction:', size=(15, 1)),
-                     #sg.InputText(predictedclass[curridx], key="-CORRECTION-")],
-                     #sg.Combo(values=list(classes+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key="-CORRECTION-")],
                      sg.Combo(values=list(classesempty+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key="-CORRECTION-")],
-                    [RButton('Save', key='-SAVE-'),RButton('Close', key='-CLOSE-'),
-                     RButton('Previous', key='-PREVIOUS-'),
-                     RButton('Next', bind_return_key=True, key='-NEXT-'),
+                    [RButton(txt_savepred[LANG], key='-SAVE-'),RButton('Close', key='-CLOSE-'),
+                     RButton(txt_prevpred[LANG], key='-PREVIOUS-'),
+                     RButton(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
+                     #sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-"),
                      sg.Checkbox('Only\nundefined', default=False, key="-ONLYUNDEFINED-")]]
           windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True)
           try:
@@ -502,7 +542,7 @@ while True:
                          if curridx==-1:
                               curridx = len(predictedclass)-1
                          if valuesimg['-ONLYUNDEFINED-']: # search for the previous undefined image, if it exists
-                              while predictedclass[curridx]!='undefined' and curridx!=curridxinit:
+                              while predictedclass[curridx]!=txt_undefined[LANG] and curridx!=curridxinit:
                                    curridx = curridx-1
                                    if curridx==-1:
                                         curridx = len(predictedclass)-1
@@ -511,7 +551,7 @@ while True:
                          if curridx==len(predictedclass):
                               curridx = 0
                          if valuesimg['-ONLYUNDEFINED-']: # search for the next undefined image, if it exists
-                              while predictedclass[curridx]!='undefined' and curridx!=curridxinit:
+                              while predictedclass[curridx]!=txt_undefined[LANG] and curridx!=curridxinit:
                                    curridx = curridx+1
                                    if curridx==len(predictedclass):
                                         curridx = 0
@@ -532,13 +572,13 @@ while True:
      elif event == '-SUBFOLDERS-':
          now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
          if values["-CP-"] == True:
-             confirm = sg.popup_yes_no("Do you want to copy images in subfolders of "+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
+             confirm = sg.popup_yes_no(txt_wanttocopy[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
              if confirm:
-                 print("Copying to",join(testdir,"deepfaune_"+now))
+                 frgbprint("Copie vers "+join(testdir,"deepfaune_"+now), "Copying to "+join(testdir,"deepfaune_"+now))
          if values["-MV-"] == True:
-             confirm = sg.popup_yes_no("Do you want to move images in subfolders of "+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
+             confirm = sg.popup_yes_no(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
              if confirm:
-                 print("Moving to",join(testdir,"deepfaune_"+now))
+                 frgbprint("Déplacement vers "+join(testdir,"deepfaune_"+now), "Moving to "+join(testdir,"deepfaune_"+now))
          if confirm:
              import shutil
              mkdir(join(testdir,"deepfaune_"+now))
