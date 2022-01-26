@@ -494,7 +494,7 @@ while True:
                                   'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                   'prediction':predictedclass, 'score':predictedscore})
           confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
-          if confirm:
+          if confirm == 'Yes':
                frgbprint("Enregistrement dans "+join(testdir,"deepfaune.csv"), "Saving to "+join(testdir,"deepfaune.csv"))
                preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
                window['-SAVECSV-'].Update(disabled=True)
@@ -503,7 +503,7 @@ while True:
                                   'predictionbase':predictedclassbase, 'scorebase':predictedscorebase,
                                   'prediction':predictedclass, 'score':predictedscore})
           confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
-          if confirm:
+          if confirm == 'Yes':
                frgbprint("Enregistrement dans "+join(testdir,"deepfaune.xlsx"), "Saving to "+join(testdir,"deepfaune.xlsx"))
                preddf.to_excel(join(testdir,"deepfaune.xlsx"), index=False)
                window['-SAVEXLSX-'].Update(disabled=True)
@@ -592,11 +592,11 @@ while True:
          now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
          if values["-CP-"] == True:
              confirm = sg.popup_yes_no(txt_wanttocopy[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
-             if confirm:
+             if confirm == 'Yes':
                  frgbprint("Copie vers "+join(testdir,"deepfaune_"+now), "Copying to "+join(testdir,"deepfaune_"+now))
          if values["-MV-"] == True:
              confirm = sg.popup_yes_no(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
-             if confirm:
+             if confirm == 'Yes':
                  frgbprint("Déplacement vers "+join(testdir,"deepfaune_"+now), "Moving to "+join(testdir,"deepfaune_"+now))
          if confirm:
              import shutil
