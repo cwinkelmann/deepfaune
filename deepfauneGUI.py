@@ -299,12 +299,18 @@ while True:
           print("Selected folder:", testdir)
           ### GENERATOR
           df_filename = pd.DataFrame({'filename':sorted(
-              [f for f in  Path(testdir).rglob('*.jpg')] + [f for f in  Path(testdir).rglob('*.JPG')] +
-              [f for f in  Path(testdir).rglob('*.jpeg')] + [f for f in  Path(testdir).rglob('*.JPEG')] +
-              [f for f in  Path(testdir).rglob('*.bmp')] + [f for f in  Path(testdir).rglob('*.BMP')] +
-              [f for f in  Path(testdir).rglob('*.tif')] + [f for f in  Path(testdir).rglob('*.TIF')] +
-              [f for f in  Path(testdir).rglob('*.gif')] + [f for f in  Path(testdir).rglob('*.GIF')] +
-              [f for f in  Path(testdir).rglob('*.png')] + [f for f in  Path(testdir).rglob('*.PNG')]
+              [f for f in  Path(testdir).rglob('*.jpg') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.JPG') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.jpeg') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.JPEG') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.bmp') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.BMP') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.tif') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.TIF') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.gif') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.GIF') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.png') if not f.parents[0].match('*deepfaune_*')] +
+              [f for f in  Path(testdir).rglob('*.PNG') if not f.parents[0].match('*deepfaune_*')]
           )})
           nbfiles = df_filename.shape[0]
           print("Number of images:", nbfiles)
