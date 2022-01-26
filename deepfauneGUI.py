@@ -46,6 +46,8 @@ sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 ### ROUNDED BUTTON
 ####################################################################################
 
+
+
 txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
               'gb':["badger","ibex","red deer","chamois","roe deer","dog","squirrel","felinae","human","lagomorph","wolf","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicule"]}
 txt_empty = {'fr':"vide", 'gb':"empty"}
@@ -160,6 +162,23 @@ def RButton(button_text=' ', corner_radius=0.5, button_type=BUTTON_TYPE_READ_FOR
 ####################################################################################
 ### GUI WINDOW
 ####################################################################################
+
+## LANGUAGE SELECTION AT FIRST
+windowlang = sg.Window("DeepFaune GUI",layout=[[sg.Text("Please select your language / choisissez votre langue")], 
+                                            [sg.Radio("français", 1, key='-FR-', default=True), sg.Radio("english", 1, key='-GB-'), Button("OK", key='-OK-')]], font = ("Arial", 14)).Finalize()
+while True:
+    event, values = windowlang.read(timeout=10)
+    if event in (sg.WIN_CLOSED, 'Exit'):
+        break
+    elif event == '-OK-':
+        if values["-FR-"] == True:
+            LANG = 'fr'
+        else:
+            LANG = 'gb'
+        break                          
+windowlang.close()  
+
+## GUI
 prediction = [[],[]]
 threshold = threshold_default = 0.5
 maxlag = maxlag_default = 20 # seconds
