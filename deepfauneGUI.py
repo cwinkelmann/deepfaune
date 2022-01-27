@@ -552,7 +552,8 @@ while True:
                 window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                 window['-TABROW-'].Update(disabled=True)
                 window['-SAVECSV-'].Update(disabled=False)
-                window['-SAVEXLSX-'].Update(disabled=False)
+                if pkgutil.find_loader("openpyxl") is not None:
+                    window['-SAVEXLSX-'].Update(disabled=False)
             elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
                 window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                 window['-TABROW-'].Update(disabled=True)
