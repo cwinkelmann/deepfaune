@@ -56,8 +56,9 @@ WARNING: during installation, you will be asked to choose a path to install Anan
 ---
 Download the model parameters inside the folder where you can find `deepfauneGUI.py`:
 
--Animal detector parameters: [checkpoints.zip](http://)
--Classifier parameters: [efficientnet_MDcheckOnlycroppedImgAug.hdf5](http://)
+- Animal detector parameters: [checkpoints.zip](http://)
+
+- Classifier parameters: [efficientnet_MDcheckOnlycroppedImgAug.hdf5](http://)
 
 Then unzip the file `checkpoints.zip` and you are done !
 
