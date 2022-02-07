@@ -33,6 +33,7 @@
 
 
 import PySimpleGUI as sg
+import re
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('Dark2')
@@ -355,42 +356,39 @@ while True:
         window['-CP-'].Update(disabled=True)
         window['-MV-'].Update(disabled=True)
         testdir = values['-FOLDER-']
-        frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
-        ### GENERATOR
-        df_filename = pd.DataFrame({'filename':sorted(
-            [f for f in  Path(testdir).rglob('*.jpg') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.JPG') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.jpeg') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.JPEG') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.bmp') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.BMP') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.tif') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.TIF') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.gif') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.GIF') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.png') if not f.parents[0].match('*deepfaune_*')] +
-            [f for f in  Path(testdir).rglob('*.PNG') if not f.parents[0].match('*deepfaune_*')]
-        )})
-        nbfiles = df_filename.shape[0]
-        frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
-        if nbfiles>0:
-            predictedclass_base = ['' for k in range(nbfiles)] # before autocorrect with sequences
-            predictedscore_base = ['' for k in range(nbfiles)] # idem
-            predictedclass = ['' for k in range(nbfiles)] 
-            predictedscore = ['' for k in range(nbfiles)] 
-            seqnum = np.repeat(0, df_filename.shape[0])
-            window['-RUN-'].Update(disabled=False)
-            window['-THRESHOLD-'].Update(disabled=False)
-            window['-LAG-'].Update(disabled=False)
-            window['-TABROW-'].Update(disabled=False)
-            window['-ALLTABROW-'].Update(disabled=False)
-            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
-                                                               predictedclass, predictedscore].tolist())
-        else:
-            sg.popup_error('Incorrect image folder - no image found')
-            window['-RUN-'].Update(disabled=True)
-            window['-TABROW-'].Update(disabled=True)
-            window['-ALLTABROW-'].Update(disabled=True)
+        
+        if testdir != "":
+            frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
+            ### GENERATOR
+            
+            df_filename = pd.DataFrame({'filename':sorted(
+                [f for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                [f for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                [f for f in  Path(testdir).rglob('*.[Bb][Mm][Pp]') if not f.parents[1].match('*deepfaune_*')] +
+                [f for f in  Path(testdir).rglob('*.[Tt][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
+                [f for f in  Path(testdir).rglob('*.[Gg][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
+                [f for f in  Path(testdir).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
+            )})
+            nbfiles = df_filename.shape[0]
+            frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
+            if nbfiles>0:
+                predictedclass_base = ['' for k in range(nbfiles)] # before autocorrect with sequences
+                predictedscore_base = ['' for k in range(nbfiles)] # idem
+                predictedclass = ['' for k in range(nbfiles)] 
+                predictedscore = ['' for k in range(nbfiles)] 
+                seqnum = np.repeat(0, df_filename.shape[0])
+                window['-RUN-'].Update(disabled=False)
+                window['-THRESHOLD-'].Update(disabled=False)
+                window['-LAG-'].Update(disabled=False)
+                window['-TABROW-'].Update(disabled=False)
+                window['-ALLTABROW-'].Update(disabled=False)
+                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
+                                                                   predictedclass, predictedscore].tolist())
+            else:
+                sg.popup_error('Incorrect image folder - no image found')
+                window['-RUN-'].Update(disabled=True)
+                window['-TABROW-'].Update(disabled=True)
+                window['-ALLTABROW-'].Update(disabled=True)
     elif event == '-THRESHOLD-':
         threshold = float(values['-THRESHOLD-'])/100.
     elif event == '-LAG-':
@@ -501,7 +499,7 @@ while True:
             window['-SAVECSV-'].Update(disabled=True)
     elif event == '-SAVEXLSX-':
         preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
-                                'predictionbase':predictedclassbase, 'scorebase':predictedscorebase,
+                                'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
         if confirm == 'Yes':
@@ -600,7 +598,7 @@ while True:
             confirm = sg.popup_yes_no(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
             if confirm == 'Yes':
                 frgbprint("Déplacement vers "+join(testdir,"deepfaune_"+now), "Moving to "+join(testdir,"deepfaune_"+now))
-        if confirm:
+        if confirm == 'Yes':
             import shutil
             mkdir(join(testdir,"deepfaune_"+now))
             for subfolder in  set(predictedclass):
@@ -613,9 +611,10 @@ while True:
                 for k in range(nbfiles):
                     shutil.move(df_filename["filename"][k],
                                 join(testdir,"deepfaune_"+now,predictedclass[k],basename(df_filename['filename'][k])))
-        window['-SUBFOLDERS-'].Update(disabled=True)
-        window['-CP-'].Update(disabled=True)
-        window['-MV-'].Update(disabled=True)                     
+            window['-SUBFOLDERS-'].Update(disabled=True)
+            window['-CP-'].Update(disabled=True)
+            window['-MV-'].Update(disabled=True)
+                            
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
     else:
