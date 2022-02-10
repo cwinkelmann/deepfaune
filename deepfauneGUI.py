@@ -523,7 +523,7 @@ while True:
         layout = [[sg.Image(key="-IMAGE-")],
                   [sg.Text('Prediction:', size=(15, 1)),
                    sg.Combo(values=list(classesempty+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key="-CORRECTION-")],
-                  [RButton(txt_savepred[LANG], key='-SAVE-'),RButton('Close', key='-CLOSE-'),
+                  [RButton('Close', key='-CLOSE-'),
                    RButton(txt_prevpred[LANG], key='-PREVIOUS-'),
                    RButton(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    #sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-"),
@@ -542,16 +542,17 @@ while True:
         ### CORRECTING PREDICTION
         while True:
             eventimg, valuesimg = windowimg.read()
+            if valuesimg != None: # any change in the Combo list is saved
+                if predictedclass[curridx] != valuesimg["-CORRECTION-"]:
+                    predictedclass[curridx] = valuesimg["-CORRECTION-"]
+                    predictedscore[curridx] = 1.0
+                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
+                    window['-TABROW-'].Update(disabled=True)
+                    window['-SAVECSV-'].Update(disabled=False)
+                    if pkgutil.find_loader("openpyxl") is not None:
+                        window['-SAVEXLSX-'].Update(disabled=False)
             if eventimg in (sg.WIN_CLOSED, '-CLOSE-'):
                 break
-            elif eventimg == '-SAVE-':
-                predictedclass[curridx] = valuesimg["-CORRECTION-"]
-                predictedscore[curridx] = 1.0
-                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
-                window['-TABROW-'].Update(disabled=True)
-                window['-SAVECSV-'].Update(disabled=False)
-                if pkgutil.find_loader("openpyxl") is not None:
-                    window['-SAVEXLSX-'].Update(disabled=False)
             elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
                 window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                 window['-TABROW-'].Update(disabled=True)
