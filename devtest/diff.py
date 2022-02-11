@@ -8,6 +8,22 @@ from PIL import Image, ImageOps, ImageChops, ImageFilter
 im1 = Image.open(sys.argv[1])
 im2 = Image.open(sys.argv[2])
 
+import numpy as np
+def normalize(img):
+    """
+    Linear normalization
+    """
+    arr = np.array(img)
+    arr = arr.astype('float')
+    # Do not touch the alpha channel
+    for i in range(3):
+        minval = np.percentile(arr[...,i], 25) #arr[...,i].min()
+        maxval = np.percentile(arr[...,i], 75) #arr[...,i].max()
+        print(minval,maxval)
+        if minval != maxval:
+            arr[...,i] -= minval
+            arr[...,i] *= (255.0/(maxval-minval))
+    return Image.fromarray(arr.astype('uint8'),'RGB')
 
 RESIZE = True
 if RESIZE:
@@ -23,6 +39,12 @@ else:
 #diff = ImageChops.difference(im2g, im1g)
 diff = ImageChops.difference(im1b, im2b).convert("L")
 sshow(diff)
+
+if False:
+    import numpy as np
+    import matplotlib.pyplot as plt
+    plt.hist(np.array(diff))
+    plt.show()
 
 threshold = 30
 # https://www.geeksforgeeks.org/python-pil-image-point-method/ 

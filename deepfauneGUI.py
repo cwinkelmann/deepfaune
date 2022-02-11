@@ -56,7 +56,7 @@ txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 txt_imagefolder = {'fr':"Dossier d'images", 'gb':"Image folder"}
 txt_browse = {'fr':"Choisir", 'gb':"Select"}
 txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
-txt_sequencemaxlag = {'fr':"Délai max / sequence (secondes)", 'gb':"Sequence max lag (seconds)"}
+txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
 txt_progressbar = {'fr':"Barre d'état", 'gb':"Progress bar"}
 txt_run = {'fr':"Lancer", 'gb':"Run"}
 txt_save = {'fr':"Enregistrer en ", 'gb':"Save in "}
@@ -72,7 +72,7 @@ txt_wanttomove = {'fr':"Voulez-vous déplacer les images vers des sous-dossiers 
 txt_savepred = {'fr':"Enregistrer", 'gb':"Save"}
 txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
 txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
-txt_restrict = {'fr':["Undéfini seulement"], 'gb':["Only undefined"]}
+txt_restrict = {'fr':["Toutes images","Images indéfinies","Images vides","Images non vides"], 'gb':["All images","Undefined images","Empty images","Non empty images"]}
 
 def frgbprint(txt_fr, txt_gb, end='\n'):
     if LANG=="fr":
@@ -526,8 +526,7 @@ while True:
                   [RButton('Close', key='-CLOSE-'),
                    RButton(txt_prevpred[LANG], key='-PREVIOUS-'),
                    RButton(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
-                   #sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-"),
-                   sg.Checkbox('Only\nundefined', default=False, key="-ONLYUNDEFINED-")]]
+                   sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
         windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True)
         try:
             image = Image.open(df_filename['filename'][curridx])
@@ -561,8 +560,11 @@ while True:
                     curridx = curridx-1
                     if curridx==-1:
                         curridx = len(predictedclass)-1
-                    if valuesimg['-ONLYUNDEFINED-']: # search for the previous undefined image, if it exists
-                        while predictedclass[curridx]!=txt_undefined[LANG] and curridx!=curridxinit:
+                    if valuesimg['-RESTRICT-']!=txt_restrict[LANG][0]: # search for the previous image with condition, if it exists
+                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][1]: txt_target  = [txt_undefined[LANG]]
+                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][2]: txt_target  = [txt_empty[LANG]]
+                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][3]: txt_target  = txt_classes[LANG]
+                        while (not predictedclass[curridx] in txt_target) and curridx!=curridxinit:
                             curridx = curridx-1
                             if curridx==-1:
                                 curridx = len(predictedclass)-1
@@ -570,8 +572,11 @@ while True:
                     curridx = curridx+1
                     if curridx==len(predictedclass):
                         curridx = 0
-                    if valuesimg['-ONLYUNDEFINED-']: # search for the next undefined image, if it exists
-                        while predictedclass[curridx]!=txt_undefined[LANG] and curridx!=curridxinit:
+                    if valuesimg['-RESTRICT-']!=txt_restrict[LANG][0]: # search for the next image with condition, if it exists
+                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][1]: txt_target  = [txt_undefined[LANG]]
+                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][2]: txt_target  = [txt_empty[LANG]]
+                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][3]: txt_target  = txt_classes[LANG]
+                        while (not predictedclass[curridx] in txt_target) and curridx!=curridxinit:
                             curridx = curridx+1
                             if curridx==len(predictedclass):
                                 curridx = 0
