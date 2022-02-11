@@ -405,6 +405,7 @@ while True:
         if LANG=="gb":
             sg.cprint('Running', c='white on green', end='')
         sg.cprint('')
+        window.refresh()
         ### PREDICTING
         prediction = np.zeros(shape=(nbfiles,nbclasses+1), dtype=np.float32)
         prediction[:,nbclasses] = 1 # by default, predicted as empty
