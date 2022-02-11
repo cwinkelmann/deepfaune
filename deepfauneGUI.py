@@ -521,8 +521,9 @@ while True:
         ### SHOWING IMAGE
         window['-ALLTABROW-'].Update(disabled=True)
         layout = [[sg.Image(key="-IMAGE-")],
-                  [sg.Text('Prediction:', size=(15, 1)),
-                   sg.Combo(values=list(classesempty+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key="-CORRECTION-")],
+                  [sg.Text('Prediction:', size=(10, 1)),
+                   sg.Combo(values=list(classesempty+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
+                   sg.Text("\tScore: "+str(predictedscore[curridx]), key='-CORRECTIONSCORE-')],
                   [RButton('Close', key='-CLOSE-'),
                    RButton(txt_prevpred[LANG], key='-PREVIOUS-'),
                    RButton(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
@@ -540,11 +541,12 @@ while True:
         windowimg["-IMAGE-"].update(data=bio.getvalue())
         ### CORRECTING PREDICTION
         while True:
-            eventimg, valuesimg = windowimg.read()
+            eventimg, valuesimg = windowimg.read(timeout=10)
             if valuesimg != None: # any change in the Combo list is saved
-                if predictedclass[curridx] != valuesimg["-CORRECTION-"]:
-                    predictedclass[curridx] = valuesimg["-CORRECTION-"]
+                if predictedclass[curridx] != valuesimg['-CORRECTION-']:
+                    predictedclass[curridx] = valuesimg['-CORRECTION-']
                     predictedscore[curridx] = 1.0
+                    windowimg.Element('-CORRECTIONSCORE-').Update("\tScore: 1.0")
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
                     window['-SAVECSV-'].Update(disabled=False)
@@ -553,8 +555,8 @@ while True:
             if eventimg in (sg.WIN_CLOSED, '-CLOSE-'):
                 break
             elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
-                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
-                window['-TABROW-'].Update(disabled=True)
+                #window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
+                #window['-TABROW-'].Update(disabled=True)
                 curridxinit = curridx
                 if eventimg == '-PREVIOUS-':
                     curridx = curridx-1
@@ -592,6 +594,7 @@ while True:
                 windowimg["-IMAGE-"].update(data=bio.getvalue())
                 windowimg.TKroot.title(basename(df_filename['filename'][curridx]))
                 windowimg["-CORRECTION-"].Update(predictedclass[curridx])
+                windowimg["-CORRECTIONSCORE-"].Update("\tScore: "+str(predictedscore[curridx]))
         windowimg.close()
         window['-ALLTABROW-'].Update(disabled=False)
     elif event == '-SUBFOLDERS-':
