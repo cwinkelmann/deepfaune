@@ -16,11 +16,11 @@ WARNING : our software is still under development. Model parameters (section 3) 
 
 **STEP 1**
 
-First of all, get the `zip` archive by clicking on the button ![button](img/button.jpg) on the top right of this page.
+First of all, get the `zip` archive by clicking on the button ![button](icons/button.jpg) on the top right of this page.
 
 This will open the following window where you can dowload the whole directory as a `zip` file (warning, it's a huge file):
 
-![button](img/buttonzip.jpg) 
+![button](icons/buttonzip.jpg) 
 
 Then, uncompress the zip file on your Desktop.
 
