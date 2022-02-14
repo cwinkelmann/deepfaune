@@ -1,8 +1,8 @@
 #  WELCOME TO DEEPFAUNE SOFTWARE REPOSITORY
 
 
-<img src="img/1316.jpg" width="20%">
-<img src="img/logoINEE.png" width="50%" align=right>
+<img src="icons/1316.jpg" width="20%">
+<img src="icons/logoINEE.png" width="50%" align=right>
 
 ---
 WARNING : our software is still under development. Model parameters (section 3) are not publicly available yet. 
