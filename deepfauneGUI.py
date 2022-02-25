@@ -187,7 +187,7 @@ left_col = [
     [sg.Image(filename=r'icons/cameratrap-nb.png'),sg.Image(filename=r'icons/logoINEE.png')],
     [sg.Text("DEEPFAUNE",size=(12,1), font=("Helvetica", 35)), sg.Text("version "+VERSION)],[sg.Text("\n\n\n")],
     [sg.Text(txt_imagefolder[LANG]), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
-    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i for i in range(25, 99)], initial_value=int(threshold_default*100), size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
+    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100. for i in range(25, 99)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
     [sg.Text(txt_sequencemaxlag[LANG]+'\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
     [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
     [RButton(txt_run[LANG], key='-RUN-'), RButton(txt_save[LANG]+'CSV', key='-SAVECSV-'), RButton(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
@@ -287,10 +287,12 @@ def get_date_taken(path):
         date = None
     return date
     
-def correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base):
-    seqnum = np.repeat(0, df_filename.shape[0])
+def correctPredictionWithSequence(sub_df_filename, sub_predictedclass_base, sub_predictedscore_base, seqnuminit=0):
+    seqnum = np.repeat(seqnuminit, sub_df_filename.shape[0])
+    sub_predictedclass = sub_predictedclass_base.copy()
+    sub_predictedscore = sub_predictedscore_base.copy()
     ## Getting date from exif, or draw random fake date
-    dates = np.array([get_date_taken(file) for file in df_filename["filename"]])
+    dates = np.array([get_date_taken(file) for file in sub_df_filename["filename"]])
     withoutdate = np.where(dates == None)[0]
     dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
     
@@ -301,24 +303,24 @@ def correctPredictionWithSequence(df_filename, predictedclass_base, predictedsco
     datesstripSorted = np.sort(datesstrip)
     
     def majorityVotingInSequence(i1, i2):
-        df = pd.DataFrame({'prediction':[predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
+        df = pd.DataFrame({'prediction':[sub_predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
         majority = df.groupby(['prediction']).sum()
         if list(majority.index) == [txt_empty[LANG]]:
             for k in datesorder[i1:(i2+1)]:
-                predictedclass[k] = txt_empty[LANG]
-                predictedscore[k] = predictedscore_base[k]
+                sub_predictedclass[k] = txt_empty[LANG]
+                sub_predictedscore[k] = sub_predictedscore_base[k]
         else:
             majority = majority[majority.index != txt_empty[LANG]] # skipping empty images in sequence
             best = np.argmax(majority['score']) # selecting class with best total score
             majorityclass = majority.index[best]
             majorityscore = df.groupby(['prediction']).mean()['score'][best] # overall score as the mean for this class
             for k in datesorder[i1:(i2+1)]:
-                if predictedclass_base[k]!= txt_empty[LANG]:
-                    predictedclass[k] = majorityclass 
-                    predictedscore[k] = int(majorityscore*100)/100.
+                if sub_predictedclass_base[k]!= txt_empty[LANG]:
+                    sub_predictedclass[k] = majorityclass 
+                    sub_predictedscore[k] = int(majorityscore*100)/100.
                 else:
-                    predictedclass[k] = txt_empty[LANG]
-                    predictedscore[k] = predictedscore_base[k]
+                    sub_predictedclass[k] = txt_empty[LANG]
+                    sub_predictedscore[k] = sub_predictedscore_base[k]
             
     ## Treating sequences
     curseqnum = 1
@@ -335,7 +337,7 @@ def correctPredictionWithSequence(df_filename, predictedclass_base, predictedsco
         i2 = i
     majorityVotingInSequence(i1, i2)
     seqnum[datesorder[i1:(i2+1)]] = curseqnum
-    return predictedclass, predictedscore, seqnum
+    return sub_predictedclass, sub_predictedscore, seqnum
 
 
 ####################################################################################
