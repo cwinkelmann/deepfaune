@@ -33,7 +33,6 @@
 
 
 import PySimpleGUI as sg
-import re
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('Dark2')
@@ -105,7 +104,6 @@ from base64 import b64encode
 from PIL import Image, ImageDraw
 from PySimpleGUI import Button, BUTTON_TYPE_READ_FORM, FILE_TYPES_ALL_FILES, theme_background_color, theme_button_color
 import io
-from base64 import b64encode
 
 def RButton(button_text=' ', corner_radius=0.5, button_type=BUTTON_TYPE_READ_FORM, target=(None, None),
             tooltip=None, file_types=FILE_TYPES_ALL_FILES, initial_folder=None, default_extension='',
@@ -187,7 +185,7 @@ left_col = [
     [sg.Image(filename=r'icons/cameratrap-nb.png'),sg.Image(filename=r'icons/logoINEE.png')],
     [sg.Text("DEEPFAUNE",size=(12,1), font=("Helvetica", 35)), sg.Text("version "+VERSION)],[sg.Text("\n\n\n")],
     [sg.Text(txt_imagefolder[LANG]), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
-    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i for i in range(25, 99)], initial_value=int(threshold_default*100), size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
+    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100 for i in range(25, 99)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
     [sg.Text(txt_sequencemaxlag[LANG]+'\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
     [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
     [RButton(txt_run[LANG], key='-RUN-'), RButton(txt_save[LANG]+'CSV', key='-SAVECSV-'), RButton(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
@@ -224,23 +222,20 @@ window.read(timeout=0) # trick to make the button disabled at first
 import tensorflow as tf
 from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
 from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from PIL import Image
 import numpy as np
 import pandas as pd
-from os import listdir, mkdir
+from os import mkdir
 from os.path import join, basename
 from pathlib import Path
 import pkgutil
-import io
 nbclasses=len(classes)
 if backbone == "resnet":
     from keras.applications.resnet_v2 import ResNet50V2
-    from keras.applications.resnet_v2 import preprocess_input, decode_predictions
+    from keras.applications.resnet_v2 import preprocess_input
     base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
 elif backbone == "efficientnet":
     from tensorflow.keras.applications.efficientnet import EfficientNetB3
-    from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
+    from tensorflow.keras.applications.efficientnet import preprocess_input
     base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(300,300,3))
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
@@ -268,79 +263,13 @@ def prediction2class(prediction, threshold):
             class_pred[i] = classesempty[np.argmax(pred)]
         score_pred[i] = int(max(pred)*100)/100.
     return class_pred, score_pred
-
-####################################################################################
-### PREDICTION TOOL USING EXIF INFO & SEQUENCES, TIME DELTA = 20s
-####################################################################################
-import random
-from time import time
-from datetime import datetime
-def randomDate(seed):
-    random.seed(seed)
-    d = random.randint(1, int(time()))
-    return datetime.fromtimestamp(d).strftime("%Y:%m:%d %H:%M:%S")
-
-def get_date_taken(path):
-    try:
-        date = Image.open(path)._getexif()[36867]
-    except:
-        date = None
-    return date
     
-def correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base):
-    seqnum = np.repeat(0, df_filename.shape[0])
-    ## Getting date from exif, or draw random fake date
-    dates = np.array([get_date_taken(file) for file in df_filename["filename"]])
-    withoutdate = np.where(dates == None)[0]
-    dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
-    
-    ## Sorting dates and computing lag
-    from datetime import timedelta
-    datesstrip =  np.array([datetime.strptime(date, "%Y:%m:%d %H:%M:%S") for date in dates])
-    datesorder = np.argsort(datesstrip)
-    datesstripSorted = np.sort(datesstrip)
-    
-    def majorityVotingInSequence(i1, i2):
-        df = pd.DataFrame({'prediction':[predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
-        majority = df.groupby(['prediction']).sum()
-        if list(majority.index) == [txt_empty[LANG]]:
-            for k in datesorder[i1:(i2+1)]:
-                predictedclass[k] = txt_empty[LANG]
-                predictedscore[k] = predictedscore_base[k]
-        else:
-            majority = majority[majority.index != txt_empty[LANG]] # skipping empty images in sequence
-            best = np.argmax(majority['score']) # selecting class with best total score
-            majorityclass = majority.index[best]
-            majorityscore = df.groupby(['prediction']).mean()['score'][best] # overall score as the mean for this class
-            for k in datesorder[i1:(i2+1)]:
-                if predictedclass_base[k]!= txt_empty[LANG]:
-                    predictedclass[k] = majorityclass 
-                    predictedscore[k] = int(majorityscore*100)/100.
-                else:
-                    predictedclass[k] = txt_empty[LANG]
-                    predictedscore[k] = predictedscore_base[k]
-            
-    ## Treating sequences
-    curseqnum = 1
-    i1 = i2 = 0 # sequences boundaries
-    for i in range(1,len(datesstripSorted)):
-        lag = datesstripSorted[i]-datesstripSorted[i-1]
-        if lag<timedelta(seconds=20): # subsequent images in sequence
-            pass
-        else: # sequence change
-            majorityVotingInSequence(i1, i2)
-            seqnum[datesorder[i1:(i2+1)]] = curseqnum
-            curseqnum += 1
-            i1 = i
-        i2 = i
-    majorityVotingInSequence(i1, i2)
-    seqnum[datesorder[i1:(i2+1)]] = curseqnum
-    return predictedclass, predictedscore, seqnum
-
-
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
+from datetime import datetime
+from reorderAndPredict import reorderAndPredictWithSequence
+
 testdir = ""
 rowidx = [-1]
 frgbprint("terminé","done")
@@ -476,7 +405,71 @@ while True:
             pdprediction.to_csv(tmpcsv, float_format='%.2g')
         frgbprint("Autocorrection en utilisant les exif...", "Autocorrecting using exif information...", end="")
         predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)
-        predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base)
+        
+        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndPredictWithSequence(df_filename, predictedclass_base, predictedscore_base)
+        
+        """
+        print("")
+        df_full = pd.concat([df_filename, pd.DataFrame({'predictedclass_base':predictedclass_base}), pd.DataFrame({'predictedscore_base':predictedscore_base})], axis = 1)
+        
+        def treatment(df, nbrows):
+            df['numdir'] = 0
+            dirs = []
+            for i in range(0, nbrows):
+                dirname = str(df['filename'][i])[:-len(str(df['filename'][i]).split("/")[-1])]
+                try:
+                    t = dirs.index(dirname)
+                except:
+                    t = len(dirs)
+                    dirs.append(dirname)
+                df.at[i,'numdir'] = t
+            df = df.sort_values(by=['numdir', 'filename'])
+            df = df.drop(['numdir'], axis=1)
+            # Returns the dataframe, sorted by directory
+            return df
+        
+        def createtable(df, nbrows):
+            result = []
+            currdir = str(df['filename'][0])[:-len(str(df['filename'][0]).split("/")[-1])]
+            tempfn = []
+            temppcb = []
+            temppsb = []
+            for i in range(0, nbrows):
+                dirname = str(df['filename'][i])[:-len(str(df['filename'][i]).split("/")[-1])]
+                print(dirname)
+                if currdir != dirname:
+                    result.append([tempfn,temppcb,temppsb])
+                    currdir = dirname
+                    tempfn = []
+                    temppcb = []
+                    temppsb = []
+                tempfn.append(df['filename'][i])
+                temppcb.append(df['predictedclass_base'][i])
+                temppsb.append(df['predictedscore_base'][i])
+            result.append([tempfn,temppcb,temppsb])
+            #returns the table that contains the df with elements split by directory
+            print(result)
+            return result
+        
+        l = len(df_full)
+        df_full = treatment(df_full, l)       
+        df_full.to_csv("df_full.csv") # pour tester, à supprimer plus tard
+        table_full = createtable(df_full, l)
+        
+        predictedclass = []
+        predictedscore = []
+        seqnum = []
+        
+        for i in table_full:
+            results_pc, results_ps, results_seqnum = correctPredictionWithSequence(pd.DataFrame({'filename':i[0]}), i[1], i[2])
+            predictedclass += results_pc
+            predictedscore += results_ps
+            seqnum += results_seqnum
+        
+        print(predictedclass)
+        print(predictedscore)
+        """
+        
         frgbprint(" terminé", " done")
         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
         window['-RUN-'].Update(disabled=True)
@@ -486,7 +479,6 @@ while True:
         window['-MV-'].Update(disabled=False)
         window['-SAVECSV-'].Update(disabled=False)
         if pkgutil.find_loader("openpyxl") is not None:
-            import openpyxl
             window['-SAVEXLSX-'].Update(disabled=False)
         window['-ALLTABROW-'].Update(disabled=False)
     elif event == '-SAVECSV-':
