@@ -406,69 +406,7 @@ while True:
         frgbprint("Autocorrection en utilisant les exif...", "Autocorrecting using exif information...", end="")
         predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)
         
-        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndPredictWithSequence(df_filename, predictedclass_base, predictedscore_base)
-        
-        """
-        print("")
-        df_full = pd.concat([df_filename, pd.DataFrame({'predictedclass_base':predictedclass_base}), pd.DataFrame({'predictedscore_base':predictedscore_base})], axis = 1)
-        
-        def treatment(df, nbrows):
-            df['numdir'] = 0
-            dirs = []
-            for i in range(0, nbrows):
-                dirname = str(df['filename'][i])[:-len(str(df['filename'][i]).split("/")[-1])]
-                try:
-                    t = dirs.index(dirname)
-                except:
-                    t = len(dirs)
-                    dirs.append(dirname)
-                df.at[i,'numdir'] = t
-            df = df.sort_values(by=['numdir', 'filename'])
-            df = df.drop(['numdir'], axis=1)
-            # Returns the dataframe, sorted by directory
-            return df
-        
-        def createtable(df, nbrows):
-            result = []
-            currdir = str(df['filename'][0])[:-len(str(df['filename'][0]).split("/")[-1])]
-            tempfn = []
-            temppcb = []
-            temppsb = []
-            for i in range(0, nbrows):
-                dirname = str(df['filename'][i])[:-len(str(df['filename'][i]).split("/")[-1])]
-                print(dirname)
-                if currdir != dirname:
-                    result.append([tempfn,temppcb,temppsb])
-                    currdir = dirname
-                    tempfn = []
-                    temppcb = []
-                    temppsb = []
-                tempfn.append(df['filename'][i])
-                temppcb.append(df['predictedclass_base'][i])
-                temppsb.append(df['predictedscore_base'][i])
-            result.append([tempfn,temppcb,temppsb])
-            #returns the table that contains the df with elements split by directory
-            print(result)
-            return result
-        
-        l = len(df_full)
-        df_full = treatment(df_full, l)       
-        df_full.to_csv("df_full.csv") # pour tester, à supprimer plus tard
-        table_full = createtable(df_full, l)
-        
-        predictedclass = []
-        predictedscore = []
-        seqnum = []
-        
-        for i in table_full:
-            results_pc, results_ps, results_seqnum = correctPredictionWithSequence(pd.DataFrame({'filename':i[0]}), i[1], i[2])
-            predictedclass += results_pc
-            predictedscore += results_ps
-            seqnum += results_seqnum
-        
-        print(predictedclass)
-        print(predictedscore)
-        """
+        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndPredictWithSequence(df_filename, predictedclass_base, predictedscore_base, LANG)
         
         frgbprint(" terminé", " done")
         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())

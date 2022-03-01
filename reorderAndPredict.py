@@ -91,7 +91,7 @@ def correctPredictionWithSequence(sub_df_filename, sub_predictedclass_base, sub_
 
 import numpy as np
 
-def getOrder(df):
+def getFilesOrder(df):
     nbrows = len(df)
     numdir = np.array([0]*nbrows)
     dirs = []
@@ -107,7 +107,7 @@ def getOrder(df):
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
-def getPredictions(filenames, predictclass_base, predictscore_base):
+def getPredictionsCorrectionWithSequences(filenames, predictclass_base, predictscore_base):
     nbrows = len(filenames)
     predictclass = [0]*nbrows
     predictscore = [0]*nbrows
@@ -123,11 +123,13 @@ def getPredictions(filenames, predictclass_base, predictscore_base):
     predictclass[lower_bound:i+1], predictscore[lower_bound:i+1], seqnum[lower_bound:i+1] = correctPredictionWithSequence(filenames.iloc[lower_bound:i+1,:], predictclass_base[lower_bound:i+1], predictscore_base[lower_bound:i+1], seqnuminit=max(seqnum))
     return predictclass, predictscore, seqnum
 
-def reorderAndPredictWithSequence(filenames, predictclass_base, predictscore_base):
-    order = getOrder(filenames)
+def reorderAndPredictWithSequence(filenames, predictclass_base, predictscore_base, lang):
+    global LANG
+    LANG = lang
+    order = getFilesOrder(filenames)
     filenames = pd.DataFrame({'filename':[filenames['filename'][k] for k in order]})
     predictclass_base = [predictclass_base[k] for k in order]
     predictscore_base = [predictscore_base[k] for k in order]
-    predictclass, predictscore, seqnum = getPredictions(filenames, predictclass_base, predictscore_base)
+    predictclass, predictscore, seqnum = getPredictionsCorrectionWithSequences(filenames, predictclass_base, predictscore_base)
     return filenames, predictclass_base, predictscore_base, predictclass, predictscore, seqnum
     
