@@ -84,7 +84,7 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.1"
+VERSION = "0.2"
 LANG = "fr"
 DEBUG = False
 backbone = "efficientnet"
@@ -345,6 +345,7 @@ def correctPredictionWithSequence(sub_df_filename, sub_predictedclass_base, sub_
 ####################################################################################
 testdir = ""
 rowidx = [-1]
+hasrun = False
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
@@ -380,7 +381,6 @@ while True:
                 window['-RUN-'].Update(disabled=False)
                 window['-THRESHOLD-'].Update(disabled=False)
                 window['-LAG-'].Update(disabled=False)
-                window['-TABROW-'].Update(disabled=False)
                 window['-ALLTABROW-'].Update(disabled=False)
                 window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
                                                                    predictedclass, predictedscore].tolist())
@@ -394,6 +394,7 @@ while True:
     elif event == '-LAG-':
         maxlag = float(values['-LAG-'])
     elif event == '-RUN-':
+        hasrun = True
         window['-RUN-'].Update(disabled=True)
         window['-FOLDERBROWSE-'].Update(disabled=True)
         window['-TABROW-'].Update(disabled=True)
@@ -561,9 +562,9 @@ while True:
                     windowimg.Element('-CORRECTIONSCORE-').Update("\tScore: 1.0")
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
-                    savecsvstate = False
+                    if hasrun: savecsvstate = False
                     if pkgutil.find_loader("openpyxl") is not None:
-                        savexlsxstate = False
+                        if hasrun: savexlsxstate = False
             if eventimg in (sg.WIN_CLOSED, '-CLOSE-'):
                 break
             elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
