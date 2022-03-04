@@ -261,7 +261,7 @@ def prediction2class(prediction, threshold):
 ### GUI IN ACTION
 ####################################################################################
 from datetime import datetime
-from reorderAndPredict import reorderAndCorrectPredictionWithSequence
+from sequenceTools import reorderAndCorrectPredictionWithSequence
 
 testdir = ""
 rowidx = [-1]
