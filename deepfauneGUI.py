@@ -41,13 +41,6 @@ sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 
 
-
-####################################################################################
-### ROUNDED BUTTON
-####################################################################################
-
-
-
 txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
               'gb':["badger","ibex","red deer","chamois","roe deer","dog","squirrel","felinae","human","lagomorph","wolf","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicule"]}
 txt_empty = {'fr':"vide", 'gb':"empty"}
@@ -83,7 +76,7 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.1"
+VERSION = "0.2"
 LANG = "fr"
 DEBUG = False
 backbone = "efficientnet"
@@ -185,7 +178,7 @@ left_col = [
     [sg.Image(filename=r'icons/cameratrap-nb.png'),sg.Image(filename=r'icons/logoINEE.png')],
     [sg.Text("DEEPFAUNE",size=(12,1), font=("Helvetica", 35)), sg.Text("version "+VERSION)],[sg.Text("\n\n\n")],
     [sg.Text(txt_imagefolder[LANG]), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
-    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100 for i in range(25, 99)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
+    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100. for i in range(25, 99)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
     [sg.Text(txt_sequencemaxlag[LANG]+'\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
     [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
     [RButton(txt_run[LANG], key='-RUN-'), RButton(txt_save[LANG]+'CSV', key='-SAVECSV-'), RButton(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
@@ -263,15 +256,16 @@ def prediction2class(prediction, threshold):
             class_pred[i] = classesempty[np.argmax(pred)]
         score_pred[i] = int(max(pred)*100)/100.
     return class_pred, score_pred
-    
+
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
 from datetime import datetime
-from reorderAndPredict import reorderAndPredictWithSequence
+from reorderAndPredict import reorderAndCorrectPredictionWithSequence
 
 testdir = ""
 rowidx = [-1]
+hasrun = False
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
@@ -285,11 +279,9 @@ while True:
         window['-CP-'].Update(disabled=True)
         window['-MV-'].Update(disabled=True)
         testdir = values['-FOLDER-']
-        
         if testdir != "":
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
-            
             df_filename = pd.DataFrame({'filename':sorted(
                 [f for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
                 [f for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
@@ -309,7 +301,6 @@ while True:
                 window['-RUN-'].Update(disabled=False)
                 window['-THRESHOLD-'].Update(disabled=False)
                 window['-LAG-'].Update(disabled=False)
-                window['-TABROW-'].Update(disabled=False)
                 window['-ALLTABROW-'].Update(disabled=False)
                 window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
                                                                    predictedclass, predictedscore].tolist())
@@ -323,6 +314,7 @@ while True:
     elif event == '-LAG-':
         maxlag = float(values['-LAG-'])
     elif event == '-RUN-':
+        hasrun = True
         window['-RUN-'].Update(disabled=True)
         window['-FOLDERBROWSE-'].Update(disabled=True)
         window['-TABROW-'].Update(disabled=True)
@@ -404,10 +396,8 @@ while True:
             print("DEBUG: saving scores to",tmpcsv)
             pdprediction.to_csv(tmpcsv, float_format='%.2g')
         frgbprint("Autocorrection en utilisant les exif...", "Autocorrecting using exif information...", end="")
-        predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)
-        
-        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndPredictWithSequence(df_filename, predictedclass_base, predictedscore_base, LANG)
-        
+        predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)        
+        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, LANG)
         frgbprint(" terminé", " done")
         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
         window['-RUN-'].Update(disabled=True)
@@ -448,9 +438,20 @@ while True:
             curridx = rowidx[0]
         else:
             curridx = 0
-            window['-TABROW-'].Update(disabled=True)
-        ### SHOWING IMAGE
+        ## DISABLING PRINCIPAL WINDOW (but keep info about enabled buttons)
+        window['-TABROW-'].Update(disabled=True)
         window['-ALLTABROW-'].Update(disabled=True)
+        folderbrowsestate = window['-FOLDERBROWSE-'].Disabled
+        window['-FOLDERBROWSE-'].Update(disabled=True)
+        runstate = window['-RUN-'].Disabled
+        window['-RUN-'].Update(disabled=True)
+        savecsvstate = window['-SAVECSV-'].Disabled
+        window['-SAVECSV-'].Update(disabled=True)
+        savexlsxstate = window['-SAVEXLSX-'].Disabled
+        window['-SAVEXLSX-'].Update(disabled=True)
+        subfoldersstate = window['-SUBFOLDERS-'].Disabled
+        window['-SUBFOLDERS-'].Update(disabled=True)
+        ### SHOWING IMAGE
         layout = [[sg.Image(key="-IMAGE-")],
                   [sg.Text('Prediction:', size=(10, 1)),
                    sg.Combo(values=list(classesempty+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
@@ -480,9 +481,9 @@ while True:
                     windowimg.Element('-CORRECTIONSCORE-').Update("\tScore: 1.0")
                     window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
-                    window['-SAVECSV-'].Update(disabled=False)
+                    if hasrun: savecsvstate = False
                     if pkgutil.find_loader("openpyxl") is not None:
-                        window['-SAVEXLSX-'].Update(disabled=False)
+                        if hasrun: savexlsxstate = False
             if eventimg in (sg.WIN_CLOSED, '-CLOSE-'):
                 break
             elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
@@ -528,6 +529,11 @@ while True:
                 windowimg["-CORRECTIONSCORE-"].Update("\tScore: "+str(predictedscore[curridx]))
         windowimg.close()
         window['-ALLTABROW-'].Update(disabled=False)
+        window['-FOLDERBROWSE-'].Update(disabled=folderbrowsestate)
+        window['-RUN-'].Update(disabled=runstate)
+        window['-SAVECSV-'].Update(disabled=savecsvstate)
+        window['-SAVEXLSX-'].Update(disabled=savexlsxstate)
+        window['-SUBFOLDERS-'].Update(disabled=subfoldersstate)
     elif event == '-SUBFOLDERS-':
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         if values["-CP-"] == True:
@@ -554,7 +560,6 @@ while True:
             window['-SUBFOLDERS-'].Update(disabled=True)
             window['-CP-'].Update(disabled=True)
             window['-MV-'].Update(disabled=True)
-                            
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
     else:

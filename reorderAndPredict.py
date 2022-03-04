@@ -1,17 +1,36 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Feb 25 10:37:12 2022
+# Copyright CNRS 2022
 
-@author: Elias Chetouane, Vincent Miele
+# simon.chamaille@cefe.cnrs.fr; vincent.miele@univ-lyon1.fr
 
-To use this, just write 'from <path/>reorderAndPredict.py import reorderAndPredictWithSequence'
-where <path/> is the path of this file.
-"""
+# This software is a computer program whose purpose is to identify
+# animal species in camera trap images.
 
-####################################################################################
-### PREDICTION TOOL USING EXIF INFO & SEQUENCES, TIME DELTA = 20s
-####################################################################################
+#This software is governed by the CeCILL  license under French law and
+# abiding by the rules of distribution of free software.  You can  use, 
+# modify and/ or redistribute the software under the terms of the CeCILL
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info". 
+
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability. 
+
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or 
+# data to be ensured and,  more generally, to use and operate it in the 
+# same conditions as regards security. 
+
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL license and that you accept its terms.
+
 import pandas as pd
 import random
 from PIL import Image
@@ -26,19 +45,22 @@ def randomDate(seed):
     d = random.randint(1, int(time()))
     return datetime.fromtimestamp(d).strftime("%Y:%m:%d %H:%M:%S")
 
-def get_date_taken(path):
+def getDateTaken(path):
     try:
         date = Image.open(path)._getexif()[36867]
     except:
         date = None
     return date
 
-def correctPredictionWithSequence(sub_df_filename, sub_predictedclass_base, sub_predictedscore_base, seqnuminit=0):
+####################################################################################
+### MAJORITY VOTING IN SEQUENCES OF IMAGES
+####################################################################################
+def correctPredictionWithSequenceSingleDirectory(sub_df_filename, sub_predictedclass_base, sub_predictedscore_base, seqnuminit=0):
     seqnum = np.repeat(seqnuminit, sub_df_filename.shape[0])
     sub_predictedclass = sub_predictedclass_base.copy()
     sub_predictedscore = sub_predictedscore_base.copy()
     ## Getting date from exif, or draw random fake date
-    dates = np.array([get_date_taken(file) for file in sub_df_filename['filename']])
+    dates = np.array([getDateTaken(file) for file in sub_df_filename['filename']])
     withoutdate = np.where(dates == None)[0]
     dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
     
@@ -86,11 +108,9 @@ def correctPredictionWithSequence(sub_df_filename, sub_predictedclass_base, sub_
     return sub_predictedclass, sub_predictedscore, seqnum
 
 ####################################################################################
-### ORDERING FILES BY DIRECTORY AND CALLING THE PREDICTION TOOL USING EXIF
+### ORDERING FILES BY DIRECTORY AND CALLING MAJORITY VOTING
 ####################################################################################
-
 import numpy as np
-
 def getFilesOrder(df):
     nbrows = len(df)
     numdir = np.array([0]*nbrows)
@@ -98,38 +118,38 @@ def getFilesOrder(df):
     for i in range(0, nbrows):
         dirname = str(df['filename'][i])[:-len(str(df['filename'][i]).split("/")[-1])]
         try:
-            t = dirs.index(dirname)
+            dirindex = dirs.index(dirname)
         except:
-            t = len(dirs)
+            dirindex = len(dirs)
             dirs.append(dirname)
-        numdir[i] = t
+        numdir[i] = dirindex
     filesOrder = np.argsort(numdir)
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
-def getPredictionsCorrectionWithSequences(filenames, predictclass_base, predictscore_base):
+def correctPredictionWithSequence(filenames, predictclass_base, predictscore_base):
     nbrows = len(filenames)
     predictclass = [0]*nbrows
     predictscore = [0]*nbrows
     seqnum = [0]*nbrows
     currdir = str(filenames['filename'][0])[:-len(str(filenames['filename'][0]).split("/")[-1])]
-    lower_bound = 0
+    lowerbound = 0
     for i in range(1, nbrows):
         dirname = str(filenames['filename'][i])[:-len(str(filenames['filename'][i]).split("/")[-1])]
         if currdir != dirname:
             currdir = dirname
-            predictclass[lower_bound:i], predictscore[lower_bound:i], seqnum[lower_bound:i] = correctPredictionWithSequence(filenames.iloc[lower_bound:i,:], predictclass_base[lower_bound:i], predictscore_base[lower_bound:i], seqnuminit=max(seqnum))
-            lower_bound = i
-    predictclass[lower_bound:i+1], predictscore[lower_bound:i+1], seqnum[lower_bound:i+1] = correctPredictionWithSequence(filenames.iloc[lower_bound:i+1,:], predictclass_base[lower_bound:i+1], predictscore_base[lower_bound:i+1], seqnuminit=max(seqnum))
+            predictclass[lowerbound:i], predictscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(filenames.iloc[lowerbound:i,:], predictclass_base[lowerbound:i], predictscore_base[lowerbound:i], seqnuminit=max(seqnum))
+            lowerbound = i
+    predictclass[lowerbound:i+1], predictscore[lowerbound:i+1], seqnum[lowerbound:i+1] = correctPredictionWithSequenceSingleDirectory(filenames.iloc[lowerbound:i+1,:], predictclass_base[lowerbound:i+1], predictscore_base[lowerbound:i+1], seqnuminit=max(seqnum))
     return predictclass, predictscore, seqnum
 
-def reorderAndPredictWithSequence(filenames, predictclass_base, predictscore_base, lang):
+def reorderAndCorrectPredictionWithSequence(filenames, predictclass_base, predictscore_base, lang):
     global LANG
     LANG = lang
     order = getFilesOrder(filenames)
     filenames = pd.DataFrame({'filename':[filenames['filename'][k] for k in order]})
     predictclass_base = [predictclass_base[k] for k in order]
     predictscore_base = [predictscore_base[k] for k in order]
-    predictclass, predictscore, seqnum = getPredictionsCorrectionWithSequences(filenames, predictclass_base, predictscore_base)
+    predictclass, predictscore, seqnum = correctPredictionWithSequence(filenames, predictclass_base, predictscore_base)
     return filenames, predictclass_base, predictscore_base, predictclass, predictscore, seqnum
     
