@@ -33,20 +33,12 @@
 
 
 import PySimpleGUI as sg
-import re
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('Dark2')
 #sg.ChangeLookAndFeel('DarkBlue1')
 #sg.ChangeLookAndFeel('DarkGrey1')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
-
-
-
-####################################################################################
-### ROUNDED BUTTON
-####################################################################################
-
 
 
 txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chevreuil","chien","ecureuil","felinae","humain","lagomorphe","loup","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
@@ -105,7 +97,6 @@ from base64 import b64encode
 from PIL import Image, ImageDraw
 from PySimpleGUI import Button, BUTTON_TYPE_READ_FORM, FILE_TYPES_ALL_FILES, theme_background_color, theme_button_color
 import io
-from base64 import b64encode
 
 def RButton(button_text=' ', corner_radius=0.5, button_type=BUTTON_TYPE_READ_FORM, target=(None, None),
             tooltip=None, file_types=FILE_TYPES_ALL_FILES, initial_folder=None, default_extension='',
@@ -224,23 +215,20 @@ window.read(timeout=0) # trick to make the button disabled at first
 import tensorflow as tf
 from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
 from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from PIL import Image
 import numpy as np
 import pandas as pd
-from os import listdir, mkdir
+from os import mkdir
 from os.path import join, basename
 from pathlib import Path
 import pkgutil
-import io
 nbclasses=len(classes)
 if backbone == "resnet":
     from keras.applications.resnet_v2 import ResNet50V2
-    from keras.applications.resnet_v2 import preprocess_input, decode_predictions
+    from keras.applications.resnet_v2 import preprocess_input
     base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
 elif backbone == "efficientnet":
     from tensorflow.keras.applications.efficientnet import EfficientNetB3
-    from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
+    from tensorflow.keras.applications.efficientnet import preprocess_input
     base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(300,300,3))
 x = base_model.output
 x = GlobalAveragePooling2D()(x)
@@ -270,79 +258,11 @@ def prediction2class(prediction, threshold):
     return class_pred, score_pred
 
 ####################################################################################
-### PREDICTION TOOL USING EXIF INFO & SEQUENCES, TIME DELTA = 20s
-####################################################################################
-import random
-from time import time
-from datetime import datetime
-def randomDate(seed):
-    random.seed(seed)
-    d = random.randint(1, int(time()))
-    return datetime.fromtimestamp(d).strftime("%Y:%m:%d %H:%M:%S")
-
-def get_date_taken(path):
-    try:
-        date = Image.open(path)._getexif()[36867]
-    except:
-        date = None
-    return date
-    
-def correctPredictionWithSequence(sub_df_filename, sub_predictedclass_base, sub_predictedscore_base, seqnuminit=0):
-    seqnum = np.repeat(seqnuminit, sub_df_filename.shape[0])
-    sub_predictedclass = sub_predictedclass_base.copy()
-    sub_predictedscore = sub_predictedscore_base.copy()
-    ## Getting date from exif, or draw random fake date
-    dates = np.array([get_date_taken(file) for file in sub_df_filename["filename"]])
-    withoutdate = np.where(dates == None)[0]
-    dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
-    
-    ## Sorting dates and computing lag
-    from datetime import timedelta
-    datesstrip =  np.array([datetime.strptime(date, "%Y:%m:%d %H:%M:%S") for date in dates])
-    datesorder = np.argsort(datesstrip)
-    datesstripSorted = np.sort(datesstrip)
-    
-    def majorityVotingInSequence(i1, i2):
-        df = pd.DataFrame({'prediction':[sub_predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
-        majority = df.groupby(['prediction']).sum()
-        if list(majority.index) == [txt_empty[LANG]]:
-            for k in datesorder[i1:(i2+1)]:
-                sub_predictedclass[k] = txt_empty[LANG]
-                sub_predictedscore[k] = sub_predictedscore_base[k]
-        else:
-            majority = majority[majority.index != txt_empty[LANG]] # skipping empty images in sequence
-            best = np.argmax(majority['score']) # selecting class with best total score
-            majorityclass = majority.index[best]
-            majorityscore = df.groupby(['prediction']).mean()['score'][best] # overall score as the mean for this class
-            for k in datesorder[i1:(i2+1)]:
-                if sub_predictedclass_base[k]!= txt_empty[LANG]:
-                    sub_predictedclass[k] = majorityclass 
-                    sub_predictedscore[k] = int(majorityscore*100)/100.
-                else:
-                    sub_predictedclass[k] = txt_empty[LANG]
-                    sub_predictedscore[k] = sub_predictedscore_base[k]
-            
-    ## Treating sequences
-    curseqnum = 1
-    i1 = i2 = 0 # sequences boundaries
-    for i in range(1,len(datesstripSorted)):
-        lag = datesstripSorted[i]-datesstripSorted[i-1]
-        if lag<timedelta(seconds=20): # subsequent images in sequence
-            pass
-        else: # sequence change
-            majorityVotingInSequence(i1, i2)
-            seqnum[datesorder[i1:(i2+1)]] = curseqnum
-            curseqnum += 1
-            i1 = i
-        i2 = i
-    majorityVotingInSequence(i1, i2)
-    seqnum[datesorder[i1:(i2+1)]] = curseqnum
-    return sub_predictedclass, sub_predictedscore, seqnum
-
-
-####################################################################################
 ### GUI IN ACTION
 ####################################################################################
+from datetime import datetime
+from sequenceTools import reorderAndCorrectPredictionWithSequence
+
 testdir = ""
 rowidx = [-1]
 hasrun = False
@@ -476,8 +396,8 @@ while True:
             print("DEBUG: saving scores to",tmpcsv)
             pdprediction.to_csv(tmpcsv, float_format='%.2g')
         frgbprint("Autocorrection en utilisant les exif...", "Autocorrecting using exif information...", end="")
-        predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)
-        predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base)
+        predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)        
+        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, LANG)
         frgbprint(" terminé", " done")
         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
         window['-RUN-'].Update(disabled=True)
@@ -487,7 +407,6 @@ while True:
         window['-MV-'].Update(disabled=False)
         window['-SAVECSV-'].Update(disabled=False)
         if pkgutil.find_loader("openpyxl") is not None:
-            import openpyxl
             window['-SAVEXLSX-'].Update(disabled=False)
         window['-ALLTABROW-'].Update(disabled=False)
     elif event == '-SAVECSV-':
