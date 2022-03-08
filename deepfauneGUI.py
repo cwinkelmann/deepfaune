@@ -45,6 +45,7 @@ txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chevreuil","chien"
               'gb':["badger","ibex","red deer","chamois","roe deer","dog","squirrel","felinae","human","lagomorph","wolf","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicule"]}
 txt_empty = {'fr':"vide", 'gb':"empty"}
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
+txt_other =  {'fr':"autre", 'gb':"other"}
 txt_imagefolder = {'fr':"Dossier d'images", 'gb':"Image folder"}
 txt_browse = {'fr':"Choisir", 'gb':"Select"}
 txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
@@ -454,7 +455,7 @@ while True:
         ### SHOWING IMAGE
         layout = [[sg.Image(key="-IMAGE-")],
                   [sg.Text('Prediction:', size=(10, 1)),
-                   sg.Combo(values=list(classesempty+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
+                   sg.Combo(values=list(classesempty+[txt_other[LANG]]), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
                    sg.Text("\tScore: "+str(predictedscore[curridx]), key='-CORRECTIONSCORE-')],
                   [RButton('Close', key='-CLOSE-'),
                    RButton(txt_prevpred[LANG], key='-PREVIOUS-'),
