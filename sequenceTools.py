@@ -127,29 +127,29 @@ def getFilesOrder(df):
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
-def correctPredictionWithSequence(filenames, predictclass_base, predictscore_base):
-    nbrows = len(filenames)
-    predictclass = [0]*nbrows
-    predictscore = [0]*nbrows
+def correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base):
+    nbrows = len(df_filename)
+    predictedclass = [0]*nbrows
+    predictedscore = [0]*nbrows
     seqnum = [0]*nbrows
-    currdir = str(filenames['filename'][0])[:-len(str(filenames['filename'][0]).split("/")[-1])]
+    currdir = str(df_filename['filename'][0])[:-len(str(df_filename['filename'][0]).split("/")[-1])]
     lowerbound = 0
     for i in range(1, nbrows):
-        dirname = str(filenames['filename'][i])[:-len(str(filenames['filename'][i]).split("/")[-1])]
+        dirname = str(df_filename['filename'][i])[:-len(str(df_filename['filename'][i]).split("/")[-1])]
         if currdir != dirname:
             currdir = dirname
-            predictclass[lowerbound:i], predictscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(filenames.iloc[lowerbound:i,:], predictclass_base[lowerbound:i], predictscore_base[lowerbound:i], seqnuminit=max(seqnum))
+            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:i,:], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], seqnuminit=max(seqnum))
             lowerbound = i
-    predictclass[lowerbound:i+1], predictscore[lowerbound:i+1], seqnum[lowerbound:i+1] = correctPredictionWithSequenceSingleDirectory(filenames.iloc[lowerbound:i+1,:], predictclass_base[lowerbound:i+1], predictscore_base[lowerbound:i+1], seqnuminit=max(seqnum))
-    return predictclass, predictscore, seqnum
+    predictedclass[lowerbound:i+1], predictedscore[lowerbound:i+1], seqnum[lowerbound:i+1] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:i+1,:], predictedclass_base[lowerbound:i+1], predictedscore_base[lowerbound:i+1], seqnuminit=max(seqnum))
+    return predictedclass, predictedscore, seqnum
 
-def reorderAndCorrectPredictionWithSequence(filenames, predictclass_base, predictscore_base, lang):
+def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, lang):
     global LANG
     LANG = lang
-    order = getFilesOrder(filenames)
-    filenames = pd.DataFrame({'filename':[filenames['filename'][k] for k in order]})
-    predictclass_base = [predictclass_base[k] for k in order]
-    predictscore_base = [predictscore_base[k] for k in order]
-    predictclass, predictscore, seqnum = correctPredictionWithSequence(filenames, predictclass_base, predictscore_base)
-    return filenames, predictclass_base, predictscore_base, predictclass, predictscore, seqnum
+    order = getFilesOrder(df_filename)
+    df_filename = pd.DataFrame({'filename':[df_filename['filename'][k] for k in order]})
+    predictedclass_base = [predictedclass_base[k] for k in order]
+    predictedscore_base = [predictedscore_base[k] for k in order]
+    predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base)
+    return df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum
     

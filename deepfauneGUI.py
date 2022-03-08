@@ -396,7 +396,7 @@ while True:
             tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
             print("DEBUG: saving scores to",tmpcsv)
             pdprediction.to_csv(tmpcsv, float_format='%.2g')
-        frgbprint("Autocorrection en utilisant les exif...", "Autocorrecting using exif information...", end="")
+        frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
         predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)        
         df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, LANG)
         frgbprint(" terminé", " done")
