@@ -45,6 +45,7 @@ txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chevreuil","chien"
               'gb':["badger","ibex","red deer","chamois","roe deer","dog","squirrel","felinae","human","lagomorph","wolf","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicule"]}
 txt_empty = {'fr':"vide", 'gb':"empty"}
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
+txt_other =  {'fr':"autre", 'gb':"other"}
 txt_imagefolder = {'fr':"Dossier d'images", 'gb':"Image folder"}
 txt_browse = {'fr':"Choisir", 'gb':"Select"}
 txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
@@ -395,7 +396,7 @@ while True:
             tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
             print("DEBUG: saving scores to",tmpcsv)
             pdprediction.to_csv(tmpcsv, float_format='%.2g')
-        frgbprint("Autocorrection en utilisant les exif...", "Autocorrecting using exif information...", end="")
+        frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
         predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)        
         df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, LANG)
         frgbprint(" terminé", " done")
@@ -454,7 +455,7 @@ while True:
         ### SHOWING IMAGE
         layout = [[sg.Image(key="-IMAGE-")],
                   [sg.Text('Prediction:', size=(10, 1)),
-                   sg.Combo(values=list(classesempty+['autre']), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
+                   sg.Combo(values=list(classesempty+[txt_other[LANG]]), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
                    sg.Text("\tScore: "+str(predictedscore[curridx]), key='-CORRECTIONSCORE-')],
                   [RButton('Close', key='-CLOSE-'),
                    RButton(txt_prevpred[LANG], key='-PREVIOUS-'),
