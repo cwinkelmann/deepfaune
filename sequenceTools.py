@@ -140,7 +140,7 @@ def correctPredictionWithSequence(filenames, predictclass_base, predictscore_bas
             currdir = dirname
             predictclass[lowerbound:i], predictscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(filenames.iloc[lowerbound:i,:], predictclass_base[lowerbound:i], predictscore_base[lowerbound:i], seqnuminit=max(seqnum))
             lowerbound = i
-    predictclass[lowerbound:i+1], predictscore[lowerbound:i+1], seqnum[lowerbound:i+1] = correctPredictionWithSequenceSingleDirectory(filenames.iloc[lowerbound:i+1,:], predictclass_base[lowerbound:i+1], predictscore_base[lowerbound:i+1], seqnuminit=max(seqnum))
+    predictclass[lowerbound:nbrows], predictscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(filenames.iloc[lowerbound:nbrows,:], predictclass_base[lowerbound:nbrows], predictscore_base[lowerbound:nbrows], seqnuminit=max(seqnum))
     return predictclass, predictscore, seqnum
 
 def reorderAndCorrectPredictionWithSequence(filenames, predictclass_base, predictscore_base, lang):
