@@ -84,8 +84,6 @@ backbone = "efficientnet"
 hdf5 = "efficientnet_MDcheckOnlycroppedImgAugB3.hdf5"
 BATCH_SIZE = 8
 workers = 1
-classes = txt_classes[LANG]
-classesempty = classes + [txt_empty[LANG]]
 YOLO_SIZE=608
 CROP_SIZE=300
 savedmodel = "checkpoints/yolov4-608/"
@@ -168,10 +166,12 @@ while True:
             LANG = 'fr'
         else:
             LANG = 'gb'
-        break                          
+        break
 windowlang.close()  
 
 ## GUI
+classes = txt_classes[LANG]
+classesempty = classes + [txt_empty[LANG]]
 prediction = [[],[]]
 threshold = threshold_default = 0.5
 maxlag = maxlag_default = 20 # seconds
