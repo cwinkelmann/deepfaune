@@ -72,15 +72,18 @@ def correctPredictionWithSequenceSingleDirectory(sub_df_filename, sub_predictedc
     def majorityVotingInSequence(i1, i2):
         df = pd.DataFrame({'prediction':[sub_predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[sub_predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
         majority = df.groupby(['prediction']).sum()
+        meanscore = df.groupby(['prediction']).mean()['score']
         if list(majority.index) == [txt_empty[LANG]]:
             for k in datesorder[i1:(i2+1)]:
                 sub_predictedclass[k] = txt_empty[LANG]
                 sub_predictedscore[k] = sub_predictedscore_base[k]
         else:
-            majority = majority[majority.index != txt_empty[LANG]] # skipping empty images in sequence
+            notempty = (majority.index != txt_empty[LANG]) # skipping empty images in sequence
+            majority = majority[notempty]
+            meanscore = meanscore[notempty]
             best = np.argmax(majority['score']) # selecting class with best total score
             majorityclass = majority.index[best]
-            majorityscore = df.groupby(['prediction']).mean()['score'][best] # overall score as the mean for this class
+            majorityscore = meanscore[best] # overall score as the mean for this class
             for k in datesorder[i1:(i2+1)]:
                 if sub_predictedclass_base[k]!= txt_empty[LANG]:
                     sub_predictedclass[k] = majorityclass 
