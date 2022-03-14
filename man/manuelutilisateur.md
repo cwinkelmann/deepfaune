@@ -1,15 +1,21 @@
-# MANUEL D’UTILISATION DU GUI DEEPFAUNE (v0.2)
+---
+# MANUEL D’UTILISATION DU LOGICIEL DEEPFAUNE (v0.2)
+---
 
+---
 ## LICENSE
+---
 DeepFaune est développé sous la licence CeCILL, compatible avec GNU GPL. L’utilisation d’une partie ou de la totalité du logiciel DeepFaune à des fins commerciales est strictement interdite.
 
+---
 ## PRESENTATION GENERALE
+---
 Ce document décrit le logiciel DeepFaune qui est une interface graphique permettant d’utiliser simplement le modèle de classification développé par notre équipe pour trier automatiquement des images de pièges photographiques. Les étapes d’installation ainsi que la prise en main du logiciel et un exemple d’utilisation y sont abordés. Le logiciel DeepFaune peut être utilisé sur un ordinateur personnel (PC) standard avec les systèmes d’exploitation Windows ou Linux (Mac OS non testé). Ce logiciel fait partie d’un projet de recherche vivant et peut donc évoluer régulièrement. Les mises à jour du logiciel et de son manuel seront disponibles ici [https://www.deepfaune.cnrs.fr/].
 
+---
 ## VUE D’ENSEMBLE DU LOGICIEL
-
+---
 ### Fonctionnalités
-
 Le logiciel DeepFaune offre une interface ergonomique pour faciliter le tri et la classification d’**images stockées localement**. Il suffit de sélectionner le dossier contenant les images à trier et de lancer le programme.  Le modèle de classification prédit alors, pour chaque image, le taxon détecté avec le plus haut score de confiance (ex : une image peut être prédite comme contenant un « chamois » avec 92% de confiance). 
 
 Les **résultats sont disponibles sous forme de tableau** (disponibles aux formats CSV ou XSLX) associant à chaque image la classe prédite et le score de confiance. Les images classées peuvent être stockées dans des **sous-dossiers spécifiques aux taxons**, permettant d’organiser directement toutes les images d’un taxon spécifique dans un même sous-dossier. 
@@ -31,28 +37,31 @@ L’interface est composée d’une fenêtre principale organisée en 2 panneaux
 
 Une seconde fenêtre permet de visualiser les images et les prédictions.
 
-
-
+---
 ## INSTALLATION
+---
+Le logiciel `deepfaune` peut tourner sur tout ordinateur classique.
 
 #### Pour utilisateur.rices sous Windows
-    1) Télécharger l’archive `.zip` correspondant à la dernière version sur [https://pbil.univ-lyon1.fr/software/download/deepfaune/](https://pbil.univ-lyon1.fr/software/download/deepfaune/).
-    2) Extraire les fichiers contenus dans le .zip téléchargé dans le dossier de votre choix.
-    3) Cliquer sur `deepfauneGUI.exe` 
+Aucun prérequis technique, aucune installation tiers préalable. 
+
+- Télécharger l’archive `.zip` correspondant à la dernière version sur [https://pbil.univ-lyon1.fr/software/download/deepfaune/](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+- Extraire les fichiers contenus dans le .zip téléchargé dans le dossier de votre choix.
+- Cliquer sur `deepfauneGUI.exe` (Attention, le lancement peut prendre plusieurs dizaines de secondes).
 
 
 #### Pour utilisateur.rices sous Linux, Mac (ou Windows habitué.es à Python)
 Se référer aux instructions indiquées sur [https://plmlab.math.cnrs.fr/deepfaune/software](https://plmlab.math.cnrs.fr/deepfaune/software)
 
 
-
-
+---
 ## UTILISATION
+---
 
 #### ETAPE 1 : Lancement du logiciel
 Windows : Double-cliquer sur `deepfauneGUI.exe`
 
-Linux : Dans un terminal, lancer `python DeepFauneGUI.py`
+Linux : Dans un terminal, lancer `python deepfauneGUI.py`
 
 #### ETAPE 2 : Choix de la langue
 La première fenêtre à apparaître permet de sélectionner la langue du logiciel ; cocher Français ou English.
@@ -79,11 +88,9 @@ Une série de commandes vont s’afficher dans le panneau en haut à droite de l
 #### ETAPE 8 : Visualisation des résultats dans le tableau
 Les prédictions faites apparaissent dans le panneau droit en bas à gauche sous forme d’un tableau contenant le nom du fichier, la prédiction et le score de confiance associé à cette prédiction par ligne.
 
-
 #### ETAPE 9 : Visualisation des résultats sous forme de diaporama
 Les images classées peuvent être visualisées une à une dans une fenêtre séparée en cliquant sur le bouton « Afficher les images ». Ceci affiche toutes les images pour lesquelles des prédictions ont été faites. 
 Pour visualiser une seule image, il faut impérativement sélectionner l’image dans la section tableau de l’interface en cliquant dessus (elle devient alors surlignée) puis cliquer sur le bouton « Afficher l’image sélectionnée ». 
-
 
 Une fois que les prédictions sont faites, une nouvelle fenêtre de visualisation des résultats sous forme de diaporama est disponible en cliquant sur le bouton « Afficher les images ». Cette nouvelle fenêtre permet :
 
@@ -115,9 +122,9 @@ Remarque : Ces images peuvent être organisées selon deux modalités, selon qu
 - en copiant les fichiers d’images du dossier parent dans les nouveaux sous-dossiers par taxon
 - en déplaçant les fichiers d’images du dossier parent aux sous-dossiers triés. 
 
-
+---
 ## CONTACT
-
+---
 Pour toute question ou remarque, contacter Simon et Vincent aux adresses suivantes:
 
 simon.chamaille@cefe.cnrs.fr / vincent.miele@univ-lyon1.fr
