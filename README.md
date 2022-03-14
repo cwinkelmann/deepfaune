@@ -19,7 +19,7 @@ The latest versions are available at:
 
 
 ---
-# FOR LINUX USERS (or WINDOWS USERS used to Python)
+# FOR LINUX USERS (or MAC/WINDOWS USERS used to Python)
 ---
 
 ### 1. Get the source code of the latest release, directly from this site. 
