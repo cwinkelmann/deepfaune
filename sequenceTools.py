@@ -38,7 +38,6 @@ from time import time
 from datetime import datetime
 
 txt_empty = {'fr':"vide", 'gb':"empty"}
-LANG = 'gb'
 
 def randomDate(seed):
     random.seed(seed)
@@ -55,7 +54,7 @@ def getDateTaken(path):
 ####################################################################################
 ### MAJORITY VOTING IN SEQUENCES OF IMAGES
 ####################################################################################
-def correctPredictionWithSequenceSingleDirectory(sub_df_filename, sub_predictedclass_base, sub_predictedscore_base, seqnuminit=0):
+def correctPredictionWithSequenceSingleDirectory(sub_df_filename, sub_predictedclass_base, sub_predictedscore_base, seqnuminit, maxlag, LANG):
     seqnum = np.repeat(seqnuminit, sub_df_filename.shape[0])
     sub_predictedclass = sub_predictedclass_base.copy()
     sub_predictedscore = sub_predictedscore_base.copy()
@@ -95,7 +94,7 @@ def correctPredictionWithSequenceSingleDirectory(sub_df_filename, sub_predictedc
     i1 = i2 = 0 # sequences boundaries
     for i in range(1,len(datesstripSorted)):
         lag = datesstripSorted[i]-datesstripSorted[i-1]
-        if lag<timedelta(seconds=20): # subsequent images in sequence
+        if lag<timedelta(seconds=maxlag): # subsequent images in sequence
             pass
         else: # sequence change
             majorityVotingInSequence(i1, i2)
@@ -127,7 +126,7 @@ def getFilesOrder(df):
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
-def correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base):
+def correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG):
     nbrows = len(df_filename)
     predictedclass = [0]*nbrows
     predictedscore = [0]*nbrows
@@ -138,19 +137,17 @@ def correctPredictionWithSequence(df_filename, predictedclass_base, predictedsco
         dirname = str(df_filename['filename'][i])[:-len(str(df_filename['filename'][i]).split("/")[-1])]
         if currdir != dirname:
             currdir = dirname
-            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:i,:], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], seqnuminit=max(seqnum))
+            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:i,:], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], max(seqnum), maxlag, LANG)
             lowerbound = i
-    predictedclass[lowerbound:nbrows], predictedscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:nbrows,:], predictedclass_base[lowerbound:nbrows], predictedscore_base[lowerbound:nbrows], seqnuminit=max(seqnum))
+    predictedclass[lowerbound:nbrows], predictedscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:nbrows,:], predictedclass_base[lowerbound:nbrows], predictedscore_base[lowerbound:nbrows], max(seqnum), maxlag, LANG)
     return predictedclass, predictedscore, seqnum
 
 
-def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, lang):
-    global LANG
-    LANG = lang
+def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG):
     order = getFilesOrder(df_filename)
     df_filename = pd.DataFrame({'filename':[df_filename['filename'][k] for k in order]})
     predictedclass_base = [predictedclass_base[k] for k in order]
     predictedscore_base = [predictedscore_base[k] for k in order]
-    predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base)
+    predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
     return df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum
     

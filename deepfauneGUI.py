@@ -398,7 +398,7 @@ while True:
             pdprediction.to_csv(tmpcsv, float_format='%.2g')
         frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
         predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)        
-        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, LANG)
+        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
         frgbprint(" terminé", " done")
         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
         window['-RUN-'].Update(disabled=True)
