@@ -1,11 +1,4 @@
----
 # MANUEL D’UTILISATION DU LOGICIEL DEEPFAUNE (v0.2)
----
-
----
-## LICENSE
----
-DeepFaune est développé sous la licence CeCILL, compatible avec GNU GPL. L’utilisation d’une partie ou de la totalité du logiciel DeepFaune à des fins commerciales est strictement interdite.
 
 ---
 ## PRESENTATION GENERALE
@@ -121,6 +114,11 @@ Remarque : Ces images peuvent être organisées selon deux modalités, selon qu
 
 - en copiant les fichiers d’images du dossier parent dans les nouveaux sous-dossiers par taxon
 - en déplaçant les fichiers d’images du dossier parent aux sous-dossiers triés. 
+
+---
+## LICENSE
+---
+DeepFaune est développé sous la licence CeCILL, compatible avec GNU GPL. L’utilisation d’une partie ou de la totalité du logiciel DeepFaune à des fins commerciales est strictement interdite.
 
 ---
 ## CONTACT
