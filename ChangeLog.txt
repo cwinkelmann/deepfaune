@@ -1,7 +1,8 @@
-2022-03-04  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-03-14  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.2
 
+	    * New categories 'cat','lynx' and 'marmot' (in french 'chat', 'lynx' and 'marmotte').
 	    * The autocorrection with exif now operates by sudirectories,
 	    to prevent considering sequences of images that are from different camera traps.
 	    * The principal windows is now desactivated when using the visualization window.
@@ -9,3 +10,9 @@
 2022-02-14  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Pre-release version O.1
+
+	    * Includes categories 'badger','ibex','red deer','chamois','cat','roe deer','dog','squirrel',
+	    'human','lagomorph', 'wolf','lynx','marmot','micromammal','mouflon','sheep','mustelide',
+	    'bird','fox','wild boar', 'cow','vehicule' (in french 'blaireau', 'bouquetin', 'cerf',
+	    'chamois', 'chevreuil', 'chien', 'ecureuil', 'felinae', 'humain', 'lagomorphe', 'loup', 'micromammifere',
+	    'mouflon', 'mouton', 'mustelide', 'oiseau', 'renard', 'sanglier', 'vache', 'vehicule').
