@@ -57,7 +57,7 @@ On Windows with **[Anaconda Individual Edition](https://www.anaconda.com/product
 
 In a terminal, launch `python deepfauneGUI.py` or `python.exe deepfauneGUI.py`
 
-HAVE FUN NOW !!
+You can use the GUI, and you can also consult [the user manual](https://plmlab.math.cnrs.fr/deepfaune/software/-/tree/master/man).
 
 ---
 # CONTACT
