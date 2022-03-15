@@ -23,13 +23,23 @@ The latest versions are available at:
 ---
 
 ### 1. Get the source code of the latest release, directly from this site. 
-First of all, get the `zip` archive by clicking on the button ![button](icons/button.jpg) on the top right of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](the TAGS page). This will open the following window where you can download the whole directory as a `zip` file (warning, it's a huge file):
-![button](icons/buttonzip.jpg) 
+First of all, get the `zip` archive by clicking on the button ![button](icons/button.jpg) on the top right of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
+This will open the following window where you can download the whole directory as a `zip` file (warning, it's a huge file):
+
+![button](icons/buttonzip.jpg)
+
 Then, uncompress the zip file.
 
-### 2. Install the prerequisites
+###  2. Download and unzip the model parameters
+Download the model parameters *inside the deepfaune folder* where you can find `deepfauneGUI.py`:
+- Animal detector parameters: [checkpoints.zip](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+- Classifier parameters: [efficientnet_xxxx.hdf5](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
 
-On Linux or Windows with PyPi:
+Then unzip the file `checkpoints.zip` and you are done !
+
+### 3. Install the dependencies
+
+On Linux or Windows **with PyPi (pip)**:
 
 - Python 3.x (and `pip` which might be called `pip3` on your system)
 - Tensorflow: `pip install tensorflow`
@@ -38,20 +48,10 @@ On Linux or Windows with PyPi:
 - PIL: `pip install pillow`
 - (optional) openpyxl: `pip install openpyxl`
 
-On Windows with [Anaconda Individual Edition](https://www.anaconda.com/products/individual) (install can take time):
-
-WARNING: during installation, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE.
+On Windows with **[Anaconda Individual Edition](https://www.anaconda.com/products/individual)** (WARNING: during installation of Anaconda, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE).
 
 - Open Anaconda window, search for `tensorflow` and click to install it, , as explained [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)
 - (optional) Open Anaconda window, search for `openpyxl` and click to install it
-
-###  3. Download the model parameters
-Download the model parameters inside the folder where you can find `deepfauneGUI.py`:
-- Animal detector parameters: [checkpoints.zip](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
-- Classifier parameters: [efficientnet_xxxx.hdf5](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
-
-Then unzip the file `checkpoints.zip` and you are done !
-
 
 #### 4. Running the Python script
 
@@ -78,9 +78,9 @@ Commercial use of any element of `deepfaune` is forbidden.
 # REFERENCES
 ---
 
-[Rig22] Rigoudy, N., the DeepFaune consortium, Spataro, B., Miele, V. & Chamaillé-Jammes, S. (2022) *The DeepFaune initiative: a collaborative effort towards the automatic identification of the French fauna in camera-trap images.* Preprint bioRxiv
+[Rig22] Rigoudy, N., the DeepFaune consortium, Spataro, B., Miele, V. & Chamaillé-Jammes, S. (2022) *The DeepFaune initiative: a collaborative effort towards the automatic identification of the French fauna in camera-trap images.* [Preprint bioRxiv](https://biorxiv.org/)
 
-[Mie21] Miele, V., Dray, S., & Gimenez, O. (2021). *Images, écologie et deep learning.* Regards sur la biodiversité.
+[Mie21] Miele, V., Dray, S., & Gimenez, O. (2021). *Images, écologie et deep learning.* [Regards sur la biodiversité](https://sfecologie.org/regard/r95-fev-2021-miele-dray-gimenez-deep-learning/)
 
 
 ---
@@ -89,19 +89,26 @@ Commercial use of any element of `deepfaune` is forbidden.
 
 ---
 
-**T1:** How can I learn more about machine learning ?
+> How can I learn more about machine learning?
 
 You can watch these [series of 3 french videos](https://imaginecology.sciencesconf.org) (video 1 is the easiest).
 
-**T2:** Is the `deepfaune` software free ?
+> Is the `deepfaune` software free?
 
-Yes. But, if you appreciate our work, please contribute by sharing with us your annotated images. You can contact us to see how you can send us your images (we have different solutions). We will store them in a secure server with private access to the members of the deepfaune project.
+Yes, it is a free software. Commercial use is forbidden, according to the [CeCILL LICENCE](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/LICENCE.txt). But, if you appreciate our work, please cite our work and/or contribute by sharing with us your annotated images.
 
-**T3:** Can I have access to the images used in the DeepFaune project ?
+> Can I have access to the images used in the DeepFaune project?
 
 No. We do not share the images of our partners.
 
+> Can I contribute to the DeepFaune project with my images?
+
+It would be great!! You can contact us to see how you can send us your images (we have different solutions). We will store them in a secure server with private access to the members of the deepfaune project.
  
+> Who is developing this DeepFaune project ?
+
+A team from CNRS leaded by Simon Chamaillé-Jammes and Vincent Miele. Please have a look at our website [https://www.deepfaune.cnrs.fr/](https://www.deepfaune.cnrs.fr/).
+
 <br>
 <br>
 
