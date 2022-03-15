@@ -414,6 +414,7 @@ while True:
         preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
+        preddf.sort_values(['seqnum','filename'], inplace=True)
         confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
         if confirm == 'Yes':
             frgbprint("Enregistrement dans "+join(testdir,"deepfaune.csv"), "Saving to "+join(testdir,"deepfaune.csv"))
@@ -423,6 +424,7 @@ while True:
         preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
+        preddf.sort_values(['seqnum','filename'], inplace=True)
         confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
         if confirm == 'Yes':
             frgbprint("Enregistrement dans "+join(testdir,"deepfaune.xlsx"), "Saving to "+join(testdir,"deepfaune.xlsx"))
