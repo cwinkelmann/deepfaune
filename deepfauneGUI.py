@@ -88,75 +88,13 @@ YOLO_SIZE=608
 CROP_SIZE=300
 savedmodel = "checkpoints/yolov4-608/"
 
-
-####################################################################################
-### ROUNDED BUTTON
-####################################################################################
-from base64 import b64encode
-from PIL import Image, ImageDraw
-from PySimpleGUI import Button, BUTTON_TYPE_READ_FORM, FILE_TYPES_ALL_FILES, theme_background_color, theme_button_color
-import io
-
-def RButton(button_text=' ', corner_radius=0.5, button_type=BUTTON_TYPE_READ_FORM, target=(None, None),
-            tooltip=None, file_types=FILE_TYPES_ALL_FILES, initial_folder=None, default_extension='',
-            disabled=False, change_submits=False, enable_events=False,
-            image_size=(None, None), image_subsample=None, border_width=0, size=(None, None),
-            auto_size_button=None, button_color=None, disabled_button_color=("white","white"), highlight_colors=None, 
-            mouseover_colors=(None, None), use_ttk_buttons=None, font=None, bind_return_key=False, focus=False, 
-            pad=None, key=None, right_click_menu=None, expand_x=False, expand_y=False, visible=True, 
-            metadata=None):
-    if None in size:
-        multi = 5
-        size = (((len(button_text) if size[0] is None else size[0]) * 5 + 20) * multi,
-                20 * multi if size[1] is None else size[1])
-    if button_color is None:
-        button_color = theme_button_color()
-    btn_img = Image.new('RGBA', size, (0, 0, 0, 0))
-    corner_radius = int(corner_radius/2*min(size))
-    poly_coords = (
-        (corner_radius, 0),
-        (size[0] - corner_radius, 0),
-        (size[0], corner_radius),
-        (size[0], size[1] - corner_radius),
-        (size[0] - corner_radius, size[1]),
-        (corner_radius, size[1]),
-        (0, size[1] - corner_radius),
-        (0, corner_radius),
-    )
-    pie_coords = [
-        [(size[0] - corner_radius * 2, size[1] - corner_radius * 2, size[0], size[1]),
-         [0, 90]],
-        [(0, size[1] - corner_radius * 2, corner_radius * 2, size[1]), [90, 180]],
-        [(0, 0, corner_radius * 2, corner_radius * 2), [180, 270]],
-        [(size[0] - corner_radius * 2, 0, size[0], corner_radius * 2), [270, 360]],
-    ]
-    brush = ImageDraw.Draw(btn_img)
-    brush.polygon(poly_coords, button_color[1])
-    for coord in pie_coords:
-        brush.pieslice(coord[0], coord[1][0], coord[1][1], button_color[1])
-    data = io.BytesIO()
-    btn_img.thumbnail((size[0] // 3, size[1] // 3), resample=Image.LANCZOS)
-    btn_img.save(data, format='png', quality=95)
-    btn_img = b64encode(data.getvalue())
-    return Button(button_text=button_text, button_type=button_type, target=target, tooltip=tooltip,
-                  file_types=file_types, initial_folder=initial_folder, default_extension=default_extension,
-                  disabled=disabled, change_submits=change_submits, enable_events=enable_events,
-                  image_data=btn_img, image_size=image_size,
-                  image_subsample=image_subsample, border_width=border_width, size=size,
-                  auto_size_button=auto_size_button, button_color=(button_color[0], theme_background_color()),
-                  disabled_button_color=disabled_button_color, highlight_colors=highlight_colors,
-                  mouseover_colors=mouseover_colors, use_ttk_buttons=use_ttk_buttons, font=font,
-                  bind_return_key=bind_return_key, focus=focus, pad=pad, key=key, right_click_menu=right_click_menu,
-                  expand_x=expand_x, expand_y=expand_y, visible=visible, metadata=metadata)
-
-
 ####################################################################################
 ### GUI WINDOW
 ####################################################################################
 
 ## LANGUAGE SELECTION AT FIRST
 windowlang = sg.Window("DeepFaune GUI",layout=[[sg.Text("Please select your language / choisissez votre langue")], 
-                                            [sg.Radio("français", 1, key='-FR-', default=True), sg.Radio("english", 1, key='-GB-'), Button("OK", key='-OK-')]], font = ("Arial", 14)).Finalize()
+                                            [sg.Radio("français", 1, key='-FR-', default=True), sg.Radio("english", 1, key='-GB-'), sg.Button("OK", key='-OK-')]], font = ("Arial", 14)).Finalize()
 while True:
     event, values = windowlang.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
@@ -182,8 +120,8 @@ left_col = [
     [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100. for i in range(25, 99)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
     [sg.Text(txt_sequencemaxlag[LANG]+'\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
     [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
-    [RButton(txt_run[LANG], key='-RUN-'), RButton(txt_save[LANG]+'CSV', key='-SAVECSV-'), RButton(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
-    [RButton(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
+    [sg.Button(txt_run[LANG], key='-RUN-'), sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
+    [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
 ]
 right_col=[
     [sg.Multiline(size=(69, 10), default_text=txt_loading[LANG], write_only=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
@@ -191,7 +129,7 @@ right_col=[
               vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
               key='-TABRESULTS-')],      
-    [RButton(txt_showall[LANG], key='-ALLTABROW-'),RButton(txt_showselected[LANG], key='-TABROW-')]
+    [sg.Button(txt_showall[LANG], key='-ALLTABROW-'),sg.Button(txt_showselected[LANG], key='-TABROW-')]
 ]
 layout = [[sg.Column(left_col, element_justification='l' ),
            sg.Column(right_col, element_justification='l')]] 
@@ -222,6 +160,7 @@ from os import mkdir
 from os.path import join, basename
 from pathlib import Path
 import pkgutil
+from PIL import Image
 nbclasses=len(classes)
 if backbone == "resnet":
     from keras.applications.resnet_v2 import ResNet50V2
@@ -262,6 +201,7 @@ def prediction2class(prediction, threshold):
 ### GUI IN ACTION
 ####################################################################################
 from datetime import datetime
+from io import BytesIO
 from sequenceTools import reorderAndCorrectPredictionWithSequence
 
 testdir = ""
@@ -459,9 +399,9 @@ while True:
                   [sg.Text('Prediction:', size=(10, 1)),
                    sg.Combo(values=list(classesempty+[txt_other[LANG]]), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
                    sg.Text("\tScore: "+str(predictedscore[curridx]), key='-CORRECTIONSCORE-')],
-                  [RButton('Close', key='-CLOSE-'),
-                   RButton(txt_prevpred[LANG], key='-PREVIOUS-'),
-                   RButton(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
+                  [sg.Button('Close', key='-CLOSE-'),
+                   sg.Button(txt_prevpred[LANG], key='-PREVIOUS-'),
+                   sg.Button(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
         windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True)
         try:
@@ -471,7 +411,7 @@ while True:
             image = Image.new('RGB', (600, 500))
         else:
             image = image.resize((600,500))
-        bio = io.BytesIO()
+        bio = BytesIO()
         image.save(bio, format="PNG")
         windowimg["-IMAGE-"].update(data=bio.getvalue())
         ### CORRECTING PREDICTION
@@ -524,7 +464,7 @@ while True:
                     image = Image.new('RGB', (600, 500))
                 else:
                     image = image.resize((600,500))
-                bio = io.BytesIO()
+                bio = BytesIO()
                 image.save(bio, format="PNG")
                 windowimg["-IMAGE-"].update(data=bio.getvalue())
                 windowimg.TKroot.title(basename(df_filename['filename'][curridx]))
