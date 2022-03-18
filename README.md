@@ -7,8 +7,18 @@
 
 
 ---
-# FOR WINDOWS USERS
+# NEWS
 ---
+
+Release v0.2 is available. 
+
+Supported categories/species :  BADGER, IBER, RED DEER, CHAMOIS, CAT, ROE DEER, DOG, SQUIRREL, LAGOMORPH, WOLF, LYNX, MARMOT, MICROMAMMAL, MOUFLON, SHEEP, MUSTELIDE, BIRD, FOX,  WILD BOARD, COW + HUMAN + VEHICLE + EMPTY
+
+---
+# INSTALL
+---
+
+## FOR WINDOWS USERS
 
 The latest versions are available at:
 [https://pbil.univ-lyon1.fr/software/download/deepfaune/](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
@@ -17,9 +27,9 @@ The latest versions are available at:
 2. Uncompress the file on your Desktop
 3. Double-click on `deepfauneGUI.exe`
 
----
-# FOR LINUX / MAC OS USERS (and WINDOWS  USERS used to Python)
----
+
+## FOR LINUX / MAC OS USERS (and WINDOWS  USERS used to Python)
+
 
 ### 1. Get the source code of the latest release, directly from this site. 
 First of all, get the `zip` archive by clicking on the button ![button](icons/button.jpg) on the top right of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
