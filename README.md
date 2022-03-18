@@ -17,15 +17,8 @@ The latest versions are available at:
 2. Uncompress the file on your Desktop
 3. Double-click on `deepfauneGUI.exe`
 
-
 ---
-# FOR MAC USERS
----
-
-At that time, we still have a bug with Mac OS... stay in touch, we're about to find a solution ;-)
-
----
-# FOR LINUX USERS
+# FOR LINUX / MAC OS USERS (and WINDOWS  USERS used to Python)
 ---
 
 ### 1. Get the source code of the latest release, directly from this site. 
