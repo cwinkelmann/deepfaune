@@ -1,3 +1,9 @@
+2022-03-25  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+
+	    Version 0.2.1
+
+	    * Patch: threshold button is now working correctly.
+
 2022-03-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.2
