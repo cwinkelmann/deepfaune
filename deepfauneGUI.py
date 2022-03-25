@@ -117,7 +117,7 @@ left_col = [
     [sg.Image(filename=r'icons/cameratrap-nb.png'),sg.Image(filename=r'icons/logoINEE.png')],
     [sg.Text("DEEPFAUNE",size=(12,1), font=("Helvetica", 35)), sg.Text("version "+VERSION)],[sg.Text("\n\n\n")],
     [sg.Text(txt_imagefolder[LANG]), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
-    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100. for i in range(25, 99)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
+    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
     [sg.Text(txt_sequencemaxlag[LANG]+'\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
     [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
     [sg.Button(txt_run[LANG], key='-RUN-'), sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
@@ -251,7 +251,8 @@ while True:
                 window['-TABROW-'].Update(disabled=True)
                 window['-ALLTABROW-'].Update(disabled=True)
     elif event == '-THRESHOLD-':
-        threshold = float(values['-THRESHOLD-'])/100.
+        threshold = float(values['-THRESHOLD-'])
+        print(threshold)
     elif event == '-LAG-':
         maxlag = float(values['-LAG-'])
     elif event == '-RUN-':
