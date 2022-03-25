@@ -125,7 +125,10 @@ def getFilesOrder(df):
             dirindex = len(dirs)
             dirs.append(dirname)
         numdir[i] = dirindex
-    filesOrder = np.argsort(numdir)
+    # Getting file ordering for successive, keeping ordering inside dir 
+    filesOrder = np.where(numdir==0)[0]
+    for idx in range(1,max(numdir)+1):
+        filesOrder = np.concatenate((filesOrder,np.where(numdir==idx)[0]))
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
