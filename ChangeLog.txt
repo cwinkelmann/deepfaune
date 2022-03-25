@@ -3,6 +3,8 @@
 	    Version 0.2.1
 
 	    * Patch: threshold button is now working correctly.
+	    * File ordering is now optimal for vizualization: by folder, then
+	    by alphabetical order.
 
 2022-03-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
