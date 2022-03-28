@@ -42,7 +42,7 @@ sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 
 
 txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","humain","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
-              'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicule"]}
+              'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]}
 txt_empty = {'fr':"vide", 'gb':"empty"}
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 txt_other =  {'fr':"autre", 'gb':"other"}
@@ -252,7 +252,6 @@ while True:
                 window['-ALLTABROW-'].Update(disabled=True)
     elif event == '-THRESHOLD-':
         threshold = float(values['-THRESHOLD-'])
-        print(threshold)
     elif event == '-LAG-':
         maxlag = float(values['-LAG-'])
     elif event == '-RUN-':
