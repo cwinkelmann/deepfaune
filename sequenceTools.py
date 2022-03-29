@@ -36,6 +36,7 @@ import random
 from PIL import Image
 from time import time
 from datetime import datetime
+import os.path as op
 
 txt_empty = {'fr':"vide", 'gb':"empty"}
 
@@ -118,14 +119,17 @@ def getFilesOrder(df):
     numdir = np.array([0]*nbrows)
     dirs = []
     for i in range(0, nbrows):
-        dirname = str(df['filename'][i])[:-len(str(df['filename'][i]).split("/")[-1])]
+        dirname = op.dirname(str(df['filename'][i]))
         try:
             dirindex = dirs.index(dirname)
         except:
             dirindex = len(dirs)
             dirs.append(dirname)
         numdir[i] = dirindex
-    filesOrder = np.argsort(numdir)
+    # Getting file ordering for successive, keeping ordering inside dir 
+    filesOrder = np.where(numdir==0)[0]
+    for idx in range(1,max(numdir)+1):
+        filesOrder = np.concatenate((filesOrder,np.where(numdir==idx)[0]))
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
@@ -134,10 +138,10 @@ def correctPredictionWithSequence(df_filename, predictedclass_base, predictedsco
     predictedclass = [0]*nbrows
     predictedscore = [0]*nbrows
     seqnum = [0]*nbrows
-    currdir = str(df_filename['filename'][0])[:-len(str(df_filename['filename'][0]).split("/")[-1])]
+    currdir = op.dirname(str(df_filename['filename'][0]))
     lowerbound = 0
     for i in range(1, nbrows):
-        dirname = str(df_filename['filename'][i])[:-len(str(df_filename['filename'][i]).split("/")[-1])]
+        dirname = op.dirname(str(df_filename['filename'][i]))
         if currdir != dirname:
             currdir = dirname
             predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:i,:], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], max(seqnum), maxlag, LANG)

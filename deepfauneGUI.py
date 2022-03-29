@@ -40,11 +40,12 @@ sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('DarkGrey1')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 
-
-txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","humain","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
-              'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicule"]}
-txt_empty = {'fr':"vide", 'gb':"empty"}
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
+txt_empty = {'fr':"vide", 'gb':"empty"}
+txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","humain","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
+              'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]}
+
+
 txt_other =  {'fr':"autre", 'gb':"other"}
 txt_imagefolder = {'fr':"Dossier d'images", 'gb':"Image folder"}
 txt_browse = {'fr':"Choisir", 'gb':"Select"}
@@ -80,17 +81,13 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 VERSION = "0.2"
 LANG = "fr"
 DEBUG = False
-backbone = "efficientnet"
-hdf5 = "efficientnet_22classesOnlycroppedImgAugB3.hdf5"
-BATCH_SIZE = 8
-workers = 1
-YOLO_SIZE=608
-CROP_SIZE=300
-savedmodel = "checkpoints/yolov4-608/"
+
+
 
 ####################################################################################
 ### GUI WINDOW
 ####################################################################################
+BATCH_SIZE = 8
 
 ## LANGUAGE SELECTION AT FIRST
 windowlang = sg.Window("DeepFaune GUI",layout=[[sg.Text("Please select your language / choisissez votre langue")], 
@@ -108,8 +105,6 @@ while True:
 windowlang.close()  
 
 ## GUI
-classes = txt_classes[LANG]
-classesempty = classes + [txt_empty[LANG]]
 prediction = [[],[]]
 threshold = threshold_default = 0.5
 maxlag = maxlag_default = 20 # seconds
@@ -149,60 +144,17 @@ window.read(timeout=0) # trick to make the button disabled at first
 
 
 ####################################################################################
-### LOADING CLASSIFIER
+### GUI IN ACTION
 ####################################################################################
-import tensorflow as tf
-from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
-from tensorflow.keras.models import Model
+from datetime import datetime
+from io import BytesIO
 import numpy as np
+from PIL import Image
 import pandas as pd
 from os import mkdir
 from os.path import join, basename
 from pathlib import Path
 import pkgutil
-from PIL import Image
-nbclasses=len(classes)
-if backbone == "resnet":
-    from keras.applications.resnet_v2 import ResNet50V2
-    from keras.applications.resnet_v2 import preprocess_input
-    base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
-elif backbone == "efficientnet":
-    from tensorflow.keras.applications.efficientnet import EfficientNetB3
-    from tensorflow.keras.applications.efficientnet import preprocess_input
-    base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(300,300,3))
-x = base_model.output
-x = GlobalAveragePooling2D()(x)
-#x = Dense(512)(x) #256,1024, etc. may work as well
-x = Dense(nbclasses)(x) #number of classes
-preds = Activation("softmax")(x)
-model = Model(inputs=base_model.input,outputs=preds)
-model.load_weights(hdf5)
-
-####################################################################################
-### LOADING YOLO 
-####################################################################################
-saved_model_loaded = tf.saved_model.load(savedmodel)
-infer = saved_model_loaded.signatures['serving_default']
-
-####################################################################################
-### PREDICTION TOOL
-####################################################################################
-def prediction2class(prediction, threshold):
-    class_pred = [txt_undefined[LANG] for i in range(len(prediction))] 
-    score_pred = [0. for i in range(len(prediction))] 
-    for i in range(len(prediction)):
-        pred = prediction[i]
-        if(max(pred)>=threshold):
-            class_pred[i] = classesempty[np.argmax(pred)]
-        score_pred[i] = int(max(pred)*100)/100.
-    return class_pred, score_pred
-
-####################################################################################
-### GUI IN ACTION
-####################################################################################
-from datetime import datetime
-from io import BytesIO
-from sequenceTools import reorderAndCorrectPredictionWithSequence
 
 testdir = ""
 rowidx = [-1]
@@ -268,66 +220,14 @@ while True:
             sg.cprint('Running', c='white on green', end='')
         sg.cprint('')
         window.refresh()
-        ### PREDICTING
-        prediction = np.zeros(shape=(nbfiles,nbclasses+1), dtype=np.float32)
-        prediction[:,nbclasses] = 1 # by default, predicted as empty
-        k1 = 0
-        k2 = min(k1+BATCH_SIZE,nbfiles)
-        batch = 1
-        images_data = np.empty(shape=(1,YOLO_SIZE,YOLO_SIZE,3), dtype=np.float32)
-        while(k1<nbfiles):
-            frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
-            cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
-            idxnonempty = []
-            for k in range(k1,k2):
-                ## LOADING image and convert ton float 32 numpy array
-                image_path = df_filename["filename"][k]
-                try:
-                    original_image = Image.open(image_path)
-                    original_image.getdata()[0]
-                except OSError:
-                    pass # Corrupted image, considered as empty
-                else:
-                    resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
-                    image_data = np.asarray(resized_image).astype(np.float32)
-                    image_data = image_data / 255. # PIL image is int8, this array is float32 and divided by 255
-                    images_data[0,:,:,:] = image_data
-                    ## INFERING boxes and retain the most confident one (if it exists)
-                    batch_data = tf.constant(images_data)
-                    pred_bbox = infer(input_1=batch_data)
-                    for key, value in pred_bbox.items():
-                        boxes = value[:, :, 0:4]
-                        pred_conf = value[:, :, 4:]
-                    if boxes.shape[1]>0: # not empty
-                        boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
-                            boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
-                            scores=tf.reshape(
-                                pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
-                            max_output_size_per_class=5,
-                            max_total_size=5,
-                            iou_threshold=0.45,
-                            score_threshold=0.25
-                        )
-                        idxnonempty.append(k)
-                        idxmax  = np.unravel_index(np.argmax(scores.numpy()[0,:]), scores.shape[1])
-                        bestbox = boxes[0,idxmax[0],:].numpy()
-                        ## CROPPING a single box
-                        NUM_BOXES = 1 # boxes.numpy().shape[1]
-                        box_indices = tf.random.uniform(shape=(NUM_BOXES,), minval=0, maxval=1, dtype=tf.int32)
-                        output = tf.image.crop_and_resize(batch_data, boxes[0,idxmax[0]:(idxmax[0]+1),:], box_indices, (CROP_SIZE,CROP_SIZE))
-                        output.shape
-                        cropped_data[k-k1,:,:,:] = preprocess_input(output[0].numpy()*255)
-            if len(idxnonempty):
-                prediction[idxnonempty,0:nbclasses] = model.predict(cropped_data[[idx-k1 for idx in idxnonempty],:,:,:], workers=workers)
-                prediction[idxnonempty,nbclasses] = 0 # not empty
-            ## Update
-            window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-            frgbprint(" terminé", " done")
-            predictedclass_batch, predictedscore_batch = prediction2class(prediction[k1:k2,],threshold)
-            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
-            k1 = k2
-            k2 = min(k1+BATCH_SIZE,nbfiles)
-            batch = batch+1
+        
+        import predictClass as pc
+        
+        pred = pc.Predict(df_filename, maxlag, threshold, LANG)
+        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = pred.getPredictions()
+        
+        
+        """
         if DEBUG:
             pdprediction = pd.DataFrame(prediction)
             pdprediction.columns = classesempty
@@ -336,9 +236,8 @@ while True:
             tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
             print("DEBUG: saving scores to",tmpcsv)
             pdprediction.to_csv(tmpcsv, float_format='%.2g')
-        frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-        predictedclass_base, predictedscore_base = prediction2class(prediction, threshold)        
-        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
+        """
+        
         frgbprint(" terminé", " done")
         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
         window['-RUN-'].Update(disabled=True)
@@ -395,6 +294,8 @@ while True:
         subfoldersstate = window['-SUBFOLDERS-'].Disabled
         window['-SUBFOLDERS-'].Update(disabled=True)
         ### SHOWING IMAGE
+        classes = txt_classes[LANG]
+        classesempty = classes + [txt_empty[LANG]]
         layout = [[sg.Image(key="-IMAGE-")],
                   [sg.Text('Prediction:', size=(10, 1)),
                    sg.Combo(values=list(classesempty+[txt_other[LANG]]), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
