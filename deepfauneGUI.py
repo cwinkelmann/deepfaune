@@ -255,6 +255,8 @@ while True:
     elif event == '-LAG-':
         maxlag = float(values['-LAG-'])
     elif event == '-RUN-':
+        threshold = float(values['-THRESHOLD-'])
+        maxlag = float(values['-LAG-'])
         hasrun = True
         window['-RUN-'].Update(disabled=True)
         window['-FOLDERBROWSE-'].Update(disabled=True)
