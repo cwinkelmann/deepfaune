@@ -1,6 +1,6 @@
 import cv2
 
-img = input("Chemin de l'image : ")
+img = input("Path to the image : ")
 
 model = '/home/echetouane/yolo/my-yolov4_old.weights'
 config = '/home/echetouane/yolo/my-yolov4_old.cfg'
