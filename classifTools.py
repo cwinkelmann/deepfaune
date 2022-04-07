@@ -62,8 +62,10 @@ class Classifier:
         nbclasses=len(classes)
         self.prediction = np.zeros(shape=(nbfiles,nbclasses+1), dtype=np.float32)
         self.prediction[:,nbclasses] = 1 # by default, predicted as empty
+        self.classes = classes
         
-    def predicting(self, nbfiles, cropped_data, idxnonempty, k1, classes, LANG):
+    def predicting(self, nbfiles, cropped_data, idxnonempty, k1):
+        
         if len(idxnonempty):
             self.prediction[idxnonempty,0:self.nbclasses] = self.model.predict(cropped_data[[idx-k1 for idx in idxnonempty],:,:,:], workers=workers)
             self.prediction[idxnonempty,self.nbclasses] = 0 # not empty

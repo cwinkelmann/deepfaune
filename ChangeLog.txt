@@ -1,3 +1,12 @@
+2022-03-28  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+
+	    Version 0.2.1
+
+	    * Patch: threshold button is now working correctly.
+	    * Patch: autocorrect by folder is now also working when using Windows 11 and Python 3.10.
+	    * File ordering is now optimal for vizualization: by folder, then
+	    by alphabetical order.
+
 2022-03-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.2
@@ -14,6 +23,6 @@
 
 	    * Includes categories 'badger','ibex','red deer','chamois','cat','roe deer','dog','squirrel',
 	    'human','lagomorph', 'wolf','lynx','marmot','micromammal','mouflon','sheep','mustelide',
-	    'bird','fox','wild boar', 'cow','vehicule' (in french 'blaireau', 'bouquetin', 'cerf',
+	    'bird','fox','wild boar', 'cow','vehicle' (in french 'blaireau', 'bouquetin', 'cerf',
 	    'chamois', 'chevreuil', 'chien', 'ecureuil', 'felinae', 'humain', 'lagomorphe', 'loup', 'micromammifere',
 	    'mouflon', 'mouton', 'mustelide', 'oiseau', 'renard', 'sanglier', 'vache', 'vehicule').

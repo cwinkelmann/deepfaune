@@ -36,16 +36,14 @@
 ####################################################################################
 import tensorflow as tf
 import numpy as np
-from keras.applications.resnet_v2 import preprocess_input
 
 savedmodel = "checkpoints/yolov4-608/"
 saved_model_loaded = tf.saved_model.load(savedmodel)
 infer = saved_model_loaded.signatures['serving_default']
 
 
-def detecting(cropped_data, images_data, k1, k, idxnonempty, CROP_SIZE):
+def detecting(batch_data, CROP_SIZE):
     ## INFERING boxes and retain the most confident one (if it exists)
-    batch_data = tf.constant(images_data)
     pred_bbox = infer(input_1=batch_data) # dans yolo
     for key, value in pred_bbox.items():
         boxes = value[:, :, 0:4]
@@ -60,13 +58,12 @@ def detecting(cropped_data, images_data, k1, k, idxnonempty, CROP_SIZE):
             iou_threshold=0.45,
             score_threshold=0.25
         )
-        idxnonempty.append(k)
         idxmax  = np.unravel_index(np.argmax(scores.numpy()[0,:]), scores.shape[1])
         ## CROPPING a single box
         NUM_BOXES = 1 # boxes.numpy().shape[1]
         box_indices = tf.random.uniform(shape=(NUM_BOXES,), minval=0, maxval=1, dtype=tf.int32)
-        output = tf.image.crop_and_resize(batch_data, boxes[0,idxmax[0]:(idxmax[0]+1),:], box_indices, (CROP_SIZE,CROP_SIZE))
+        output = tf.image.crop_and_resize(batch_data, boxes[0,idxmax[0]:(idxmax[0]+1),:], box_indices, (CROP_SIZE, CROP_SIZE))
         output.shape
-        cropped_data[k-k1,:,:,:] = preprocess_input(output[0].numpy()*255)
-    return cropped_data
+        return output, True
+    return [], False
 

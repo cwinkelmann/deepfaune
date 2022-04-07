@@ -34,13 +34,10 @@
 from detectTools import detecting
 import classifTools
 from sequenceTools import reorderAndCorrectPredictionWithSequence
+from keras.applications.resnet_v2 import preprocess_input
 import numpy as np
 from PIL import Image
-
-txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
-txt_empty = {'fr':"vide", 'gb':"empty"}
-txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","humain","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
-              'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]}
+import tensorflow as tf
 
 YOLO_SIZE=608
 CROP_SIZE=300
@@ -48,7 +45,7 @@ BATCH_SIZE = 8
 
 class Predict:
     
-    def __init__(self, df_filename, maxlag, threshold, LANG):
+    def __init__(self, df_filename, maxlag, threshold, classes, txt_empty, txt_undefined, LANG):
         self.df_filename = df_filename
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
         self.predictedclass_base = []
@@ -57,15 +54,16 @@ class Predict:
         self.predictedscore = []
         self.seqnum = []
         self.maxlag = maxlag
-        self.LANG = LANG
-        self.classes = txt_classes[LANG]
-        self.classesempty = self.classes + [txt_empty[LANG]]
+        self.classes = classes
+        self.classesempty = self.classes + [txt_empty]
+        self.txt_undefined = txt_undefined
         self.threshold = threshold
         self.nbfiles = self.df_filename.shape[0]
         self.classifier = classifTools.Classifier(self.classes, self.nbfiles)
+        self.LANG = LANG
     
     def prediction2class(self, prediction):
-        class_pred = [txt_undefined[self.LANG] for i in range(len(prediction))] 
+        class_pred = [self.txt_undefined for i in range(len(prediction))] 
         score_pred = [0. for i in range(len(prediction))] 
         for i in range(len(prediction)):
             pred = prediction[i]
@@ -88,18 +86,22 @@ class Predict:
                 try:
                     original_image = Image.open(image_path)
                     original_image.getdata()[0]
-                except OSError:
+                except:
                     pass # Corrupted image, considered as empty
                 else:
                     resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
                     image_data = np.asarray(resized_image).astype(np.float32)
                     image_data = image_data / 255. # PIL image is int8, this array is float32 and divided by 255
                     images_data[0,:,:,:] = image_data
-                    self.cropped_data =  detecting(self.cropped_data, images_data, k1, k, idxnonempty, CROP_SIZE)
+                    batch_data = tf.constant(images_data)
+                    out, nonempty =  detecting(batch_data, CROP_SIZE)
+                    if nonempty:
+                        self.cropped_data[k-k1,:,:,:] = preprocess_input(out[0].numpy()*255)
+                        idxnonempty.append(k)
             ## Update
             #window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
             #frgbprint(" terminé", " done")
-            prediction = self.classifier.predicting(self.nbfiles, self.cropped_data, idxnonempty, k1, self.classes, self.LANG)
+            prediction = self.classifier.predicting(self.nbfiles, self.cropped_data, idxnonempty, k1)
             predictedclass_batch, predictedscore_batch = self.prediction2class(prediction[k1:k2,])
             #window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
             k1 = k2
