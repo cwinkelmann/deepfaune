@@ -77,7 +77,7 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.2"
+VERSION = "0.2.2"
 LANG = "fr"
 DEBUG = False
 backbone = "efficientnet"
@@ -246,7 +246,7 @@ while True:
                 window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
                                                                    predictedclass, predictedscore].tolist())
             else:
-                sg.popup_error('Incorrect image folder - no image found')
+                sg.popup_error('Incorrect image folder - no image found', keep_on_top=True)
                 window['-RUN-'].Update(disabled=True)
                 window['-TABROW-'].Update(disabled=True)
                 window['-ALLTABROW-'].Update(disabled=True)
