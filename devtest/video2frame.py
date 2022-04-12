@@ -1,23 +1,50 @@
 import cv2
 import os
 
-folder = input("Nom du dossier : ") # the folder where the frames will be extracted into
-video_name = input("Nom du fichier : ") # the video we want to extract frames from
-vidcap = cv2.VideoCapture(video_name)
-frames = [] # array of all extracted frames (not optimal to do so, but easier to understand for testing)
 
-while True:
-    success,image = vidcap.read() # extracts a frame (1 by 1)
-    if not success: # if not success, there is no more frames to extract
+YOLO_SIZE=608
+CROP_SIZE=300
+BATCH_SIZE = 8
+
+
+import numpy as np
+images_data = np.empty(shape=(1,YOLO_SIZE,YOLO_SIZE,3), dtype=np.float32)
+
+
+video_path = "EK000032.AVI"
+video = cv2.VideoCapture(video_path)
+
+total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+#get fps and video duration in s
+fps = int(video.get(5))
+#get duration of video in s
+duration= int(total_frames / fps)
+
+#messages to verif video param
+print ("fps=" + str(fps))
+print("duration=" + str(duration))
+  
+for frame_nb in range(0, BATCH_SIZE*fps, fps):
+    #get frame corresponding to frame_nb
+    video.set(cv2.CAP_PROP_POS_FRAMES, frame_nb)
+    #read frame
+    ret,frame = video.read()
+    #if frame was read correctly, save frame to name path
+    if ret:
+        name = "frame" + str(frame_nb) + '.jpg'
+        # save extracted frame to name path
+        cv2.imwrite(name, frame)
+        #else break out
+        resized_image = frame.resize((YOLO_SIZE, YOLO_SIZE))
+        image_data = np.asarray(resized_image).astype(np.float32)
+        image_data = image_data / 255. # PIL image is int8, this array is float32 and divided by 255
+        images_data[0,:,:,:] = image_data
+        print("Yolo sur images_data")
+    else:
+        #print duration, fps, total frames and last frame nb before breaking for verif
+        print("Can't read frame number " + str(frame_nb) + " out of " + str(total_frames) + ". Expect " + str(int(frame_nb / fps)) + " images.")
         break
-    frames.append(image) # adding the frame into the array (not optimal)
 
-size = len(frames)
-step = int(size/10) # to keep 1 frame every 10 frames
-if step == 0:
-	step == 1
-
-for i in range(0, size, step):    
-    cv2.imwrite(os.path.join(folder,"{}_frame{:d}.jpg".format(video_name.split(".")[-2],i)), frames[i]) # creates a jpg file for the frame we extracted
-
-print("{} images are extracted from {}, {} are saved.".format(i,folder, int(size/step)))
+# Release all space and windows once done
+video.release()
+cv2.destroyAllWindows()
