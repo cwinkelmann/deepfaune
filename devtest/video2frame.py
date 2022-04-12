@@ -1,5 +1,7 @@
 import cv2
 import os
+import sys
+
 
 
 YOLO_SIZE=608
@@ -11,7 +13,7 @@ import numpy as np
 images_data = np.empty(shape=(1,YOLO_SIZE,YOLO_SIZE,3), dtype=np.float32)
 
 
-video_path = "EK000032.AVI"
+video_path = sys.argv[1]
 video = cv2.VideoCapture(video_path)
 
 total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
