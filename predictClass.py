@@ -34,7 +34,6 @@
 from detectTools import detecting
 import classifTools
 from sequenceTools import reorderAndCorrectPredictionWithSequence
-from keras.applications.resnet_v2 import preprocess_input
 import numpy as np
 from PIL import Image
 import tensorflow as tf
@@ -48,6 +47,10 @@ class Predict:
     def __init__(self, df_filename, maxlag, threshold, classes, txt_empty, txt_undefined, LANG):
         self.df_filename = df_filename
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
+        self.nbclasses=len(classes)
+        self.nbfiles = self.df_filename.shape[0]
+        self.prediction = np.zeros(shape=(self.nbfiles, self.nbclasses+1), dtype=np.float32)
+        self.prediction[:,self.nbclasses] = 1 # by default, predicted as empty
         self.predictedclass_base = []
         self.predictedscore_base = []
         self.predictedclass = []
@@ -58,8 +61,7 @@ class Predict:
         self.classesempty = self.classes + [txt_empty]
         self.txt_undefined = txt_undefined
         self.threshold = threshold
-        self.nbfiles = self.df_filename.shape[0]
-        self.classifier = classifTools.Classifier(self.classes, self.nbfiles)
+        self.classifier = classifTools.Classifier(self.nbclasses)
         self.LANG = LANG
     
     def prediction2class(self, prediction):
@@ -94,21 +96,24 @@ class Predict:
                     image_data = image_data / 255. # PIL image is int8, this array is float32 and divided by 255
                     images_data[0,:,:,:] = image_data
                     batch_data = tf.constant(images_data)
-                    out, nonempty =  detecting(batch_data, CROP_SIZE)
+                    out, nonempty = detecting(batch_data, CROP_SIZE)
                     if nonempty:
-                        self.cropped_data[k-k1,:,:,:] = preprocess_input(out[0].numpy()*255)
+                        crop = self.classifier.preprocess(out)
+                        self.cropped_data[k-k1,:,:,:] = crop
                         idxnonempty.append(k)
             ## Update
             #window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
             #frgbprint(" terminé", " done")
-            prediction = self.classifier.predicting(self.nbfiles, self.cropped_data, idxnonempty, k1)
-            predictedclass_batch, predictedscore_batch = self.prediction2class(prediction[k1:k2,])
+            if len(idxnonempty):
+                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predicting(self.cropped_data[[idx-k1 for idx in idxnonempty],:,:,:])
+                self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
+            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[k1:k2,])
             #window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
             k1 = k2
             k2 = min(k1+BATCH_SIZE,self.nbfiles)
             batch = batch+1
         #frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-        self.predictedclass_base, self.predictedscore_base = self.prediction2class(prediction)        
+        self.predictedclass_base, self.predictedscore_base = self.prediction2class(self.prediction)        
         self.df_filename, self.predictedclass_base, self.predictedscore_base, self.predictedclass, self.predictedscore, self.seqnum = reorderAndCorrectPredictionWithSequence(self.df_filename, self.predictedclass_base, self.predictedscore_base, self.maxlag, self.LANG)
         return self.df_filename, self.predictedclass_base, self.predictedscore_base, self.predictedclass, self.predictedscore, self.seqnum
                 

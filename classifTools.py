@@ -36,37 +36,33 @@
 ####################################################################################
 from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
 from tensorflow.keras.models import Model
-from keras.applications.resnet_v2 import ResNet50V2
-from tensorflow.keras.applications.efficientnet import EfficientNetB3
-import numpy as np
 
 backbone = "efficientnet"
 hdf5 = "efficientnet_22classesOnlycroppedImgAugB3.hdf5"
 workers = 1
 
+if backbone == "resnet":
+    from keras.applications.resnet_v2 import ResNet50V2
+    from keras.applications.resnet_v2 import preprocess_input
+    base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
+elif backbone == "efficientnet":
+    from tensorflow.keras.applications.efficientnet import EfficientNetB3
+    from tensorflow.keras.applications.efficientnet import preprocess_input
+    base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(300,300,3))
+
 class Classifier:
     
-    def __init__(self, classes, nbfiles):
-        self.nbclasses=len(classes)
-        if backbone == "resnet":
-            base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
-        elif backbone == "efficientnet":
-            base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(300,300,3))
+    def __init__(self, nbclasses):
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
         #x = Dense(512)(x) #256,1024, etc. may work as well
-        x = Dense(self.nbclasses)(x) #number of classes
+        x = Dense(nbclasses)(x) #number of classes
         preds = Activation("softmax")(x)
         self.model = Model(inputs=base_model.input,outputs=preds)
         self.model.load_weights(hdf5)
-        nbclasses=len(classes)
-        self.prediction = np.zeros(shape=(nbfiles,nbclasses+1), dtype=np.float32)
-        self.prediction[:,nbclasses] = 1 # by default, predicted as empty
-        self.classes = classes
         
-    def predicting(self, nbfiles, cropped_data, idxnonempty, k1):
-        
-        if len(idxnonempty):
-            self.prediction[idxnonempty,0:self.nbclasses] = self.model.predict(cropped_data[[idx-k1 for idx in idxnonempty],:,:,:], workers=workers)
-            self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
-        return self.prediction
+    def predicting(self, cropped_data):
+        return self.model.predict(cropped_data, workers=workers)
+    
+    def preprocess(self, output):
+        return preprocess_input(output[0].numpy()*255)
