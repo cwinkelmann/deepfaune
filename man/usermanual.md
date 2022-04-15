@@ -1,4 +1,4 @@
-# USER MANUAL FOR DEEPFAUNE SOFTWARE (v0.2)
+# DEEPFAUNE SOFTWARE USER MANUAL (v0.2)
 
 ---
 ## GENERAL PRESENTATION
@@ -6,22 +6,22 @@
 This document describes the DeepFaune software that is a **graphical interface for users to easily use the classification model 
 developed by our team to automatically sort out camera-trap images.** Installation steps, user guidelines and an example of how to use this software are described below. The DeepFaune software can be used on a standard personal computer (PC) with Windows, Linux or MacOS operating systems. 
 
-This software is part of an on)going research project and can thus evolve regularly. Updates and this document are available here [https://www.deepfaune.cnrs.fr/].
+This software is part of an on-going research project and thus evolves regularly. Updates are available here [https://www.deepfaune.cnrs.fr/].
 
 ---
 ## OVERVIEW
 ---
 ### Features
 
-The DeepFaune software offers a user-friendly interface to make **locally-stored image** classification easy. The user simply needs to select the folder containing the images to classify and to launch the program. The classification model then predicts, for each image, **if the image is empty or contains a given taxonomic group** detected with the highest confidence score (eg. the image may be predicted as containing a red deer with 92% confidence). 
+The DeepFaune software offers a user-friendly interface to make **locally-stored image classification** easy. The user simply needs to select the folder containing the images to classify and to launch the program. The classification model then predicts, for each image, **if the image is empty or contains a given taxonomic group** detected with the highest confidence score (eg. the image may be predicted as containing a red deer with 92% confidence). 
 
-The **results are available in a table format** (available in `.csv` or `.xlsx` format) associating each image to the predicted class and to the confidence score. The classified images can then be stored in **taxa-specific sub-directories**, enabling to store all the images containing a given taxonomic group in the same folder.
+The **results are available as a table** (`.csv` or `.xlsx` format) associating each image to its predicted class and to the confidence score. The classified images can then be stored in **taxa-specific sub-directories**, enabling to store all the images containing a given taxonomic group in the same folder.
 
 The user needs to set two parameters to run the model: the minimum confidence threshold as well as the maximum time difference within a sequence of images. Both parameters are explained hereafter.
 
-The **confidence threshold** is the miminum threshold for which a prediction is kept (eg. with a 50% threshold, any image predicted with a score under 50% will be predicted as "uncertain"). Setting a high confidence threshold enables to classify images easy to classify quickly and with little error, but it leaves the user with more images to classify by hand (as they are then classified as "uncertain). Setting a low confidence threshold will inversely produce less "uncertain" images but the quality of all predictions will be lower. The best threshold value then depends on a number of factors, such as the aim of the study, the sudied species, if the user is able to manually sort out more "uncertain" images etc. The user is thus left to decide on which value to set. 
+The **confidence threshold** is the miminum threshold for which a prediction is kept (eg. with a 50% threshold, any image predicted with a score under 50% will be predicted as "uncertain"). Setting a high confidence threshold enables to classify images quickly and with little error, but it leaves the user with more images to classify by hand (as they are then classified as "uncertain). Setting a low confidence threshold will inversely produce less "uncertain" images but the overall quality of predictions will be lower. The best threshold value then depends on a number of factors, such as the aim of the study, the studied species, if the user is able to manually sort out more "uncertain" images etc. We leave the user to decide on which value to set. 
 
-Certain camera traps are programmed to take a series of photos for each trigger event (eg. the camera-trap is set on "burst mode", taking three consecutive photos when it is triggered by movement). We consider these consecutive images as part of the same "sequence", which all pertain to a single detection event. The **maximum time difference** within a sequence enables to identify images beloning to the same camera-trap event thanks to the date saved in the exif. This time difference corresponds to the maximum time between two consecutive images for them to be considered as belonging to the same "sequence" (eg. with a 2 seconds time difference, all consecutive images that are within 2 seconds from each other are predicted as belonging to the same class). 
+Certain camera traps are programmed to take a series of photos for each trigger event (eg. the camera-trap is set on "burst mode", taking three consecutive photos when it is triggered by movement). We consider these consecutive images as part of the same "sequence", which all belong to a single detection event. The **maximum time difference** within a sequence enables to identify images beloning to the same camera-trap event thanks to the date saved in the exif. This time difference corresponds to the maximum time between two consecutive images for them to be considered as belonging to the same "sequence" (eg. with a 2 seconds time difference, all consecutive images that are within 2 seconds from each other are predicted as belonging to the same class). 
 
 CAREFUL: The information concerning where the images were taken ("study area") does not exist in our dataset. The user must then be careful to store images taken in different sites in seperate folders. If the images of different sites are pooled together in the same folder, the model's "sequence" information will be incorrect. 
 
