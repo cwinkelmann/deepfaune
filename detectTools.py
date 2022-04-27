@@ -68,23 +68,16 @@ def detecting(batch_data, CROP_SIZE):
     return [], False
 
 
-model = '/home/vmiele/Projects/tinydetector/yolo/tinydetector/my-yolov4_last.weights'
-config = '/home/vmiele/Projects/tinydetector/yolo/tinydetector/my-yolov4.cfg'
+import cv2
+model = '/home/vmiele/Developpement/deepfaunegui-modular/my-yolov4_last.weights'
+config = '/home/vmiele/Developpement/deepfaunegui-modular/my-yolov4.cfg'
 yolo = cv2.dnn.readNetFromDarknet(config, model)
 yololayers = [yolo.getLayerNames()[i - 1] for i in yolo.getUnconnectedOutLayers()]
 #classes = ["animal", "person", "vehicle"]
 
 
-
-TESTER AVEC IPYTHON
-JE ME DEMANDE SI detection[0:4] est bon car entre 0 et 1
-ET ENSUITE C CA QU ON VEUT, 
-def detecting2(batch_data, CROP_SIZE):
-    yolo.setInput(cv2.dnn.blobFromImage(batch_data.numpy()[0,:,:,:],
-                                        1./1., (YOLO_SIZE, YOLO_SIZE), swapRB=True, crop=False))
-                  ## ATTEND ICI (1, 3, 608, 608)
-                  ## MAIS C EST (1, 608, 608, 3) !!
-                  ## Possible de faire /255. ici
+def detecting2(blobimage, threshold = 0.25):
+    yolo.setInput(blobimage)
     layerOutputs = yolo.forward(yololayers)
     boxes_detected = []
     confidences_scores = []
