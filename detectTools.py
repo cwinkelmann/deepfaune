@@ -67,3 +67,60 @@ def detecting(batch_data, CROP_SIZE):
         return output, True
     return [], False
 
+
+model = '/home/vmiele/Projects/tinydetector/yolo/tinydetector/my-yolov4_last.weights'
+config = '/home/vmiele/Projects/tinydetector/yolo/tinydetector/my-yolov4.cfg'
+yolo = cv2.dnn.readNetFromDarknet(config, model)
+yololayers = [yolo.getLayerNames()[i - 1] for i in yolo.getUnconnectedOutLayers()]
+#classes = ["animal", "person", "vehicle"]
+
+
+
+TESTER AVEC IPYTHON
+JE ME DEMANDE SI detection[0:4] est bon car entre 0 et 1
+ET ENSUITE C CA QU ON VEUT, 
+def detecting2(batch_data, CROP_SIZE):
+    yolo.setInput(cv2.dnn.blobFromImage(batch_data.numpy()[0,:,:,:],
+                                        1./1., (YOLO_SIZE, YOLO_SIZE), swapRB=True, crop=False))
+                  ## ATTEND ICI (1, 3, 608, 608)
+                  ## MAIS C EST (1, 608, 608, 3) !!
+                  ## Possible de faire /255. ici
+    layerOutputs = yolo.forward(yololayers)
+    boxes_detected = []
+    confidences_scores = []
+    #labels_detected = []
+    probability_index=5
+    # loop over each of the layer outputs
+    for output in layerOutputs:
+        # loop over each of the detections
+        for detection in output:
+            # extract the class ID and confidence (i.e., probability) of the current object detection
+            scores = detection[5:]
+            classID = np.argmax(scores)
+            confidence = scores[classID]
+     
+            # Take only predictions with confidence more than CONFIDENCE_MIN thresold
+            threshold = 0.25
+            if confidence > threshold:
+                # Bounding box
+                box = detection[0:4] # * np.array([w, h, w, h]) ## UTILE ???? ENSUITE ON A BESOIN D'ENTRE 0 et 1 ???
+                (centerX, centerY, width, height) = box#.astype("int")
+                # Use the center (x, y)-coordinates to derive the top and left corner of the bounding box
+                x = int(centerX - (width / 2))
+                y = int(centerY - (height / 2))
+                # update our result list (detection)
+                boxes_detected.append([x, y, int(width), int(height)])
+                confidences_scores.append(float(confidence))
+                #labels_detected.append(classID)
+    final_boxes = cv2.dnn.NMSBoxes(boxes_detected, confidences_scores, 0.25, 0.25)
+    if final_boxes.size>0:
+        # extract the most confident bounding box coordinates
+        max_class_id = final_boxes[0]
+        (x, y) = (boxes_detected[max_class_id][0], boxes_detected[max_class_id][1])
+        (w, h) = (boxes_detected[max_class_id][2], boxes_detected[max_class_id][3])
+        ## CROPPING a single box
+        NUM_BOXES = 1 # boxes.numpy().shape[1]
+        box_indices = tf.random.uniform(shape=(NUM_BOXES,), minval=0, maxval=1, dtype=tf.int32)
+        output = tf.image.crop_and_resize(batch_data, XXXXXX, box_indices, (CROP_SIZE, CROP_SIZE))
+        return output, True
+    return [], False
