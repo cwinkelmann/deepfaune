@@ -76,6 +76,7 @@ yololayers = [yolo.getLayerNames()[i - 1] for i in yolo.getUnconnectedOutLayers(
 #classes = ["animal", "person", "vehicle"]
 
 
+# in/out as numpy int array (0-255) in BGR
 def detecting2(blobimage, threshold = 0.25):
     yolo.setInput(blobimage)
     layerOutputs = yolo.forward(yololayers)
