@@ -12,7 +12,7 @@
 
 Release v0.2 is available. 
 
-Supported categories/species :  BADGER, IBEX, RED DEER, CHAMOIS, CAT, ROE DEER, DOG, SQUIRREL, LAGOMORPH, WOLF, LYNX, MARMOT, MICROMAMMAL, MOUFLON, SHEEP, MUSTELIDE, BIRD, FOX,  WILD BOARD, COW + HUMAN + VEHICLE + EMPTY
+Supported categories/species :  BADGER, IBEX, RED DEER, CHAMOIS/ISARD, CAT, ROE DEER, DOG, SQUIRREL, LAGOMORPH, WOLF, LYNX, MARMOT, MICROMAMMAL, MOUFLON, SHEEP, MUSTELIDE, BIRD, FOX, WILD BOAR, COW, HUMAN/VEHICLE, EMPTY
 
 ---
 # INSTALL
@@ -55,7 +55,8 @@ On Linux or Windows **with PyPi (pip)**:
 - Pandas: `pip install pandas`
 - Numpy: `pip install numpy`
 - PIL: `pip install pillow`
-- (optional) openpyxl: `pip install openpyxl`
+- (optional, for Excel users only) openpyxl: `pip install openpyxl`
+- (for some users, it may be necessary to install `python3-tk` as well, when you have a message `no module tkinter`)
 
 On Windows with **[Anaconda Individual Edition](https://www.anaconda.com/products/individual)** (WARNING: during installation of Anaconda, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE).
 
