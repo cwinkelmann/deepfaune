@@ -31,15 +31,16 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL license and that you accept its terms.
 
-from detectTools import detecting
-import classifTools
+from detectTools import bestBoxDetection
+from classifTools import Classifier
 from sequenceTools import reorderAndCorrectPredictionWithSequence
 import numpy as np
 from PIL import Image
 import tensorflow as tf
+import cv2
 
-YOLO_SIZE=608
-CROP_SIZE=300
+from detectTools import YOLO_SIZE
+from classifTools import CROP_SIZE
 BATCH_SIZE = 8
 
 class Predict:
@@ -61,7 +62,7 @@ class Predict:
         self.classesempty = self.classes + [txt_empty]
         self.txt_undefined = txt_undefined
         self.threshold = threshold
-        self.classifier = classifTools.Classifier(self.nbclasses)
+        self.classifier = Classifier(self.nbclasses)
         self.LANG = LANG
     
     def prediction2class(self, prediction):
@@ -78,34 +79,24 @@ class Predict:
         k1 = 0
         k2 = min(k1+BATCH_SIZE,self.nbfiles)
         batch = 1
-        images_data = np.empty(shape=(1,YOLO_SIZE,YOLO_SIZE,3), dtype=np.float32)
         while(k1<self.nbfiles):
             #frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
             idxnonempty = []
             for k in range(k1,k2):
-                ## LOADING image and convert ton float 32 numpy array
-                image_path = self.df_filename["filename"][k]
-                try:
-                    original_image = Image.open(image_path)
-                    original_image.getdata()[0]
-                except:
+                image_path = str(self.df_filename["filename"][k])
+                original_image = cv2.imread(image_path)
+                if original_image is None:
                     pass # Corrupted image, considered as empty
                 else:
-                    resized_image = original_image.resize((YOLO_SIZE, YOLO_SIZE))
-                    image_data = np.asarray(resized_image).astype(np.float32)
-                    image_data = image_data / 255. # PIL image is int8, this array is float32 and divided by 255
-                    images_data[0,:,:,:] = image_data
-                    batch_data = tf.constant(images_data)
-                    out, nonempty = detecting(batch_data, CROP_SIZE)
+                    croppedimage, nonempty = bestBoxDetection(original_image)
                     if nonempty:
-                        crop = self.classifier.preprocess(out)
-                        self.cropped_data[k-k1,:,:,:] = crop
+                        self.cropped_data[k-k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxnonempty.append(k)
             ## Update
             #window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
             #frgbprint(" terminé", " done")
             if len(idxnonempty):
-                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predicting(self.cropped_data[[idx-k1 for idx in idxnonempty],:,:,:])
+                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-k1 for idx in idxnonempty],:,:,:])
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
             predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[k1:k2,])
             #window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())

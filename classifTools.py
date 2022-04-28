@@ -36,20 +36,17 @@
 ####################################################################################
 from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
 from tensorflow.keras.models import Model
+from tensorflow.keras.applications.efficientnet import EfficientNetB3
+from tensorflow.keras.applications.efficientnet import preprocess_input
+from cv2 import cvtColor,COLOR_BGR2RGB,resize
 
-backbone = "efficientnet"
+CROP_SIZE=300
 hdf5 = "efficientnet_22classesOnlycroppedImgAugB3.hdf5"
-workers = 1
-
-if backbone == "resnet":
-    from keras.applications.resnet_v2 import ResNet50V2
-    from keras.applications.resnet_v2 import preprocess_input
-    base_model = ResNet50V2(include_top=False, weights=None, input_shape=(300,300,3))
-elif backbone == "efficientnet":
-    from tensorflow.keras.applications.efficientnet import EfficientNetB3
-    from tensorflow.keras.applications.efficientnet import preprocess_input
-    base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(300,300,3))
-
+base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(CROP_SIZE,CROP_SIZE,3))
+    
+####################################################################################
+### CLASSIFIER 
+####################################################################################
 class Classifier:
     
     def __init__(self, nbclasses):
@@ -61,8 +58,12 @@ class Classifier:
         self.model = Model(inputs=base_model.input,outputs=preds)
         self.model.load_weights(hdf5)
         
-    def predicting(self, cropped_data):
-        return self.model.predict(cropped_data, workers=workers)
+    def predictOnBatch(self, batchtensor, workers=1):
+        return self.model.predict(batchtensor, workers=workers)
     
-    def preprocess(self, output):
-        return preprocess_input(output[0].numpy()*255)
+    def preprocessImage(self, croppedimage):
+        # Convert img to RGB
+        croppedimage2classifier =  resize(cvtColor(croppedimage, COLOR_BGR2RGB), (CROP_SIZE,CROP_SIZE))
+        # This method does nothing and only kept as a placeholder
+        # to align the API surface between different versions of model
+        return preprocess_input(croppedimage2classifier)

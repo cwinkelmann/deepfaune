@@ -159,6 +159,7 @@ import pkgutil
 testdir = ""
 rowidx = [-1]
 hasrun = False
+import predictClass as predicter
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
@@ -222,25 +223,11 @@ while True:
             sg.cprint('Running', c='white on green', end='')
         sg.cprint('')
         window.refresh()
-        
-        import predictClass as pc
-        
-        pred = pc.Predict(df_filename, maxlag, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG], LANG)
-        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = pred.getPredictions()
-        
-        
-        """
-        if DEBUG:
-            pdprediction = pd.DataFrame(prediction)
-            pdprediction.columns = classesempty
-            pdprediction.index = df_filename["filename"]
-            from tempfile import mkstemp
-            tmpcsv = mkstemp(suffix=".csv",prefix="deepfauneGUI")[1]
-            print("DEBUG: saving scores to",tmpcsv)
-            pdprediction.to_csv(tmpcsv, float_format='%.2g')
-        """
-        
+        # Predictions using CNNs
+        pred = predicter.Predict(df_filename, maxlag, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG], LANG)
+        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = pred.getPredictions()        
         frgbprint(" terminé", " done")
+        # Update and next actions
         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
         window['-RUN-'].Update(disabled=True)
         window['-FOLDERBROWSE-'].Update(disabled=False)

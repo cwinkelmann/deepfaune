@@ -73,7 +73,7 @@ def bestBoxDetection(image, threshold=0.25):
                 confidences_scores.append(float(confidence))
     # Removing overlap and duplicates
     final_boxes = cv2.dnn.NMSBoxes(boxes_detected, confidences_scores, threshold, threshold)
-    if final_boxes.size>0:
+    if len(final_boxes):
         # Extract the most confident bounding box coordinates
         best_box = final_boxes[0]
         (cornerx, cornery) = (boxes_detected[best_box][0], boxes_detected[best_box][1])        
@@ -83,7 +83,9 @@ def bestBoxDetection(image, threshold=0.25):
         boxwidth = np.around(boxwidth*width).astype("int")
         cornery = np.around(cornery*height).astype("int")
         boxheight = np.around(boxheight*height).astype("int")
-        croppedimage = image[cornery:(cornery+boxheight), cornerx:(cornerx+boxwidth)]
+        #print((cornerx, cornery),(cornerx+boxwidth, cornery+boxheight))
+        croppedimage = image[max(0,cornery):min(height,cornery+boxheight),
+                             max(0,cornerx):min(width,cornerx+boxwidth)]
         return croppedimage, True
     return [], False
     
