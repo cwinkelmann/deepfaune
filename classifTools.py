@@ -55,7 +55,6 @@ class Classifier:
         base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(CROP_SIZE,CROP_SIZE,3))
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
-        #x = Dense(512)(x) #256,1024, etc. may work as well
         x = Dense(NBCLASSES)(x) #number of classes
         preds = Activation("softmax")(x)
         self.model = Model(inputs=base_model.input,outputs=preds)

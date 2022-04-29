@@ -48,8 +48,10 @@ if k == 27:         # wait for ESC key to exit
 #######################
 from classifTools import Classifier, CROP_SIZE
 import numpy as np
-classifier = Classifier(22)
+classifier = Classifier()
 cropped_data = np.ones(shape=(1,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
 cropped_data[0,:,:,:] = preprocess_input(croppedimage2classifier)
 pred = classifier.predictOnBatch(cropped_data)
 (pred*100).astype("int")
+
+

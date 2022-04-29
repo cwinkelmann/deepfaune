@@ -116,6 +116,53 @@ class Predictor:
 
 
 
+class PredictorVideo(Predictor):
+    
+    def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined):
+         super().__init__(df_filename, threshold, txt_classesempty, txt_undefined) # inherits all
 
-
-
+    def resetBatch(self):        
+        self.k1 = 0
+        self.k2 = 1
+        self.batch = 1
+    
+    def nextBatch(self):
+        if self.k1>=self.nbfiles:
+            return self.batch, self.k1, self.k2, [],[]
+        else:   
+            idxnonempty = []      
+            video_path = str(self.df_filename["filename"][self.k1])   
+            video = cv2.VideoCapture(video_path)
+            total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+            fps = int(video.get(5))
+            duration= int(total_frames / fps)
+            print ("fps=" + str(fps))
+            print("duration=" + str(duration))
+            lag = fps # lag between two successice frames
+            while((BATCH_SIZE-1)*lag>total_frames):
+                lag = lag-1 # reducing lag if video duration is less than BATCH_SIZE sec
+            k = 0
+            for kframe in range(0, BATCH_SIZE*lag, lag):
+                video.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+                ret,frame = video.read()
+                if not ret:
+                    pass # Corrupted or unavailable image, considered as empty
+                else:
+                    original_image = frame
+                    croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
+                    if nonempty:
+                        self.cropped_data[k,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                        idxnonempty.append(k)
+                k = k+1
+            if len(idxnonempty):
+                predictionbynonemptyframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxnonempty],:,:,:])
+                self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbynonemptyframe,axis=0)/len(idxnonempty)
+                self.prediction[self.k1,self.nbclasses] = 0 # not empty
+            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])   
+            k1_batch = self.k1
+            k2_batch = self.k2
+            self.k1 = self.k2
+            self.k2 = min(self.k1+1,self.nbfiles)
+            self.batch = self.batch+1  
+            return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
+    
