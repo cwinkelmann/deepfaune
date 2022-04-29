@@ -40,12 +40,9 @@ sg.ChangeLookAndFeel('Reddit')
 #sg.ChangeLookAndFeel('DarkGrey1')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 
+from classifTools import txt_classes
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 txt_empty = {'fr':"vide", 'gb':"empty"}
-txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","humain","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
-              'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]}
-
-
 txt_other =  {'fr':"autre", 'gb':"other"}
 txt_imagefolder = {'fr':"Dossier d'images", 'gb':"Image folder"}
 txt_browse = {'fr':"Choisir", 'gb':"Select"}
@@ -156,10 +153,12 @@ from os.path import join, basename
 from pathlib import Path
 import pkgutil
 
+from predictTools import Predictor
+from sequenceTools import reorderAndCorrectPredictionWithSequence
+
 testdir = ""
 rowidx = [-1]
 hasrun = False
-import predictClass as predicter
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
@@ -223,10 +222,25 @@ while True:
             sg.cprint('Running', c='white on green', end='')
         sg.cprint('')
         window.refresh()
+        ########################
         # Predictions using CNNs
-        pred = predicter.Predict(df_filename, maxlag, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG], LANG)
-        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = pred.getPredictions()        
+        ########################
+        predictor = Predictor(df_filename, threshold, txt_classes[LANG]+[txt_empty[LANG]], txt_undefined[LANG])
+        batch = 1
+        while True:
+            batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
+            if not len(predictedclass_batch): break
+            frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
+            frgbprint(" terminé", " done")
+            window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
+            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())                    
+            window.refresh()
+        predictedclass_base, predictedscore_base = predictor.getPredictions()
+        frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")                 
+        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
         frgbprint(" terminé", " done")
+        ########################
+        ########################
         # Update and next actions
         window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
         window['-RUN-'].Update(disabled=True)

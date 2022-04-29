@@ -30,41 +30,38 @@
 
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL license and that you accept its terms.
+import cv2
+import numpy as np
 
 from detectTools import Detector
 from classifTools import Classifier
-from sequenceTools import reorderAndCorrectPredictionWithSequence
-import numpy as np
-from PIL import Image
-import tensorflow as tf
-import cv2
 
 from detectTools import YOLO_SIZE
-from classifTools import CROP_SIZE
+from classifTools import CROP_SIZE, NBCLASSES
+
 BATCH_SIZE = 8
 
-class Predict:
+class Predictor:
     
-    def __init__(self, df_filename, maxlag, threshold, classes, txt_empty, txt_undefined, LANG):
+    def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined):
         self.df_filename = df_filename
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
-        self.nbclasses=len(classes)
+        self.nbclasses=len(txt_classesempty)-1
         self.nbfiles = self.df_filename.shape[0]
         self.prediction = np.zeros(shape=(self.nbfiles, self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1 # by default, predicted as empty
         self.predictedclass_base = []
         self.predictedscore_base = []
-        self.predictedclass = []
-        self.predictedscore = []
-        self.seqnum = []
-        self.maxlag = maxlag
-        self.classes = classes
-        self.classesempty = self.classes + [txt_empty]
+        self.txt_classesempty = txt_classesempty
         self.txt_undefined = txt_undefined
         self.threshold = threshold
         self.detector = Detector()
-        self.classifier = Classifier(self.nbclasses)
-        self.LANG = LANG
+        self.classifier = Classifier()
+        if (self.nbclasses!=NBCLASSES):
+            raise SystemExit('Incoherent number of classes between classes list and classifier shape.')        
+        self.k1 = 0 # batch start
+        self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles) # batch end
+        self.batch = 1 # batch num
     
     def prediction2class(self, prediction):
         class_pred = [self.txt_undefined for i in range(len(prediction))] 
@@ -72,18 +69,21 @@ class Predict:
         for i in range(len(prediction)):
             pred = prediction[i]
             if(max(pred)>=self.threshold):
-                class_pred[i] = self.classesempty[np.argmax(pred)]
+                class_pred[i] = self.txt_classesempty[np.argmax(pred)]
             score_pred[i] = int(max(pred)*100)/100.
         return class_pred, score_pred
-    
-    def getPredictions(self):
-        k1 = 0
-        k2 = min(k1+BATCH_SIZE,self.nbfiles)
-        batch = 1
-        while(k1<self.nbfiles):
-            #frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
+
+    def resetBatch(self):        
+        self.k1 = 0
+        self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
+        self.batch = 1
+
+    def nextBatch(self):
+        if self.k1>=self.nbfiles:
+            return self.batch, self.k1, self.k2, [],[]
+        else:
             idxnonempty = []
-            for k in range(k1,k2):
+            for k in range(self.k1,self.k2):
                 image_path = str(self.df_filename["filename"][k])
                 original_image = cv2.imread(image_path)
                 if original_image is None:
@@ -91,23 +91,27 @@ class Predict:
                 else:
                     croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
                     if nonempty:
-                        self.cropped_data[k-k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                        self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxnonempty.append(k)
-            ## Update
-            #window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-            #frgbprint(" terminé", " done")
             if len(idxnonempty):
-                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-k1 for idx in idxnonempty],:,:,:])
+                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:])
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[k1:k2,])
-            #window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
-            k1 = k2
-            k2 = min(k1+BATCH_SIZE,self.nbfiles)
-            batch = batch+1
-        #frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-        self.predictedclass_base, self.predictedscore_base = self.prediction2class(self.prediction)        
-        self.df_filename, self.predictedclass_base, self.predictedscore_base, self.predictedclass, self.predictedscore, self.seqnum = reorderAndCorrectPredictionWithSequence(self.df_filename, self.predictedclass_base, self.predictedscore_base, self.maxlag, self.LANG)
-        return self.df_filename, self.predictedclass_base, self.predictedscore_base, self.predictedclass, self.predictedscore, self.seqnum
+            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])
+            k1_batch = self.k1
+            k2_batch = self.k2
+            self.k1 = self.k2
+            self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
+            self.batch = self.batch+1  
+            return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
+    
+    def allBatch(self):
+        self.resetBatch()
+        while self.k1<self.nbfiles:
+            pred.nextBatch()
+        
+    def getPredictions(self):
+        self.predictedclass_base, self.predictedscore_base = self.prediction2class(self.prediction)  
+        return self.predictedclass_base, self.predictedscore_base
                 
 
 
