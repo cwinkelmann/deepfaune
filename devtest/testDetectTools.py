@@ -17,8 +17,9 @@ croppedimage = image
 
 #######################
 #######################
-from detectTools import bestBoxDetection
-croppedimage, nonempty = bestBoxDetection(image, threshold = 0.25)
+from detectTools import Detector
+detector = Detector()
+croppedimage, nonempty = detector.bestBoxDetection(image, 0.25)
 print(nonempty)
 
 

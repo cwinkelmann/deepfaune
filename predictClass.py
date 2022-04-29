@@ -31,7 +31,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL license and that you accept its terms.
 
-from detectTools import bestBoxDetection
+from detectTools import Detector
 from classifTools import Classifier
 from sequenceTools import reorderAndCorrectPredictionWithSequence
 import numpy as np
@@ -62,6 +62,7 @@ class Predict:
         self.classesempty = self.classes + [txt_empty]
         self.txt_undefined = txt_undefined
         self.threshold = threshold
+        self.detector = Detector()
         self.classifier = Classifier(self.nbclasses)
         self.LANG = LANG
     
@@ -88,7 +89,7 @@ class Predict:
                 if original_image is None:
                     pass # Corrupted image, considered as empty
                 else:
-                    croppedimage, nonempty = bestBoxDetection(original_image)
+                    croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
                     if nonempty:
                         self.cropped_data[k-k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxnonempty.append(k)

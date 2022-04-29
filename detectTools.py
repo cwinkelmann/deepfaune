@@ -40,52 +40,56 @@ import numpy as np
 YOLO_SIZE=608
 model = 'my-yolov4_last.weights'
 config = 'my-yolov4.cfg'
-yolo = cv2.dnn.readNetFromDarknet(config, model)
-yololayers = [yolo.getLayerNames()[i - 1] for i in yolo.getUnconnectedOutLayers()]
 
 ####################################################################################
 ### BEST BOX DETECTION 
 ####################################################################################
-def bestBoxDetection(image, threshold=0.25):
-    '''
-    in/out as numpy int array (0-255) in BGR
-    '''
-    height, width = image.shape[:2]
-    # here resizing and scaling by 1./255 + swapBR since OpenCV uses BGR
-    blobimage = cv2.dnn.blobFromImage(image, 1/255.0, (YOLO_SIZE, YOLO_SIZE), swapRB=True, crop=False)
-    yolo.setInput(blobimage)
-    layerOutputs = yolo.forward(yololayers)
-    boxes_detected = []
-    confidences_scores = []
-    for output in layerOutputs:
-        # Looping over each of the detections
-        for detection in output:
-            scores = detection[5:]
-            boxclass = np.argmax(scores)
-            confidence = scores[boxclass]        
-            if confidence > threshold:
-                # Bounding box in [0,1]x[0,1]
-                (boxcenterx, boxcentery, boxwidth, boxheight) = detection[0:4]
-                # Use the center (x, y)-coordinates to derive the top and left corner of the bounding box
-                cornerx = (boxcenterx - (boxwidth / 2))
-                cornery = (boxcentery - (boxheight / 2))
-                boxes_detected.append([cornerx, cornery, boxwidth, boxheight])
-                confidences_scores.append(float(confidence))
-    # Removing overlap and duplicates
-    final_boxes = cv2.dnn.NMSBoxes(boxes_detected, confidences_scores, threshold, threshold)
-    if len(final_boxes):
-        # Extract the most confident bounding box coordinates
-        best_box = final_boxes[0]
-        (cornerx, cornery) = (boxes_detected[best_box][0], boxes_detected[best_box][1])        
-        (boxwidth, boxheight) = (boxes_detected[best_box][2], boxes_detected[best_box][3])
-        # Back to image dimension in pixels
-        cornerx = np.around(cornerx*width).astype("int")
-        boxwidth = np.around(boxwidth*width).astype("int")
-        cornery = np.around(cornery*height).astype("int")
-        boxheight = np.around(boxheight*height).astype("int")
-        #print((cornerx, cornery),(cornerx+boxwidth, cornery+boxheight))
-        croppedimage = image[max(0,cornery):min(height,cornery+boxheight),
-                             max(0,cornerx):min(width,cornerx+boxwidth)]
-        return croppedimage, True
-    return [], False
+class Detector:
     
+    def __init__(self):
+        self.yolo = cv2.dnn.readNetFromDarknet(config, model)
+            
+    def bestBoxDetection(self, image, threshold=0.25):
+        '''
+        in/out as numpy int array (0-255) in BGR
+        '''
+        height, width = image.shape[:2]
+        # here resizing and scaling by 1./255 + swapBR since OpenCV uses BGR
+        blobimage = cv2.dnn.blobFromImage(image, 1/255.0, (YOLO_SIZE, YOLO_SIZE), swapRB=True, crop=False)
+        self.yolo.setInput(blobimage)
+        yololayers = [self.yolo.getLayerNames()[i - 1] for i in self.yolo.getUnconnectedOutLayers()]
+        layerOutputs = self.yolo.forward(yololayers)
+        boxes_detected = []
+        confidences_scores = []
+        for output in layerOutputs:
+            # Looping over each of the detections
+            for detection in output:
+                scores = detection[5:]
+                boxclass = np.argmax(scores)
+                confidence = scores[boxclass]        
+                if confidence > threshold:
+                    # Bounding box in [0,1]x[0,1]
+                    (boxcenterx, boxcentery, boxwidth, boxheight) = detection[0:4]
+                    # Use the center (x, y)-coordinates to derive the top and left corner of the bounding box
+                    cornerx = (boxcenterx - (boxwidth / 2))
+                    cornery = (boxcentery - (boxheight / 2))
+                    boxes_detected.append([cornerx, cornery, boxwidth, boxheight])
+                    confidences_scores.append(float(confidence))
+                    # Removing overlap and duplicates
+        final_boxes = cv2.dnn.NMSBoxes(boxes_detected, confidences_scores, threshold, threshold)
+        if len(final_boxes):
+            # Extract the most confident bounding box coordinates
+            best_box = final_boxes[0]
+            (cornerx, cornery) = (boxes_detected[best_box][0], boxes_detected[best_box][1])        
+            (boxwidth, boxheight) = (boxes_detected[best_box][2], boxes_detected[best_box][3])
+            # Back to image dimension in pixels
+            cornerx = np.around(cornerx*width).astype("int")
+            boxwidth = np.around(boxwidth*width).astype("int")
+            cornery = np.around(cornery*height).astype("int")
+            boxheight = np.around(boxheight*height).astype("int")
+            #print((cornerx, cornery),(cornerx+boxwidth, cornery+boxheight))
+            croppedimage = image[max(0,cornery):min(height,cornery+boxheight),
+                                 max(0,cornerx):min(width,cornerx+boxwidth)]
+            return croppedimage, True
+        return [], False
+
