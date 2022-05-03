@@ -58,10 +58,8 @@ class Predictor:
         self.detector = Detector()
         self.classifier = Classifier()
         if (self.nbclasses!=NBCLASSES):
-            raise SystemExit('Incoherent number of classes between classes list and classifier shape.')        
-        self.k1 = 0 # batch start
-        self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles) # batch end
-        self.batch = 1 # batch num
+            raise SystemExit('Incoherent number of classes between classes list and classifier shape.')
+        self.resetBatch()
     
     def prediction2class(self, prediction):
         class_pred = [self.txt_undefined for i in range(len(prediction))] 
@@ -73,10 +71,10 @@ class Predictor:
             score_pred[i] = int(max(pred)*100)/100.
         return class_pred, score_pred
 
-    def resetBatch(self):        
-        self.k1 = 0
-        self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
-        self.batch = 1
+    def resetBatch(self):
+        self.k1 = 0 # batch start
+        self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles) # batch end
+        self.batch = 1 # batch num
 
     def nextBatch(self):
         if self.k1>=self.nbfiles:
@@ -121,7 +119,7 @@ class PredictorVideo(Predictor):
     def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined):
          super().__init__(df_filename, threshold, txt_classesempty, txt_undefined) # inherits all
 
-    def resetBatch(self):        
+    def resetBatch(self):
         self.k1 = 0
         self.k2 = 1
         self.batch = 1
