@@ -134,8 +134,8 @@ class PredictorVideo(Predictor):
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
             duration= int(total_frames / fps)
-            print ("fps=" + str(fps))
-            print("duration=" + str(duration))
+            # print ("fps=" + str(fps))
+            # print("duration=" + str(duration))
             lag = fps # lag between two successice frames
             while((BATCH_SIZE-1)*lag>total_frames):
                 lag = lag-1 # reducing lag if video duration is less than BATCH_SIZE sec
