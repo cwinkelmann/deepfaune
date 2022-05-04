@@ -146,12 +146,12 @@ window.read(timeout=0) # trick to make the button disabled at first
 from datetime import datetime
 from io import BytesIO
 import numpy as np
-from PIL import Image
 import pandas as pd
 from os import mkdir
 from os.path import join, basename
 from pathlib import Path
 import pkgutil
+import cv2
 
 from predictTools import Predictor
 from sequenceTools import reorderAndCorrectPredictionWithSequence
@@ -307,16 +307,14 @@ while True:
                    sg.Button(txt_prevpred[LANG], key='-PREVIOUS-'),
                    sg.Button(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
-        windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True)
-        try:
-            image = Image.open(df_filename['filename'][curridx])
-            image.getdata()[0]
-        except OSError:
-            image = Image.new('RGB', (600, 500))
+        windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True)            
+        image = cv2.imread(str(df_filename['filename'][curridx]))
+        if image is None:
+            image = np.zeros((600,500,3), np.uint8)
         else:
-            image = image.resize((600,500))
-        bio = BytesIO()
-        image.save(bio, format="PNG")
+            image = cv2.resize(image, (600,500))
+        is_success, png_buffer = cv2.imencode(".png", image)
+        bio = BytesIO(png_buffer)
         windowimg["-IMAGE-"].update(data=bio.getvalue())
         ### CORRECTING PREDICTION
         while True:
@@ -361,15 +359,13 @@ while True:
                             curridx = curridx+1
                             if curridx==len(predictedclass):
                                 curridx = 0
-                try:
-                    image = Image.open(df_filename['filename'][curridx])
-                    image.getdata()[0]
-                except OSError:
-                    image = Image.new('RGB', (600, 500))
+                image = cv2.imread(str(df_filename['filename'][curridx]))
+                if image is None:
+                    image = np.zeros((600,500,3), np.uint8)
                 else:
-                    image = image.resize((600,500))
-                bio = BytesIO()
-                image.save(bio, format="PNG")
+                    image = cv2.resize(image, (600,500))
+                is_success, png_buffer = cv2.imencode(".png", image)
+                bio = BytesIO(png_buffer)
                 windowimg["-IMAGE-"].update(data=bio.getvalue())
                 windowimg.TKroot.title(basename(df_filename['filename'][curridx]))
                 windowimg["-CORRECTION-"].Update(predictedclass[curridx])
