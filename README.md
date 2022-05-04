@@ -54,6 +54,7 @@ On Linux or Windows **with PyPi (pip)**:
 - Tensorflow: `pip install tensorflow`
 - Pandas: `pip install pandas`
 - Numpy: `pip install numpy`
+- OpenCV: `pip install opencv-python`
 - PIL: `pip install pillow`
 - (optional, for Excel users only) openpyxl: `pip install openpyxl`
 - (for some users, it may be necessary to install `python3-tk` as well, when you have a message `no module tkinter`)
