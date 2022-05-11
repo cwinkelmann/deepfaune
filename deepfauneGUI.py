@@ -35,9 +35,6 @@
 import PySimpleGUI as sg
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
-#sg.ChangeLookAndFeel('Dark2')
-#sg.ChangeLookAndFeel('DarkBlue1')
-#sg.ChangeLookAndFeel('DarkGrey1')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 
 from classifTools import txt_classes
@@ -71,15 +68,12 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
     if LANG=="gb":
         print(txt_gb, end=end)
             
-
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.2.2"
+VERSION = "0.3.0"
 LANG = "fr"
 DEBUG = False
-
-
 
 ####################################################################################
 ### GUI WINDOW

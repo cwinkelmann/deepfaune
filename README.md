@@ -10,7 +10,7 @@
 # NEWS
 ---
 
-Release v0.2 is available. 
+Release v0.3.0 is available. 
 
 Supported categories/species :  BADGER, IBEX, RED DEER, CHAMOIS/ISARD, CAT, ROE DEER, DOG, SQUIRREL, LAGOMORPH, WOLF, LYNX, MARMOT, MICROMAMMAL, MOUFLON, SHEEP, MUSTELIDE, BIRD, FOX, WILD BOAR, COW, HUMAN/VEHICLE, EMPTY
 
@@ -41,10 +41,9 @@ Then, uncompress the zip file.
 
 ###  2. Download and unzip the model parameters
 Download the model parameters *inside the deepfaune folder* where you can find `deepfauneGUI.py`:
-- Animal detector parameters: [checkpoints.zip](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+- Animal detector parameters: for version >=0.3 [deepfaune-yolov4.weights](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+ (for version <=0.2 [checkpoints.zip](https://pbil.univ-lyon1.fr/software/download/deepfaune/))
 - Classifier parameters: [efficientnet_xxxx.hdf5](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
-
-Then unzip the file `checkpoints.zip` and you are done !
 
 ### 3. Install the dependencies
 
@@ -118,7 +117,7 @@ It would be great!! You can contact us to see how you can send us your images (w
  
 > Who is developing this DeepFaune project ?
 
-A team from CNRS leaded by Simon Chamaillé-Jammes and Vincent Miele. Please have a look at our website [https://www.deepfaune.cnrs.fr/](https://www.deepfaune.cnrs.fr/).
+A team in CNRS-INEE leaded by Simon Chamaillé-Jammes (CEFE) and Vincent Miele (LBBE). Please have a look at our website [https://www.deepfaune.cnrs.fr/](https://www.deepfaune.cnrs.fr/).
 
 <br>
 <br>

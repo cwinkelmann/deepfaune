@@ -38,8 +38,8 @@ import cv2
 import numpy as np
 
 YOLO_SIZE=608
-model = 'my-yolov4_last.weights'
-config = 'my-yolov4.cfg'
+model = 'deepfaune-yolov4.weights'
+config = 'deepfaune-yolov4.cfg'
 
 ####################################################################################
 ### BEST BOX DETECTION 
