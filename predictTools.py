@@ -92,7 +92,7 @@ class Predictor:
                         self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxnonempty.append(k)
             if len(idxnonempty):
-                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:])
+                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
             predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])
             k1_batch = self.k1
@@ -156,7 +156,7 @@ class PredictorVideo(Predictor):
                 predictionbynonemptyframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxnonempty],:,:,:])
                 self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbynonemptyframe,axis=0)/len(idxnonempty)
                 self.prediction[self.k1,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])   
+            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,], cv2.getNumThreads())   
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
