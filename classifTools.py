@@ -34,6 +34,8 @@
 ####################################################################################
 ### LOADING CLASSIFIER
 ####################################################################################
+from os import environ
+environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # silencing TensorFlow
 from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications.efficientnet import EfficientNetB3

@@ -31,7 +31,6 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL license and that you accept its terms.
 
-
 import PySimpleGUI as sg
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
@@ -51,7 +50,7 @@ txt_save = {'fr':"Enregistrer en ", 'gb':"Save in "}
 txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders"}
 txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
 txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
-txt_loading = {'fr':"Chargement des paramètres... ", 'gb':"Loading model parameters... "}
+txt_import = {'fr':"Import des modules externes... ", 'gb':"Importing external modules... "}
 txt_showall = {'fr':"Afficher les images", 'gb':"Show all images"}
 txt_showselected = {'fr':"Afficher l'image sélectionnée", 'gb':"Show selected image"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
@@ -110,7 +109,7 @@ left_col = [
     [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
 ]
 right_col=[
-    [sg.Multiline(size=(69, 10), default_text=txt_loading[LANG], write_only=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
+    [sg.Multiline(size=(69, 10), default_text=txt_import[LANG], write_only=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
     [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
               vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
@@ -210,16 +209,20 @@ while True:
         window['-ALLTABROW-'].Update(disabled=True)
         window['-THRESHOLD-'].Update(disabled=True)
         window['-LAG-'].Update(disabled=True)
+        ########################
+        # Predictions using CNNs
+        ########################
+        frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
+        window.refresh()
+        predictor = Predictor(df_filename, threshold, txt_classes[LANG]+[txt_empty[LANG]], txt_undefined[LANG])
+        frgbprint("terminé","done")
+        window.refresh()
         if LANG=="fr":
             sg.cprint('Calcul en cours', c='white on green', end='')
         if LANG=="gb":
             sg.cprint('Running', c='white on green', end='')
         sg.cprint('')
         window.refresh()
-        ########################
-        # Predictions using CNNs
-        ########################
-        predictor = Predictor(df_filename, threshold, txt_classes[LANG]+[txt_empty[LANG]], txt_undefined[LANG])
         batch = 1
         while True:
             batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
