@@ -35,6 +35,7 @@ import numpy as np
 
 from detectTools import Detector
 from classifTools import Classifier
+from sequenceTools import ImageBoxDiff
 
 from detectTools import YOLO_SIZE
 from classifTools import CROP_SIZE, NBCLASSES
@@ -57,6 +58,7 @@ class Predictor:
         self.threshold = threshold
         self.detector = Detector()
         self.classifier = Classifier()
+        self.idiff = ImageBoxDiff()
         if (self.nbclasses!=NBCLASSES):
             raise SystemExit('Incoherent number of classes between classes list and classifier shape.')
         self.resetBatch()
@@ -84,13 +86,23 @@ class Predictor:
             for k in range(self.k1,self.k2):
                 image_path = str(self.df_filename["filename"][k])
                 original_image = cv2.imread(image_path)
-                if original_image is None:
-                    pass # Corrupted image, considered as empty
+                similarityWithPreviousImage = self.idiff.nextSimilarity(original_image)
+                if similarityWithPreviousImage<0.99:
+                    if original_image is None:
+                        pass # Corrupted image, considered as empty
+                    else:
+                        croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
+                        if nonempty:
+                            self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                            idxnonempty.append(k)
                 else:
-                    croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
-                    if nonempty:
-                        self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                        idxnonempty.append(k)
+                    # print("Moving image",self.df_filename["filename"][k-1],"as empty since too similar")
+                    try:
+                        idxnonempty.remove(k-1)
+                    except:
+                        pass
+                    self.prediction[k-1,0:self.nbclasses] = 0
+                    self.prediction[k-1,self.nbclasses] = 1 # previous is also empty since too similar
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty

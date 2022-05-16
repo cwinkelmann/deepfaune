@@ -158,3 +158,54 @@ def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, pr
     predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
     return df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum
     
+
+####################################################################################
+### IMAGE COMPARATOR
+####################################################################################
+import cv2
+import numpy as np
+
+class ImageDiff:
+    
+    def __init__(self):
+        self.previmage = np.zeros((1,1,3), np.uint8)
+
+    def nextSimilarity(self, image):
+        height, width = image.shape[:2]
+        prevheight, prevwidth = self.previmage.shape[:2]
+        image = cv2.blur(image,(5,5))
+        if height==prevheight and width==prevwidth:
+            errorL2 = cv2.norm(self.previmage, image, cv2.NORM_L2 )
+            similarity = 1 - errorL2 / ( height * width )
+        else:
+            similarity = 0.
+        self.previmage = image.copy()
+        return similarity
+
+    
+from PIL import Image, ImageOps, ImageChops, ImageFilter
+class ImageBoxDiff:
+    
+    def __init__(self):
+        self.prevblur = None
+        self.prevshape = (1,1)
+      
+    def nextSimilarity(self, image):
+        blur = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((700,600)).filter(ImageFilter.GaussianBlur(radius = 2))
+        if image.shape[:2] == self.prevshape:
+            diff = ImageChops.difference(self.prevblur, blur).convert("L")
+            threshold = 30
+            diffthres = diff.point(lambda p: p > threshold and 255) # point = pixelwise action
+            # take min value in 5x5 window
+            diffthres = diffthres.filter(ImageFilter.MinFilter(5))
+            bbox = diffthres.getbbox()
+            # Returns four coordinates in the format (left, upper, right, lower)
+            if bbox != None:
+                similarity = 0.
+            else:
+                similarity = 1.
+        else:
+            similarity = 0.
+        self.prevblur = blur
+        self.prevshape = image.shape[:2]
+        return similarity
