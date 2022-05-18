@@ -96,7 +96,7 @@ class Predictor:
                             self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                             idxnonempty.append(k)
                 else:
-                    # print("Moving image",self.df_filename["filename"][k-1],"as empty since too similar")
+                    #print("Images",self.df_filename["filename"][k-1],"and",self.df_filename["filename"][k],"are identical => predicted as empty")
                     try:
                         idxnonempty.remove(k-1)
                     except:
