@@ -168,7 +168,7 @@ class PredictorVideo(Predictor):
                 predictionbynonemptyframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxnonempty],:,:,:])
                 self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbynonemptyframe,axis=0)/len(idxnonempty)
                 self.prediction[self.k1,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,], cv2.getNumThreads())   
+            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])   
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
