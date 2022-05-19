@@ -78,23 +78,25 @@ DEBUG = False
 ### GUI WINDOW
 ####################################################################################
 ## LANGUAGE SELECTION AT FIRST
-windowlang = sg.Window("DeepFaune GUI",layout=[
-    [[sg.Text("Select your language / choisissez votre langue")], 
-     [sg.Radio("français", 1, key='-FR-', default=True), sg.Radio("english", 1, key='-GB-')]],
-    [[sg.Text("Select your data type / choisissez votre type de données")], 
-      [sg.Radio("image", 1, key='-IMAGE-', default=True), sg.Radio("video", 1, key='-VIDEO-')]],
-     [[sg.Button("OK", key='-OK-')]]
-     ], font = ("Arial", 14)).Finalize()
+LANG = 'fr'
+VIDEO = False
+windowlang = sg.Window("DeepFaune GUI options",layout=[
+    [[sg.Text("Language / langue")],
+     [sg.Combo(values=list(["français","english"]), default_value="français", size=(20, 1), bind_return_key=True, key='-LANG-')],
+     [sg.Text("Data type / type de données")],     
+     [sg.Combo(values=list(["image","video"]), default_value="image", size=(20, 1), bind_return_key=True, key='-DATATYPE-')],
+     [sg.Button("OK", key='-OK-')]]
+], font = ("Arial", 14)).Finalize()
 while True:
     event, values = windowlang.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event == '-OK-':
-        if values["-FR-"] == True:
+        if values["-LANG-"] == "français":
             LANG = 'fr'
         else:
             LANG = 'gb'
-        if values["-VIDEO-"] == True:
+        if values["-DATATYPE-"] == "video":
             VIDEO = True
         else:
             VIDEO = False
@@ -187,7 +189,10 @@ while True:
             if VIDEO:
                 df_filename = pd.DataFrame({'filename':sorted(
                     [f for f in  Path(testdir).rglob('*.[Aa][Vv][Ii]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Mm][Pp]4') if not f.parents[1].match('*deepfaune_*')]
+                    [f for f in  Path(testdir).rglob('*.[Mm][Pp]4') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Mm][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Mm][Oo][Vv]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Mm]4[Vv]') if not f.parents[1].match('*deepfaune_*')]
                 )})
             else:
                 df_filename = pd.DataFrame({'filename':sorted(
