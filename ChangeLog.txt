@@ -1,3 +1,8 @@
+2022-05-20  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+	    
+	    Version 0.3.1
+	    * Video are now accepted and transformed into sequences of 8 images for the first 8 seconds.
+
 2022-05-16  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.3.0
@@ -5,7 +10,7 @@
 	    * Now relying on openCV.
 	    * Detection improved using openCV : 2x faster, less false negative.
 	    Model weights are in 'deepfaune-yolov4.weights' file instead of 'checkpoints' folder.
-	    * New heuristic to detect sequences of identical images
+	    * New heuristic to detect sequences of identical images.
 	    * Fully modular code, with available API.
 	    
 2022-03-28  Vincent Miele  <vincent.miele@univ-lyon1.fr>

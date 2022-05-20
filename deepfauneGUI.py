@@ -165,7 +165,7 @@ if VIDEO:
     from predictTools import PredictorVideo
 else:
     from predictTools import Predictor
-from sequenceTools import reorderAndCorrectPredictionWithSequence
+    from sequenceTools import reorderAndCorrectPredictionWithSequence
 
 testdir = ""
 rowidx = [-1]
@@ -266,9 +266,13 @@ while True:
             window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())                    
             window.refresh()
         predictedclass_base, predictedscore_base = predictor.getPredictions()
-        frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")                 
-        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
-        frgbprint(" terminé", " done")
+        if VIDEO:
+            predictedclass, predictedscore = predictedclass_base, predictedscore_base
+            seqnum = [i for i in range(1,nbfiles+1)]
+        else:
+            frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
+            df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
+            frgbprint(" terminé", " done")
         ########################
         ########################
         # Update and next actions

@@ -145,7 +145,7 @@ class PredictorVideo(Predictor):
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
-            duration= int(total_frames / fps)
+            duration = int(total_frames / fps)
             # print ("fps=" + str(fps))
             # print("duration=" + str(duration))
             lag = fps # lag between two successice frames
