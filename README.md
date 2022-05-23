@@ -10,7 +10,7 @@
 # NEWS
 ---
 
-Release v0.3.0 is available. 
+Release v0.3 is available. 
 
 Supported categories/species :  BADGER, IBEX, RED DEER, CHAMOIS/ISARD, CAT, ROE DEER, DOG, SQUIRREL, LAGOMORPH, WOLF, LYNX, MARMOT, MICROMAMMAL, MOUFLON, SHEEP, MUSTELIDE, BIRD, FOX, WILD BOAR, COW, HUMAN/VEHICLE, EMPTY
 
@@ -63,11 +63,20 @@ On Windows with **[Anaconda Individual Edition](https://www.anaconda.com/product
 - Open Anaconda window, search for `tensorflow` and click to install it, , as explained [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)
 - (optional) Open Anaconda window, search for `openpyxl` and click to install it
 
-#### 4. Running the Python script
+---
+# USING DEEPFAUNE
+---
+
+### Running the Python script
 
 In a terminal, launch `python deepfauneGUI.py` or `python.exe deepfauneGUI.py`
 
 You can use the GUI, and you can also consult [the user manual](https://plmlab.math.cnrs.fr/deepfaune/software/-/tree/master/man).
+
+
+### Using the API
+
+You can implement your own scripts using the DeepFaune API. A *minimal example* is [available here](https://plmlab.math.cnrs.fr/deepfaune/software/-/tree/master/devtest/testAPI.py).
 
 ---
 # CONTACT
