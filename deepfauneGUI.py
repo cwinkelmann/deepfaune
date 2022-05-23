@@ -77,22 +77,37 @@ DEBUG = False
 ####################################################################################
 ### GUI WINDOW
 ####################################################################################
-BATCH_SIZE = 8
-
 ## LANGUAGE SELECTION AT FIRST
-windowlang = sg.Window("DeepFaune GUI",layout=[[sg.Text("Please select your language / choisissez votre langue")], 
-                                            [sg.Radio("français", 1, key='-FR-', default=True), sg.Radio("english", 1, key='-GB-'), sg.Button("OK", key='-OK-')]], font = ("Arial", 14)).Finalize()
+LANG = 'fr'
+VIDEO = False
+windowlang = sg.Window("DeepFaune GUI options",layout=[
+    [[sg.Text("Language / langue")],
+     [sg.Combo(values=list(["français","english"]), default_value="français", size=(20, 1), bind_return_key=True, key='-LANG-')],
+     [sg.Text("Data type / type de données")],     
+     [sg.Combo(values=list(["image","video"]), default_value="image", size=(20, 1), bind_return_key=True, key='-DATATYPE-')],
+     [sg.Button("OK", key='-OK-')]]
+], font = ("Arial", 14)).Finalize()
 while True:
     event, values = windowlang.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event == '-OK-':
-        if values["-FR-"] == True:
+        if values["-LANG-"] == "français":
             LANG = 'fr'
         else:
             LANG = 'gb'
+        if values["-DATATYPE-"] == "video":
+            VIDEO = True
+        else:
+            VIDEO = False
         break
-windowlang.close()  
+windowlang.close()
+
+if VIDEO:
+    BATCH_SIZE = 1
+else:
+    BATCH_SIZE = 8
+
 
 ## GUI
 prediction = [[],[]]
@@ -146,8 +161,11 @@ from pathlib import Path
 import pkgutil
 import cv2
 
-from predictTools import Predictor
-from sequenceTools import reorderAndCorrectPredictionWithSequence
+if VIDEO:
+    from predictTools import PredictorVideo
+else:
+    from predictTools import Predictor
+    from sequenceTools import reorderAndCorrectPredictionWithSequence
 
 testdir = ""
 rowidx = [-1]
@@ -168,16 +186,28 @@ while True:
         if testdir != "":
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
-            df_filename = pd.DataFrame({'filename':sorted(
-                [f for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
-                [f for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
-                [f for f in  Path(testdir).rglob('*.[Bb][Mm][Pp]') if not f.parents[1].match('*deepfaune_*')] +
-                [f for f in  Path(testdir).rglob('*.[Tt][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
-                [f for f in  Path(testdir).rglob('*.[Gg][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
-                [f for f in  Path(testdir).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
-            )})
+            if VIDEO:
+                df_filename = pd.DataFrame({'filename':sorted(
+                    [f for f in  Path(testdir).rglob('*.[Aa][Vv][Ii]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Mm][Pp]4') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Mm][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Mm][Oo][Vv]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Mm]4[Vv]') if not f.parents[1].match('*deepfaune_*')]
+                )})
+            else:
+                df_filename = pd.DataFrame({'filename':sorted(
+                    [f for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Bb][Mm][Pp]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Tt][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Gg][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
+                    [f for f in  Path(testdir).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
+                )})
             nbfiles = df_filename.shape[0]
-            frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
+            if VIDEO:
+                frgbprint("Nombre de vidéos : "+str(nbfiles), "Number of videos: "+str(nbfiles))
+            else:
+                frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles>0:
                 predictedclass_base = ['' for k in range(nbfiles)] # before autocorrect with sequences
                 predictedscore_base = ['' for k in range(nbfiles)] # idem
@@ -214,7 +244,10 @@ while True:
         ########################
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
         window.refresh()
-        predictor = Predictor(df_filename, threshold, txt_classes[LANG]+[txt_empty[LANG]], txt_undefined[LANG])
+        if VIDEO:
+            predictor = PredictorVideo(df_filename, threshold, txt_classes[LANG]+[txt_empty[LANG]], txt_undefined[LANG])
+        else:
+            predictor = Predictor(df_filename, threshold, txt_classes[LANG]+[txt_empty[LANG]], txt_undefined[LANG])
         frgbprint("terminé","done")
         window.refresh()
         if LANG=="fr":
@@ -233,9 +266,13 @@ while True:
             window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())                    
             window.refresh()
         predictedclass_base, predictedscore_base = predictor.getPredictions()
-        frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")                 
-        df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
-        frgbprint(" terminé", " done")
+        if VIDEO:
+            predictedclass, predictedscore = predictedclass_base, predictedscore_base
+            seqnum = [i for i in range(1,nbfiles+1)]
+        else:
+            frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
+            df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
+            frgbprint(" terminé", " done")
         ########################
         ########################
         # Update and next actions
@@ -304,12 +341,21 @@ while True:
                    sg.Button(txt_prevpred[LANG], key='-PREVIOUS-'),
                    sg.Button(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
-        windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True)            
-        image = cv2.imread(str(df_filename['filename'][curridx]))
-        if image is None:
-            image = np.zeros((600,500,3), np.uint8)
+        windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True) 
+        if VIDEO:
+            video = cv2.VideoCapture(str(df_filename['filename'][curridx]))
+            video.set(cv2.CAP_PROP_POS_FRAMES, 1)
+            ret,image = video.read()
+            if not ret:
+                image = np.zeros((600,500,3), np.uint8)
+            else:
+                image = cv2.resize(image, (600,500))
         else:
-            image = cv2.resize(image, (600,500))
+            image = cv2.imread(str(df_filename['filename'][curridx]))
+            if image is None:
+                image = np.zeros((600,500,3), np.uint8)
+            else:
+                image = cv2.resize(image, (600,500))
         is_success, png_buffer = cv2.imencode(".png", image)
         bio = BytesIO(png_buffer)
         windowimg["-IMAGE-"].update(data=bio.getvalue())
@@ -356,11 +402,20 @@ while True:
                             curridx = curridx+1
                             if curridx==len(predictedclass):
                                 curridx = 0
-                image = cv2.imread(str(df_filename['filename'][curridx]))
-                if image is None:
-                    image = np.zeros((600,500,3), np.uint8)
+                if VIDEO:
+                    video = cv2.VideoCapture(str(df_filename['filename'][curridx]))
+                    video.set(cv2.CAP_PROP_POS_FRAMES, 1)
+                    ret,image = video.read()
+                    if not ret:
+                        image = np.zeros((600,500,3), np.uint8)
+                    else:
+                        image = cv2.resize(image, (600,500))
                 else:
-                    image = cv2.resize(image, (600,500))
+                    image = cv2.imread(str(df_filename['filename'][curridx]))
+                    if image is None:
+                        image = np.zeros((600,500,3), np.uint8)
+                    else:
+                        image = cv2.resize(image, (600,500))
                 is_success, png_buffer = cv2.imencode(".png", image)
                 bio = BytesIO(png_buffer)
                 windowimg["-IMAGE-"].update(data=bio.getvalue())

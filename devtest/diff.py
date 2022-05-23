@@ -30,9 +30,20 @@ if RESIZE:
     im1b = im1.resize((700,600)).filter(ImageFilter.GaussianBlur(radius = 2))
     im2b = im2.resize((700,600)).filter(ImageFilter.GaussianBlur(radius = 2))
 else:
-    im1b = im1.filter(ImageFilter.GaussianBlur(radius = 5))
-    im2b = im2.filter(ImageFilter.GaussianBlur(radius = 5))
+    im1b = im1.filter(ImageFilter.GaussianBlur(radius = 2))
+    im2b = im2.filter(ImageFilter.GaussianBlur(radius = 2))
 
+
+#from PIL import ImageEnhance
+#image brightness enhancer
+#enhancer = ImageEnhance.Contrast(im1b)
+#im1b = enhancer.enhance(-2)
+#enhancer = ImageEnhance.Contrast(im2b)
+#im2b = enhancer.enhance(-2)
+
+#sshow(im1b)
+#sshow(im2b)
+    
 #im1g = im1.convert("L") # ImageOps.grayscale(im1)
 #im2g = im2.convert("L") # ImageOps.grayscale(im2)
 

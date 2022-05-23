@@ -96,7 +96,7 @@ class Predictor:
                             self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                             idxnonempty.append(k)
                 else:
-                    # print("Moving image",self.df_filename["filename"][k-1],"as empty since too similar")
+                    #print("Images",self.df_filename["filename"][k-1],"and",self.df_filename["filename"][k],"are identical => predicted as empty")
                     try:
                         idxnonempty.remove(k-1)
                     except:
@@ -145,7 +145,7 @@ class PredictorVideo(Predictor):
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
-            duration= int(total_frames / fps)
+            duration = int(total_frames / fps)
             # print ("fps=" + str(fps))
             # print("duration=" + str(duration))
             lag = fps # lag between two successice frames
@@ -168,7 +168,7 @@ class PredictorVideo(Predictor):
                 predictionbynonemptyframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxnonempty],:,:,:])
                 self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbynonemptyframe,axis=0)/len(idxnonempty)
                 self.prediction[self.k1,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,], cv2.getNumThreads())   
+            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])   
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
