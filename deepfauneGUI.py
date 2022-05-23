@@ -36,51 +36,20 @@ import PySimpleGUI as sg
 sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 
-from classifTools import txt_classes
-txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
-txt_empty = {'fr':"vide", 'gb':"empty"}
-txt_other =  {'fr':"autre", 'gb':"other"}
-txt_imagefolder = {'fr':"Dossier d'images", 'gb':"Image folder"}
-txt_browse = {'fr':"Choisir", 'gb':"Select"}
-txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
-txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
-txt_progressbar = {'fr':"Barre d'état", 'gb':"Progress bar"}
-txt_run = {'fr':"Lancer", 'gb':"Run"}
-txt_save = {'fr':"Enregistrer en ", 'gb':"Save in "}
-txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders"}
-txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
-txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
-txt_import = {'fr':"Import des modules externes... ", 'gb':"Importing external modules... "}
-txt_showall = {'fr':"Afficher les images", 'gb':"Show all images"}
-txt_showselected = {'fr':"Afficher l'image sélectionnée", 'gb':"Show selected image"}
-txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
-txt_wanttocopy = {'fr':"Voulez-vous copier les images vers des sous-dossiers de ", 'gb':"Do you want to copy images in subfolders of "}
-txt_wanttomove = {'fr':"Voulez-vous déplacer les images vers des sous-dossiers de ", 'gb':"Do you want to move images in subfolders of "}
-txt_savepred = {'fr':"Enregistrer", 'gb':"Save"}
-txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
-txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
-txt_restrict = {'fr':["Toutes images","Images indéfinies","Images vides","Images non vides"], 'gb':["All images","Undefined images","Empty images","Non empty images"]}
-
-def frgbprint(txt_fr, txt_gb, end='\n'):
-    if LANG=="fr":
-        print(txt_fr, end=end)
-    if LANG=="gb":
-        print(txt_gb, end=end)
             
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 LANG = "fr"
 DEBUG = False
 
 ####################################################################################
-### GUI WINDOW
+### GUI OPTIONS
 ####################################################################################
-## LANGUAGE SELECTION AT FIRST
 LANG = 'fr'
 VIDEO = False
-windowlang = sg.Window("DeepFaune GUI options",layout=[
+windowoptions = sg.Window("DeepFaune GUI options",layout=[
     [[sg.Text("Language / langue")],
      [sg.Combo(values=list(["français","english"]), default_value="français", size=(20, 1), bind_return_key=True, key='-LANG-')],
      [sg.Text("Data type / type de données")],     
@@ -88,7 +57,7 @@ windowlang = sg.Window("DeepFaune GUI options",layout=[
      [sg.Button("OK", key='-OK-')]]
 ], font = ("Arial", 14)).Finalize()
 while True:
-    event, values = windowlang.read(timeout=10)
+    event, values = windowoptions.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event == '-OK-':
@@ -101,15 +70,63 @@ while True:
         else:
             VIDEO = False
         break
-windowlang.close()
+windowoptions.close()
 
+####################################################################################
+### GUI TEXT
+####################################################################################
+from classifTools import txt_classes
+txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
+txt_empty = {'fr':"vide", 'gb':"empty"}
+txt_other =  {'fr':"autre", 'gb':"other"}
+if VIDEO:
+    txt_imagefolder = {'fr':"Dossier de vidéos", 'gb':"Video folder"}
+else:
+    txt_imagefolder = {'fr':"Dossier d'images", 'gb':"Image folder"}
+txt_browse = {'fr':"Choisir", 'gb':"Select"}
+txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
+txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
+txt_progressbar = {'fr':"Barre d'état", 'gb':"Progress bar"}
+txt_run = {'fr':"Lancer", 'gb':"Run"}
+txt_save = {'fr':"Enregistrer en ", 'gb':"Save in "}
+txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders"}
+txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
+txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
+txt_import = {'fr':"Import des modules externes... ", 'gb':"Importing external modules... "}
+if VIDEO:
+    txt_showall = {'fr':"Afficher les vidéos", 'gb':"Show all vidéos"}
+    txt_showselected = {'fr':"Afficher la vidéo sélectionnée", 'gb':"Show selected video"}
+else:
+    txt_showall = {'fr':"Afficher les images", 'gb':"Show all images"}
+    txt_showselected = {'fr':"Afficher l'image sélectionnée", 'gb':"Show selected image"}
+txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
+if VIDEO:
+    txt_wanttocopy = {'fr':"Voulez-vous copier les vidéos vers des sous-dossiers de ", 'gb':"Do you want to copy videos in subfolders of "}
+    txt_wanttomove = {'fr':"Voulez-vous déplacer les vidéos vers des sous-dossiers de ", 'gb':"Do you want to move videos in subfolders of "}
+else:
+    txt_wanttocopy = {'fr':"Voulez-vous copier les images vers des sous-dossiers de ", 'gb':"Do you want to copy images in subfolders of "}
+    txt_wanttomove = {'fr':"Voulez-vous déplacer les images vers des sous-dossiers de ", 'gb':"Do you want to move images in subfolders of "}
+txt_savepred = {'fr':"Enregistrer", 'gb':"Save"}
+txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
+txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
+if VIDEO:
+    txt_restrict = {'fr':["Toutes vidéos","Vidéos indéfinies","Vidéos vides","Vidéos non vides"], 'gb':["All videos","Undefined videos","Empty videos","Non empty videos"]}
+else:
+    txt_restrict = {'fr':["Toutes images","Images indéfinies","Images vides","Images non vides"], 'gb':["All images","Undefined images","Empty images","Non empty images"]}
+
+def frgbprint(txt_fr, txt_gb, end='\n'):
+    if LANG=="fr":
+        print(txt_fr, end=end)
+    if LANG=="gb":
+        print(txt_gb, end=end)
+        
+####################################################################################
+### MAIN GUI WINDOW
+####################################################################################
 if VIDEO:
     BATCH_SIZE = 1
 else:
     BATCH_SIZE = 8
-
-
-## GUI
 prediction = [[],[]]
 threshold = threshold_default = 0.5
 maxlag = maxlag_default = 20 # seconds
@@ -216,7 +233,8 @@ while True:
                 seqnum = np.repeat(0, df_filename.shape[0])
                 window['-RUN-'].Update(disabled=False)
                 window['-THRESHOLD-'].Update(disabled=False)
-                window['-LAG-'].Update(disabled=False)
+                if not VIDEO:
+                    window['-LAG-'].Update(disabled=False)
                 window['-ALLTABROW-'].Update(disabled=False)
                 window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
                                                                    predictedclass, predictedscore].tolist())

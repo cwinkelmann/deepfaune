@@ -1,4 +1,4 @@
-2022-05-20  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-05-23  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 	    
 	    Version 0.3.1
 	    * Video are now accepted and transformed into sequences of 8 images for the first 8 seconds.
