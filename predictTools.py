@@ -117,7 +117,7 @@ class Predictor:
     def allBatch(self):
         self.resetBatch()
         while self.k1<self.nbfiles:
-            pred.nextBatch()
+            self.nextBatch()
         
     def getPredictions(self):
         self.predictedclass_base, self.predictedscore_base = self.prediction2class(self.prediction)  
