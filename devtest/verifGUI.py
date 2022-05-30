@@ -43,6 +43,8 @@ from pathlib import Path, PurePath
 from os.path import basename
 
 testdir = sys.argv[1]
+currentdir = os.path.dirname(sys.argv[0])
+if currentdir != '': currentdir=currentdir+'/'
 df_filename = pd.DataFrame({'filename':sorted(
     [f for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
     [f for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
@@ -124,11 +126,11 @@ time = str(dt.datetime.now()).split(" ")[1].split(".")[0].replace(':', '')
 login = os.getlogin()
 
 try:
-    os.mkdir("logs")
+    os.mkdir(currentdir+"logs")
 except:
     pass
 
-log = open("logs/"+dirname+"-"+date+"-"+time+"-"+login+".txt", "a")
+log = open(currentdir+"logs/"+dirname+"-"+date+"-"+time+"-"+login+".txt", "a")
 for err in errors:
     log.write(err+"\n")
 log.close()
