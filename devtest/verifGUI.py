@@ -36,8 +36,10 @@ import sys
 import pandas as pd
 import cv2
 import numpy as np
+import os
+import datetime as dt
 from io import BytesIO
-from pathlib import Path
+from pathlib import Path, PurePath
 from os.path import basename
 
 testdir = sys.argv[1]
@@ -61,14 +63,14 @@ layout = [[sg.Image(key="-IMAGE-")],
            sg.Button("Previous", key='-PREVIOUS-'),
            sg.Button("OK", bind_return_key=True, key='-OK-'),
            sg.Button("Error", bind_return_key=True, key='-ERROR-')]]
-windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True) 
+windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(350, 250), font = ("Arial", 14), finalize=True) 
 
 image = cv2.imread(str(df_filename['filename'][curridx]))
 
 if image is None:
-    image = np.zeros((600,500,3), np.uint8)
+    image = np.zeros((300,200,3), np.uint8)
 else:
-    image = cv2.resize(image, (600,500))
+    image = cv2.resize(image, (300,200))
     
 is_success, png_buffer = cv2.imencode(".png", image)
 bio = BytesIO(png_buffer)
@@ -108,15 +110,25 @@ while(True):
                 
         image = cv2.imread(str(df_filename['filename'][curridx]))
         if image is None:
-            image = np.zeros((600,500,3), np.uint8)
+            image = np.zeros((300,200,3), np.uint8)
         else:
-            image = cv2.resize(image, (600,500))
+            image = cv2.resize(image, (300,200))
         is_success, png_buffer = cv2.imencode(".png", image)
         bio = BytesIO(png_buffer)
         windowimg["-IMAGE-"].update(data=bio.getvalue())
         windowimg.TKroot.title(basename(df_filename['filename'][curridx]))
+testdir = PurePath(testdir)
+dirname = testdir.parts[-1]
+date = str(dt.date.today()).replace('-', '')
+time = str(dt.datetime.now()).split(" ")[1].split(".")[0].replace(':', '')
+login = os.getlogin()
 
-log = open("log.txt", "a")
+try:
+    os.mkdir("logs")
+except:
+    pass
+
+log = open("logs/"+dirname+"-"+date+"-"+time+"-"+login+".txt", "a")
 for err in errors:
     log.write(err+"\n")
 log.close()
