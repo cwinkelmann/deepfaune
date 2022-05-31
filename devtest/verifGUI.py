@@ -64,8 +64,9 @@ layout = [[sg.Image(key="-IMAGE-")],
           [sg.Button('Close', key='-CLOSE-'),
            sg.Button("Previous", key='-PREVIOUS-'),
            sg.Button("OK", bind_return_key=True, key='-OK-'),
-           sg.Button("Error", bind_return_key=True, key='-ERROR-')]]
-windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(350, 250), font = ("Arial", 14), finalize=True) 
+           sg.Button("Error", bind_return_key=True, key='-ERROR-')],
+           [sg.Text("Image 1/"+str(nbfiles), key='-NUM-')]]
+windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(350, 300), font = ("Arial", 14), finalize=True) 
 
 image = cv2.imread(str(df_filename['filename'][curridx]))
 
@@ -119,6 +120,7 @@ while(True):
         bio = BytesIO(png_buffer)
         windowimg["-IMAGE-"].update(data=bio.getvalue())
         windowimg.TKroot.title(basename(df_filename['filename'][curridx]))
+        windowimg.Element("-NUM-").update("Image "+str(curridx+1)+"/"+str(nbfiles))
 testdir = PurePath(testdir)
 dirname = testdir.parts[-1]
 date = str(dt.date.today()).replace('-', '')
