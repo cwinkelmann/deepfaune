@@ -94,83 +94,20 @@ class Detector:
         return [], False
 
 
-
+####################################################################################
+### BEST BOX DETECTION WITH JSON
 ####################################################################################
 
-import json
+from load_api_results import load_api_results
+import contextlib
 import os
-from typing import Dict, Mapping, Optional, Tuple
-
-import pandas as pd
-
-# Source : https://github.com/microsoft/CameraTraps/blob/main/api/batch_processing/postprocessing/load_api_results.py
-
-def load_api_results(api_output_path: str, normalize_paths: bool = True,
-                     filename_replacements: Optional[Mapping[str, str]] = None
-                     ) -> Tuple[pd.DataFrame, Dict]:
-    """
-    Loads the json formatted results from the batch processing API to a
-    Pandas DataFrame, mainly useful for various postprocessing functions.
-    Args:
-        api_output_path: path to the API output json file
-        normalize_paths: whether to apply os.path.normpath to the 'file' field
-            in each image entry in the output file
-        filename_replacements: replace some path tokens to match local paths to
-            the original blob structure
-    Returns:
-        detection_results: pd.DataFrame, contains at least the columns:
-                ['file', 'max_detection_conf', 'detections','failure']            
-        other_fields: a dict containing fields in the dict
-    """
-    #print('Loading API results from {}'.format(api_output_path))
-
-    with open(api_output_path) as f:
-        detection_results = json.load(f)
-
-    #print('De-serializing API results')
-
-    # Sanity-check that this is really a detector output file
-    for s in ['info', 'detection_categories', 'images']:
-        assert s in detection_results, 'Missing field {} in detection results'.format(s)
-
-    # Fields in the API output json other than 'images'
-    other_fields = {}
-    for k, v in detection_results.items():
-        if k != 'images':
-            other_fields[k] = v
-
-    # Normalize paths to simplify comparisons later
-    if normalize_paths:
-        for image in detection_results['images']:
-            image['file'] = os.path.normpath(image['file'])
-            # image['file'] = image['file'].replace('\\','/')
-
-    # Pack the json output into a Pandas DataFrame
-    detection_results = pd.DataFrame(detection_results['images'])
-
-    # Replace some path tokens to match local paths to original blob structure
-    # string_to_replace = list(filename_replacements.keys())[0]
-    if filename_replacements is not None:
-        for string_to_replace in filename_replacements:
-
-            replacement_string = filename_replacements[string_to_replace]
-
-            for i_row in range(len(detection_results)):
-                row = detection_results.iloc[i_row]
-                fn = row['file']
-                fn = fn.replace(string_to_replace, replacement_string)
-                detection_results.at[i_row, 'file'] = fn
-
-    #print('Finished loading and de-serializing API results for {} images from {}'.format(
-            #len(detection_results),api_output_path))
-
-    return detection_results, other_fields
 
 class DetectorJSON:
     
     def __init__(self, jsonfilename):
         # getting results in a dataframe
-        self.df_json, df_notUsed = load_api_results(jsonfilename)
+        with contextlib.redirect_stdout(open(os.devnull, 'w')):
+            self.df_json, df_notUsed = load_api_results(jsonfilename)
         self.k = 0
         
     def nextBestBoxDetection(self):
