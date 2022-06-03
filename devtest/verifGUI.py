@@ -93,12 +93,10 @@ while(True):
             if curridx >= nbfiles:
                 curridx = nbfiles - 1
                 # in case we clicked error before
-                try:
-                    errors.remove(str(df_filename['filename'][curridx]))
-                except:
-                    pass
+                if errors[0] == str(df_filename['filename'][curridx]):
+                    del errors[0]
         elif eventimg == '-ERROR-':
-            errors.append(str(df_filename['filename'][curridx]))
+            errors.insert(0, str(df_filename['filename'][curridx]))
             curridx = curridx+1
             if curridx >= nbfiles:
                 curridx = nbfiles - 1
@@ -106,10 +104,8 @@ while(True):
             curridx = curridx-1
             if curridx<=-1:
                 curridx = 0
-            try:
-                errors.remove(str(df_filename['filename'][curridx]))
-            except:
-                pass
+            if errors[0] == str(df_filename['filename'][curridx]):
+                del errors[0]
                 
         image = cv2.imread(str(df_filename['filename'][curridx]))
         if image is None:
