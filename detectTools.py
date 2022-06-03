@@ -174,7 +174,7 @@ class DetectorJSON:
         self.k = 0
         
     def nextBestBoxDetection(self):
-        image_path = str(self.df_results["file"][self.k])
+        image_path = str(self.df_json["file"][self.k])
         image = cv2.imread(image_path)
         if image is None:
             return [], False
@@ -196,7 +196,6 @@ class DetectorJSON:
             box_h = min(img_h, box_size)
             croppedimage = image[max(0,ymin):min(img_h,ymin + box_h),
                                  max(0,xmin):min(img_w,xmin + box_w)]
-
             return croppedimage, True
         else:
             return [], False
