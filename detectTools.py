@@ -114,6 +114,7 @@ class DetectorJSON:
         image_path = str(self.df_json["file"][self.k])
         image = cv2.imread(image_path)
         if image is None:
+            self.k += 1
             return [], False
         try: 
             bbox_norm = self.df_json['detections'][self.k][0]["bbox"]
