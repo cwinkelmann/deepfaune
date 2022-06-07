@@ -34,7 +34,7 @@
 ####################################################################################
 ### LOADING CLASSIFIER
 ####################################################################################
-from os import environ
+from os import environ, getcwd
 environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # silencing TensorFlow
 from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
 from tensorflow.keras.models import Model
@@ -43,7 +43,7 @@ from tensorflow.keras.applications.efficientnet import preprocess_input
 from cv2 import cvtColor,COLOR_BGR2RGB,resize
 
 CROP_SIZE = 300
-hdf5 = "efficientnet_22classesOnlycroppedImgAugB3.hdf5"
+hdf5 = getcwd()+"efficientnet_22classesOnlycroppedImgAugB3.hdf5"
 txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","humain","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
               'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]}
 NBCLASSES = len(txt_classes['fr'])
