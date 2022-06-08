@@ -55,14 +55,10 @@ def getDateTaken(path):
 ####################################################################################
 ### MAJORITY VOTING IN SEQUENCES OF IMAGES
 ####################################################################################
-def correctPredictionWithSequenceSingleDirectory(sub_df_filename, sub_predictedclass_base, sub_predictedscore_base, seqnuminit, maxlag, LANG):
+def correctPredictionWithSequenceSingleDirectory(sub_df_filename, dates, sub_predictedclass_base, sub_predictedscore_base, maxlag, LANG, seqnuminit = 0):
     seqnum = np.repeat(seqnuminit, sub_df_filename.shape[0])
     sub_predictedclass = sub_predictedclass_base.copy()
     sub_predictedscore = sub_predictedscore_base.copy()
-    ## Getting date from exif, or draw random fake date
-    dates = np.array([getDateTaken(file) for file in sub_df_filename['filename']])
-    withoutdate = np.where(dates == None)[0]
-    dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
     
     ## Sorting dates and computing lag
     from datetime import timedelta
@@ -114,6 +110,7 @@ def correctPredictionWithSequenceSingleDirectory(sub_df_filename, sub_predictedc
 ### ORDERING FILES BY DIRECTORY AND CALLING MAJORITY VOTING
 ####################################################################################
 import numpy as np
+
 def getFilesOrder(df):
     nbrows = len(df)
     numdir = np.array([0]*nbrows)
@@ -133,7 +130,13 @@ def getFilesOrder(df):
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
-def correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG):
+def getDates(df_filename):
+    dates = np.array([getDateTaken(file) for file in df_filename['filename']])
+    withoutdate = np.where(dates == None)[0]
+    dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
+    return dates
+
+def correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, LANG):
     nbrows = len(df_filename)
     predictedclass = [0]*nbrows
     predictedscore = [0]*nbrows
@@ -144,9 +147,9 @@ def correctPredictionWithSequence(df_filename, predictedclass_base, predictedsco
         dirname = op.dirname(str(df_filename['filename'][i]))
         if currdir != dirname:
             currdir = dirname
-            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:i,:], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], max(seqnum), maxlag, LANG)
+            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:i,:], dates[lowerbound:i], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], maxlag, LANG, max(seqnum))
             lowerbound = i
-    predictedclass[lowerbound:nbrows], predictedscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:nbrows,:], predictedclass_base[lowerbound:nbrows], predictedscore_base[lowerbound:nbrows], max(seqnum), maxlag, LANG)
+    predictedclass[lowerbound:nbrows], predictedscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:nbrows,:], dates[lowerbound:nbrows], predictedclass_base[lowerbound:nbrows], predictedscore_base[lowerbound:nbrows], maxlag, LANG, max(seqnum))
     return predictedclass, predictedscore, seqnum
 
 
@@ -155,7 +158,8 @@ def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, pr
     df_filename = pd.DataFrame({'filename':[df_filename['filename'][k] for k in order]})
     predictedclass_base = [predictedclass_base[k] for k in order]
     predictedscore_base = [predictedscore_base[k] for k in order]
-    predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
+    dates = getDates(df_filename)
+    predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, LANG)
     return df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum
     
 
@@ -163,7 +167,6 @@ def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, pr
 ### IMAGE COMPARATOR
 ####################################################################################
 import cv2
-import numpy as np
 
 class ImageDiff:
     
@@ -183,7 +186,7 @@ class ImageDiff:
         return similarity
 
     
-from PIL import Image, ImageOps, ImageChops, ImageFilter
+from PIL import ImageChops, ImageFilter
 class ImageBoxDiff:
     
     def __init__(self):
