@@ -76,7 +76,7 @@ You can use the GUI, and you can also consult [the user manual](https://plmlab.m
 
 ### Using the API
 
-You can implement your own scripts using the DeepFaune API. A *minimal example* is [available here](https://plmlab.math.cnrs.fr/deepfaune/software/-/tree/master/devtest/testAPI.py).
+You can implement your own scripts using the DeepFaune API. A *minimal example* is [available here](https://plmlab.math.cnrs.fr/deepfaune/software/-/tree/master/demo/testAPI.py).
 
 ---
 # CONTACT
