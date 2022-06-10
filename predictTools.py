@@ -32,6 +32,7 @@
 # knowledge of the CeCILL license and that you accept its terms.
 import cv2
 import numpy as np
+from abc import ABC, abstractmethod
 
 from detectTools import Detector, DetectorJSON
 from classifTools import Classifier
@@ -41,13 +42,11 @@ from classifTools import CROP_SIZE, NBCLASSES
 
 BATCH_SIZE = 8
 
-class Predictor:
-    
-    def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined):
-        self.df_filename = df_filename
+class PredictorBase(ABC):
+    def __init__(self, nbfiles, threshold, txt_classesempty, txt_undefined):
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
         self.nbclasses=len(txt_classesempty)-1
-        self.nbfiles = self.df_filename.shape[0]
+        self.nbfiles = nbfiles
         self.prediction = np.zeros(shape=(self.nbfiles, self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1 # by default, predicted as empty
         self.predictedclass_base = []
@@ -55,9 +54,6 @@ class Predictor:
         self.txt_classesempty = txt_classesempty
         self.txt_undefined = txt_undefined
         self.threshold = threshold
-        self.detector = Detector()
-        self.classifier = Classifier()
-        self.idiff = ImageBoxDiff()
         if (self.nbclasses!=NBCLASSES):
             raise SystemExit('Incoherent number of classes between classes list and classifier shape.')
         self.resetBatch()
@@ -71,11 +67,36 @@ class Predictor:
                 class_pred[i] = self.txt_classesempty[np.argmax(pred)]
             score_pred[i] = int(max(pred)*100)/100.
         return class_pred, score_pred
-
+    
+    def allBatch(self):
+        self.resetBatch()
+        while self.k1<self.nbfiles:
+            self.nextBatch()
+        
+    def getPredictions(self):
+        self.predictedclass_base, self.predictedscore_base = self.prediction2class(self.prediction)  
+        return self.predictedclass_base, self.predictedscore_base
+    
     def resetBatch(self):
         self.k1 = 0 # batch start
         self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles) # batch end
         self.batch = 1 # batch num
+    
+    @abstractmethod
+    def nextBatch(self):
+        pass
+    
+    
+    
+
+class Predictor(PredictorBase):
+    
+    def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined):
+        super().__init__(df_filename.shape[0], threshold, txt_classesempty, txt_undefined) # inherits all
+        self.df_filename = df_filename
+        self.detector = Detector()
+        self.classifier = Classifier()
+        self.idiff = ImageBoxDiff()
 
     def nextBatch(self):
         if self.k1>=self.nbfiles:
@@ -112,23 +133,18 @@ class Predictor:
             self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
-    
-    def allBatch(self):
-        self.resetBatch()
-        while self.k1<self.nbfiles:
-            self.nextBatch()
-        
-    def getPredictions(self):
-        self.predictedclass_base, self.predictedscore_base = self.prediction2class(self.prediction)  
-        return self.predictedclass_base, self.predictedscore_base
                 
 
 
 
-class PredictorVideo(Predictor):
+class PredictorVideo(PredictorBase):
     
     def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined):
-         super().__init__(df_filename, threshold, txt_classesempty, txt_undefined) # inherits all
+         super().__init__(df_filename.shape[0], threshold, txt_classesempty, txt_undefined) # inherits all
+         self.df_filename = df_filename
+         self.detector = Detector()
+         self.classifier = Classifier()
+         self.idiff = ImageBoxDiff()
 
     def resetBatch(self):
         self.k1 = 0
@@ -175,12 +191,12 @@ class PredictorVideo(Predictor):
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
 
-class PredictorJSON(Predictor):
+class PredictorJSON(PredictorBase):
     
-    def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined, jsonfilename):
-         super().__init__(df_filename, threshold, txt_classesempty, txt_undefined) # inherits all
+    def __init__(self, jsonfilename, threshold, txt_classesempty, txt_undefined):
          self.jsonfilename = jsonfilename
          self.DetectorJSON = DetectorJSON(jsonfilename)
+         super().__init__(DetectorJSON.getnbfiles(), threshold, txt_classesempty, txt_undefined) # inherits all
     
     def nextBatch(self):
         if self.k1>=self.nbfiles:

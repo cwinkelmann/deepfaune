@@ -138,3 +138,5 @@ class DetectorJSON:
         else:
             return [], False
         
+    def getnbfiles(self):
+        return self.df_json.shape[0]

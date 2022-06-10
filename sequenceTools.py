@@ -55,8 +55,8 @@ def getDateTaken(path):
 ####################################################################################
 ### MAJORITY VOTING IN SEQUENCES OF IMAGES
 ####################################################################################
-def correctPredictionWithSequenceSingleDirectory(sub_df_filename, dates, sub_predictedclass_base, sub_predictedscore_base, maxlag, LANG, seqnuminit = 0):
-    seqnum = np.repeat(seqnuminit, sub_df_filename.shape[0])
+def correctPredictionWithSequenceSingleDirectory(nbfiles, dates, sub_predictedclass_base, sub_predictedscore_base, maxlag, LANG, seqnuminit = 0):
+    seqnum = np.repeat(seqnuminit, nbfiles)
     sub_predictedclass = sub_predictedclass_base.copy()
     sub_predictedscore = sub_predictedscore_base.copy()
     
@@ -147,9 +147,9 @@ def correctPredictionWithSequence(df_filename, dates, predictedclass_base, predi
         dirname = op.dirname(str(df_filename['filename'][i]))
         if currdir != dirname:
             currdir = dirname
-            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:i,:], dates[lowerbound:i], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], maxlag, LANG, max(seqnum))
+            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(i-lowerbound, dates[lowerbound:i], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], maxlag, LANG, max(seqnum))
             lowerbound = i
-    predictedclass[lowerbound:nbrows], predictedscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(df_filename.iloc[lowerbound:nbrows,:], dates[lowerbound:nbrows], predictedclass_base[lowerbound:nbrows], predictedscore_base[lowerbound:nbrows], maxlag, LANG, max(seqnum))
+    predictedclass[lowerbound:nbrows], predictedscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(nbrows-lowerbound, dates[lowerbound:nbrows], predictedclass_base[lowerbound:nbrows], predictedscore_base[lowerbound:nbrows], maxlag, LANG, max(seqnum))
     return predictedclass, predictedscore, seqnum
 
 
