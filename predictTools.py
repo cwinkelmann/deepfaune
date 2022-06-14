@@ -195,8 +195,9 @@ class PredictorJSON(PredictorBase):
     
     def __init__(self, jsonfilename, threshold, txt_classesempty, txt_undefined):
          self.jsonfilename = jsonfilename
-         self.DetectorJSON = DetectorJSON(jsonfilename)
-         super().__init__(DetectorJSON.getnbfiles(), threshold, txt_classesempty, txt_undefined) # inherits all
+         self.detector = DetectorJSON(jsonfilename)
+         self.classifier = Classifier()
+         super().__init__(self.detector.getnbfiles(), threshold, txt_classesempty, txt_undefined) # inherits all
     
     def nextBatch(self):
         if self.k1>=self.nbfiles:
@@ -218,3 +219,7 @@ class PredictorJSON(PredictorBase):
             self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
+        
+    def getPredictions(self):
+        predictedclass_base, predictedscore_base = super().getPredictions()
+        return self.detector.getFileNames(), predictedclass_base, predictedscore_base

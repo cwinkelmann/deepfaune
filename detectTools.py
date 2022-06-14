@@ -140,3 +140,6 @@ class DetectorJSON:
         
     def getnbfiles(self):
         return self.df_json.shape[0]
+    
+    def getFileNames(self):
+        return self.df_json["file"].to_numpy()
