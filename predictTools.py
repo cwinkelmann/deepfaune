@@ -194,7 +194,6 @@ class PredictorVideo(PredictorBase):
 class PredictorJSON(PredictorBase):
     
     def __init__(self, jsonfilename, threshold, txt_classesempty, txt_undefined):
-         self.jsonfilename = jsonfilename
          self.detector = DetectorJSON(jsonfilename)
          self.classifier = Classifier()
          super().__init__(self.detector.getnbfiles(), threshold, txt_classesempty, txt_undefined) # inherits all
@@ -222,4 +221,4 @@ class PredictorJSON(PredictorBase):
         
     def getPredictions(self):
         predictedclass_base, predictedscore_base = super().getPredictions()
-        return self.detector.getFileNames(), predictedclass_base, predictedscore_base
+        return predictedclass_base, predictedscore_base, self.detector.getFileNames()
