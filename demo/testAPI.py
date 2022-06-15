@@ -1,0 +1,63 @@
+# Copyright CNRS 2022
+
+# simon.chamaille@cefe.cnrs.fr; vincent.miele@univ-lyon1.fr
+
+# This software is a computer program whose purpose is to identify
+# animal species in camera trap images.
+
+#This software is governed by the CeCILL  license under French law and
+# abiding by the rules of distribution of free software.  You can  use, 
+# modify and/ or redistribute the software under the terms of the CeCILL
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info". 
+
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability. 
+
+# In this respect, the user's attention is drawn to the risks associated
+# with loading,  using,  modifying and/or developing or reproducing the
+# software by the user in light of its specific status of free software,
+# that may mean  that it is complicated to manipulate,  and  that  also
+# therefore means  that it is reserved for developers  and  experienced
+# professionals having in-depth computer knowledge. Users are therefore
+# encouraged to load and test the software's suitability as regards their
+# requirements in conditions enabling the security of their systems and/or 
+# data to be ensured and,  more generally, to use and operate it in the 
+# same conditions as regards security. 
+
+# The fact that you are presently reading this means that you have had
+# knowledge of the CeCILL license and that you accept its terms.
+
+import sys
+import os
+curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
+sys.path.append(curdir+'/../')
+
+## DEEPFAUNE objects
+from detectTools import Detector, YOLO_SIZE
+from classifTools import Classifier, CROP_SIZE, NBCLASSES, txt_classes
+LANG = 'fr' # or 'gb'
+detector = Detector()
+classifier = Classifier()
+
+## LOADING IMAGE
+import cv2
+image_path = sys.argv[1]
+image = cv2.imread(image_path)
+
+## OBJECT DETECTION
+cropped_image, nonempty = detector.bestBoxDetection(image)
+
+if(nonempty):
+    ## CLASSIFICATION
+    import numpy as np
+    cropped_tensor = np.ones(shape=(1,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
+    cropped_tensor[0,:,:,:] =  classifier.preprocessImage(cropped_image)
+    scores = classifier.predictOnBatch(cropped_tensor)
+    print("Prediction :", txt_classes[LANG][np.argmax(scores[0,:])])
+else:
+    print("Prediction : vide/empty") 
+

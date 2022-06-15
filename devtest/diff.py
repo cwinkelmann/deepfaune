@@ -34,12 +34,12 @@ else:
     im2b = im2.filter(ImageFilter.GaussianBlur(radius = 2))
 
 
-#from PIL import ImageEnhance
-#image brightness enhancer
-#enhancer = ImageEnhance.Contrast(im1b)
-#im1b = enhancer.enhance(-2)
-#enhancer = ImageEnhance.Contrast(im2b)
-#im2b = enhancer.enhance(-2)
+if False:
+    from PIL import ImageEnhance
+    enhancer = ImageEnhance.Contrast(im1b)
+    im1b = enhancer.enhance(-2)
+    enhancer = ImageEnhance.Contrast(im2b)
+    im2b = enhancer.enhance(-2)
 
 #sshow(im1b)
 #sshow(im2b)
