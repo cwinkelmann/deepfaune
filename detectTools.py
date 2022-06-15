@@ -138,7 +138,7 @@ class DetectorJSON:
         else:
             return [], False
         
-    def getnbfiles(self):
+    def getNbFiles(self):
         return self.df_json.shape[0]
     
     def getFileNames(self):

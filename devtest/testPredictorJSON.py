@@ -9,11 +9,14 @@ sys.path.append(curdir+'/../')
 from predictTools import PredictorJSON
 
 txt_classes = ["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]
-LANG = 'gb' # or 'fr'
-predictor = PredictorJSON(sys.argv[1], 0.5, txt_classes+["empty"], "undefined")
+maxlag = 20
+threshold = 0.5
+
+predictor = PredictorJSON(sys.argv[1], threshold, txt_classes+["empty"], "undefined")
 predictor.allBatch()
-predictedclass_base, predictedscore_base, filenames = predictor.getPredictions()
+df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequence(maxlag)
 
-df = pd.DataFrame({'file':filenames, 'class':predictedclass_base, 'score':predictedscore_base})
+preddf = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
 
-print(df)
+preddf.to_csv("results.csv")
+print('Done, results saved in "results.csv"')

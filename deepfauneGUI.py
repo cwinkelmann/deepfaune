@@ -283,13 +283,13 @@ while True:
             window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
             window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())                    
             window.refresh()
-        predictedclass_base, predictedscore_base = predictor.getPredictions()
         if VIDEO:
+            predictedclass_base, predictedscore_base = predictor.getPredictions()
             predictedclass, predictedscore = predictedclass_base, predictedscore_base
             seqnum = [i for i in range(1,nbfiles+1)]
         else:
             frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-            df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG)
+            df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequence(maxlag)
             frgbprint(" terminé", " done")
         ########################
         ########################

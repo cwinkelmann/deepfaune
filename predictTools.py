@@ -32,11 +32,12 @@
 # knowledge of the CeCILL license and that you accept its terms.
 import cv2
 import numpy as np
+import pandas as pd
 from abc import ABC, abstractmethod
 
 from detectTools import Detector, DetectorJSON
 from classifTools import Classifier
-from sequenceTools import ImageBoxDiff
+from sequenceTools import ImageBoxDiff, reorderAndCorrectPredictionWithSequence
 
 from classifTools import CROP_SIZE, NBCLASSES
 
@@ -47,6 +48,7 @@ class PredictorBase(ABC):
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
         self.nbclasses=len(txt_classesempty)-1
         self.nbfiles = nbfiles
+        self.df_filename = None
         self.prediction = np.zeros(shape=(self.nbfiles, self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1 # by default, predicted as empty
         self.predictedclass_base = []
@@ -81,6 +83,14 @@ class PredictorBase(ABC):
         self.k1 = 0 # batch start
         self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles) # batch end
         self.batch = 1 # batch num
+        
+    def getPredictionsWithSequence(self, maxlag):
+        if self.predictedclass_base == []:
+            self.getPredictions()
+        return reorderAndCorrectPredictionWithSequence(self.df_filename, self.predictedclass_base, self.predictedscore_base, maxlag, self.txt_classesempty[-1])
+    
+    def getFileNames(self): # doesn't take reorder due to sequences into account
+        return self.df_filename.to_numpy()
     
     @abstractmethod
     def nextBatch(self):
@@ -196,7 +206,8 @@ class PredictorJSON(PredictorBase):
     def __init__(self, jsonfilename, threshold, txt_classesempty, txt_undefined):
          self.detector = DetectorJSON(jsonfilename)
          self.classifier = Classifier()
-         super().__init__(self.detector.getnbfiles(), threshold, txt_classesempty, txt_undefined) # inherits all
+         super().__init__(self.detector.getNbFiles(), threshold, txt_classesempty, txt_undefined) # inherits all
+         self.df_filename = pd.DataFrame({'filename': self.detector.getFileNames()})
     
     def nextBatch(self):
         if self.k1>=self.nbfiles:
@@ -219,6 +230,6 @@ class PredictorJSON(PredictorBase):
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
-    def getPredictions(self):
-        predictedclass_base, predictedscore_base = super().getPredictions()
-        return predictedclass_base, predictedscore_base, self.detector.getFileNames()
+    def getFileNames(self):
+        return self.detector.getFileNames()
+        

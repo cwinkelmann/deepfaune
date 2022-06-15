@@ -45,9 +45,9 @@ def randomDate(seed):
     d = random.randint(1, int(time()))
     return datetime.fromtimestamp(d).strftime("%Y:%m:%d %H:%M:%S")
 
-def getDateTaken(path):
+def getDateFromExif(filename):
     try:
-        date = Image.open(path)._getexif()[36867]
+        date = Image.open(filename)._getexif()[36867]
     except:
         date = None
     return date
@@ -55,7 +55,7 @@ def getDateTaken(path):
 ####################################################################################
 ### MAJORITY VOTING IN SEQUENCES OF IMAGES
 ####################################################################################
-def correctPredictionWithSequenceSingleDirectory(nbfiles, dates, sub_predictedclass_base, sub_predictedscore_base, maxlag, LANG, seqnuminit = 0):
+def correctPredictionWithSequenceSingleDirectory(nbfiles, dates, sub_predictedclass_base, sub_predictedscore_base, maxlag, txt_empty_lang, seqnuminit = 0):
     seqnum = np.repeat(seqnuminit, nbfiles)
     sub_predictedclass = sub_predictedclass_base.copy()
     sub_predictedscore = sub_predictedscore_base.copy()
@@ -70,23 +70,23 @@ def correctPredictionWithSequenceSingleDirectory(nbfiles, dates, sub_predictedcl
         df = pd.DataFrame({'prediction':[sub_predictedclass_base[k] for k in datesorder[i1:(i2+1)]], 'score':[sub_predictedscore_base[k] for k in datesorder[i1:(i2+1)]]})
         majority = df.groupby(['prediction']).sum()
         meanscore = df.groupby(['prediction']).mean()['score']
-        if list(majority.index) == [txt_empty[LANG]]:
+        if list(majority.index) == [txt_empty_lang]:
             for k in datesorder[i1:(i2+1)]:
-                sub_predictedclass[k] = txt_empty[LANG]
+                sub_predictedclass[k] = txt_empty_lang
                 sub_predictedscore[k] = sub_predictedscore_base[k]
         else:
-            notempty = (majority.index != txt_empty[LANG]) # skipping empty images in sequence
+            notempty = (majority.index != txt_empty_lang) # skipping empty images in sequence
             majority = majority[notempty]
             meanscore = meanscore[notempty]
             best = np.argmax(majority['score']) # selecting class with best total score
             majorityclass = majority.index[best]
             majorityscore = meanscore[best] # overall score as the mean for this class
             for k in datesorder[i1:(i2+1)]:
-                if sub_predictedclass_base[k]!= txt_empty[LANG]:
+                if sub_predictedclass_base[k]!= txt_empty_lang:
                     sub_predictedclass[k] = majorityclass 
                     sub_predictedscore[k] = int(majorityscore*100)/100.
                 else:
-                    sub_predictedclass[k] = txt_empty[LANG]
+                    sub_predictedclass[k] = txt_empty_lang
                     sub_predictedscore[k] = sub_predictedscore_base[k]
             
     ## Treating sequences
@@ -131,12 +131,12 @@ def getFilesOrder(df):
     return filesOrder
 
 def getDates(df_filename):
-    dates = np.array([getDateTaken(file) for file in df_filename['filename']])
+    dates = np.array([getDateFromExif(filename) for filename in df_filename['filename']])
     withoutdate = np.where(dates == None)[0]
     dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
     return dates
 
-def correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, LANG):
+def correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, txt_empty_lang):
     nbrows = len(df_filename)
     predictedclass = [0]*nbrows
     predictedscore = [0]*nbrows
@@ -147,19 +147,19 @@ def correctPredictionWithSequence(df_filename, dates, predictedclass_base, predi
         dirname = op.dirname(str(df_filename['filename'][i]))
         if currdir != dirname:
             currdir = dirname
-            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(i-lowerbound, dates[lowerbound:i], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], maxlag, LANG, max(seqnum))
+            predictedclass[lowerbound:i], predictedscore[lowerbound:i], seqnum[lowerbound:i] = correctPredictionWithSequenceSingleDirectory(i-lowerbound, dates[lowerbound:i], predictedclass_base[lowerbound:i], predictedscore_base[lowerbound:i], maxlag, txt_empty_lang, max(seqnum))
             lowerbound = i
-    predictedclass[lowerbound:nbrows], predictedscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(nbrows-lowerbound, dates[lowerbound:nbrows], predictedclass_base[lowerbound:nbrows], predictedscore_base[lowerbound:nbrows], maxlag, LANG, max(seqnum))
+    predictedclass[lowerbound:nbrows], predictedscore[lowerbound:nbrows], seqnum[lowerbound:nbrows] = correctPredictionWithSequenceSingleDirectory(nbrows-lowerbound, dates[lowerbound:nbrows], predictedclass_base[lowerbound:nbrows], predictedscore_base[lowerbound:nbrows], maxlag, txt_empty_lang, max(seqnum))
     return predictedclass, predictedscore, seqnum
 
 
-def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, LANG):
+def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, predictedscore_base, maxlag, txt_empty_lang):
     order = getFilesOrder(df_filename)
     df_filename = pd.DataFrame({'filename':[df_filename['filename'][k] for k in order]})
     predictedclass_base = [predictedclass_base[k] for k in order]
     predictedscore_base = [predictedscore_base[k] for k in order]
     dates = getDates(df_filename)
-    predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, LANG)
+    predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, txt_empty_lang)
     return df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum
     
 
