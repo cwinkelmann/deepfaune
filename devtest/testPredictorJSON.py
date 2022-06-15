@@ -12,7 +12,7 @@ txt_classes = ["badger","ibex","red deer","chamois","cat","roe deer","dog","squi
 LANG = 'gb' # or 'fr'
 predictor = PredictorJSON(sys.argv[1], 0.5, txt_classes+["empty"], "undefined")
 predictor.allBatch()
-filenames, predictedclass_base, predictedscore_base = predictor.getPredictions()
+predictedclass_base, predictedscore_base, filenames = predictor.getPredictions()
 
 df = pd.DataFrame({'file':filenames, 'class':predictedclass_base, 'score':predictedscore_base})
 
