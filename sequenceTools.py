@@ -160,7 +160,7 @@ def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, pr
     predictedscore_base = [predictedscore_base[k] for k in order]
     dates = getDates(df_filename)
     predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, txt_empty_lang)
-    return df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum
+    return df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates
     
 
 ####################################################################################

@@ -182,7 +182,6 @@ if VIDEO:
     from predictTools import PredictorVideo
 else:
     from predictTools import Predictor
-    from sequenceTools import reorderAndCorrectPredictionWithSequence
 
 testdir = ""
 rowidx = [-1]
@@ -289,7 +288,7 @@ while True:
             seqnum = [i for i in range(1,nbfiles+1)]
         else:
             frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-            df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequence(maxlag)
+            df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates = predictor.getPredictionsWithSequence(maxlag)
             frgbprint(" terminé", " done")
         ########################
         ########################
@@ -305,7 +304,7 @@ while True:
             window['-SAVEXLSX-'].Update(disabled=False)
         window['-ALLTABROW-'].Update(disabled=False)
     elif event == '-SAVECSV-':
-        preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
+        preddf  = pd.DataFrame({'filename':df_filename["filename"], 'date':dates, 'seqnum':seqnum,
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
@@ -315,7 +314,7 @@ while True:
             preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
             window['-SAVECSV-'].Update(disabled=True)
     elif event == '-SAVEXLSX-':
-        preddf  = pd.DataFrame({'filename':df_filename["filename"], 'seqnum':seqnum,
+        preddf  = pd.DataFrame({'filename':df_filename["filename"], 'date':dates, 'seqnum':seqnum,
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
