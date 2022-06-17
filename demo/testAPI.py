@@ -37,8 +37,8 @@ curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
 sys.path.append(curdir+'/../')
 
 ## DEEPFAUNE objects
-from detectTools import Detector, YOLO_SIZE
-from classifTools import Classifier, CROP_SIZE, NBCLASSES, txt_classes
+from detectTools import Detector
+from classifTools import Classifier, CROP_SIZE, txt_classes
 LANG = 'fr' # or 'gb'
 detector = Detector()
 classifier = Classifier()

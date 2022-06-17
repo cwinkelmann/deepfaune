@@ -134,7 +134,7 @@ def getDates(df_filename):
     dates = np.array([getDateFromExif(filename) for filename in df_filename['filename']])
     withoutdate = np.where(dates == None)[0]
     dates[withoutdate] = [randomDate(int(i)) for i in withoutdate]
-    return dates
+    return dates, withoutdate
 
 def correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, txt_empty_lang):
     nbrows = len(df_filename)
@@ -158,10 +158,10 @@ def reorderAndCorrectPredictionWithSequence(df_filename, predictedclass_base, pr
     df_filename = pd.DataFrame({'filename':[df_filename['filename'][k] for k in order]})
     predictedclass_base = [predictedclass_base[k] for k in order]
     predictedscore_base = [predictedscore_base[k] for k in order]
-    dates = getDates(df_filename)
+    dates, withoutdate = getDates(df_filename)
     predictedclass, predictedscore, seqnum = correctPredictionWithSequence(df_filename, dates, predictedclass_base, predictedscore_base, maxlag, txt_empty_lang)
+    dates[withoutdate] = ['' for i in withoutdate]
     return df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates
-    
 
 ####################################################################################
 ### IMAGE COMPARATOR
