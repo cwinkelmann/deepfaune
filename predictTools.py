@@ -44,16 +44,16 @@ from classifTools import CROP_SIZE, NBCLASSES
 BATCH_SIZE = 8
 
 class PredictorBase(ABC):
-    def __init__(self, nbfiles, threshold, txt_classesempty, txt_undefined):
+    def __init__(self, nbfiles, threshold, txt_classes, txt_empty, txt_undefined):
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
-        self.nbclasses=len(txt_classesempty)-1
+        self.nbclasses=len(txt_classes)
         self.nbfiles = nbfiles
         self.df_filename = None
         self.prediction = np.zeros(shape=(self.nbfiles, self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1 # by default, predicted as empty
         self.predictedclass_base = []
         self.predictedscore_base = []
-        self.txt_classesempty = txt_classesempty
+        self.txt_classesempty = txt_classes+[txt_empty]
         self.txt_undefined = txt_undefined
         self.threshold = threshold
         if (self.nbclasses!=NBCLASSES):
@@ -101,8 +101,8 @@ class PredictorBase(ABC):
 
 class Predictor(PredictorBase):
     
-    def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined):
-        super().__init__(df_filename.shape[0], threshold, txt_classesempty, txt_undefined) # inherits all
+    def __init__(self, df_filename, threshold, txt_classes, txt_empty, txt_undefined):
+        super().__init__(df_filename.shape[0], threshold, txt_classes, txt_empty, txt_undefined) # inherits all
         self.df_filename = df_filename
         self.detector = Detector()
         self.classifier = Classifier()
@@ -149,8 +149,8 @@ class Predictor(PredictorBase):
 
 class PredictorVideo(PredictorBase):
     
-    def __init__(self, df_filename, threshold, txt_classesempty, txt_undefined):
-         super().__init__(df_filename.shape[0], threshold, txt_classesempty, txt_undefined) # inherits all
+    def __init__(self, df_filename, threshold, txt_classes, txt_empty, txt_undefined):
+         super().__init__(df_filename.shape[0], threshold, txt_classes, txt_empty, txt_undefined) # inherits all
          self.df_filename = df_filename
          self.detector = Detector()
          self.classifier = Classifier()
@@ -203,10 +203,10 @@ class PredictorVideo(PredictorBase):
 
 class PredictorJSON(PredictorBase):
     
-    def __init__(self, jsonfilename, threshold, txt_classesempty, txt_undefined):
+    def __init__(self, jsonfilename, threshold, txt_classes, txt_empty, txt_undefined):
          self.detector = DetectorJSON(jsonfilename)
          self.classifier = Classifier()
-         super().__init__(self.detector.getNbFiles(), threshold, txt_classesempty, txt_undefined) # inherits all
+         super().__init__(self.detector.getNbFiles(), threshold, txt_classes, txt_empty, txt_undefined) # inherits all
          self.df_filename = pd.DataFrame({'filename': self.detector.getFileNames()})
     
     def nextBatch(self):

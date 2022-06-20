@@ -22,7 +22,7 @@ df_filename = pd.DataFrame({'filename':sorted(
     [f for f in  Path(sys.argv[1]).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
 )})
 
-predictor = Predictor(df_filename, threshold, txt_classes+["empty"], "undefined")
+predictor = Predictor(df_filename, threshold, txt_classes, "empty", "undefined")
 predictor.allBatch()
 df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates = predictor.getPredictionsWithSequence(maxlag)
 

@@ -262,9 +262,9 @@ while True:
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
         window.refresh()
         if VIDEO:
-            predictor = PredictorVideo(df_filename, threshold, txt_classes[LANG]+[txt_empty[LANG]], txt_undefined[LANG])
+            predictor = PredictorVideo(df_filename, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG])
         else:
-            predictor = Predictor(df_filename, threshold, txt_classes[LANG]+[txt_empty[LANG]], txt_undefined[LANG])
+            predictor = Predictor(df_filename, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG])
         frgbprint("terminé","done")
         window.refresh()
         if LANG=="fr":

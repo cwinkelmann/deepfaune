@@ -12,7 +12,7 @@ txt_classes = ["badger","ibex","red deer","chamois","cat","roe deer","dog","squi
 maxlag = 20
 threshold = 0.5
 
-predictor = PredictorJSON(sys.argv[1], threshold, txt_classes+["empty"], "undefined")
+predictor = PredictorJSON(sys.argv[1], threshold, txt_classes, "empty", "undefined")
 predictor.allBatch()
 df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates = predictor.getPredictionsWithSequence(maxlag)
 
