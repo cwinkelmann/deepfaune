@@ -133,7 +133,7 @@ class PredictorBase(ABC):
                     self.predictedclass[j] = majorityclass
                     self.predictedscore[j] = meanscore
     
-    def mergePredictors(self, predictor):
+    def merge(self, predictor):
         pass
     
 

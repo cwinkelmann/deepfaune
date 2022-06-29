@@ -71,39 +71,44 @@ class FileManager:
         self.filenames = filenames
         self.nbrows = len(filenames)
         self.seqnum = [0]*self.nbrows
-        self.dates = np.array([getDateFromExif(file) for file in self.filenames])
+        self.dates = []
     
     def findSequences(self, maxlag):
+        if self.dates == []:
+            self.findDates()
         currdir = op.dirname(str(self.filenames[self.order[0]]))
         currseqnum = 1
         lowerbound = 0
         for i in range(1, self.nbrows):
-            dirname = op.dirname(str(self.filenames[self.order[i]]))
+            dirname = op.dirname(self.filenames[self.order[i]])
             if currdir != dirname:
                 currdir = dirname
-                datestrip = [self.dates[k] for k in self.order[lowerbound:i]]
-                datesorder = np.argsort(datestrip)
-                self.seqnum[self.order[datesorder[0]]] = currseqnum
+                subdates = [self.dates[k] for k in self.order[lowerbound:i]]
+                datesorder = np.argsort(subdates)
+                self.seqnum[self.order[datesorder[0]+lowerbound]] = currseqnum
                 for j in range(1, i-lowerbound):
-                    date1 = datetime.strptime(datestrip[datesorder[j]], "%Y:%m:%d %H:%M:%S")
-                    date2 = datetime.strptime(datestrip[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
-                    lag = date2-date1
-                    if lag>=timedelta(seconds=maxlag):
+                    date = datetime.strptime(subdates[datesorder[j]], "%Y:%m:%d %H:%M:%S")
+                    datepre = datetime.strptime(subdates[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
+                    lag = date-datepre
+                    if lag>timedelta(seconds=maxlag):
                         currseqnum += 1
-                    self.seqnum[self.order[datesorder[j]]] = currseqnum
+                    self.seqnum[self.order[datesorder[j]+lowerbound]] = currseqnum
                 currseqnum += 1
                 lowerbound = i    
         # same as the content of the for loop
-        datestrip = [self.dates[k] for k in self.order[lowerbound:i]]
-        datesorder = np.argsort(datestrip)
-        self.seqnum[self.order[datesorder[0]]] = currseqnum
-        for j in range(1, i-lowerbound):
-            date1 = datetime.strptime(datestrip[datesorder[j]], "%Y:%m:%d %H:%M:%S")
-            date2 = datetime.strptime(datestrip[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
-            lag = date2-date1
-            if lag>=timedelta(seconds=maxlag):
+        subdates = [self.dates[k] for k in self.order[lowerbound:i+1]]
+        datesorder = np.argsort(subdates)
+        self.seqnum[self.order[datesorder[0]+lowerbound]] = currseqnum        
+        for j in range(1, i-lowerbound+1):
+            date = datetime.strptime(subdates[datesorder[j]], "%Y:%m:%d %H:%M:%S")
+            datepre = datetime.strptime(subdates[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
+            lag = date-datepre
+            if lag>timedelta(seconds=maxlag):
                 currseqnum += 1
-            self.seqnum[self.order[datesorder[j]]] = currseqnum
+            self.seqnum[self.order[datesorder[j]+lowerbound]] = currseqnum
+            
+    def findDates(self):
+        self.dates = [getDateFromExif(file) for file in self.filenames]
     
     def getMaxSeqnum(self):
         return max(self.seqnum)
@@ -125,8 +130,13 @@ class FileManager:
     def getFileName(self, k):
         return self.filenames[k]
     
-    def mergeFileManagers(self, fileManager):
-        pass
+    def merge(self, fileManager):
+        m = self.getMaxSeqnum()
+        self.filenames = self.filenames + fileManager.getFileNames()
+        self.seqnum = self.seqnum + [k+m for k in fileManager.getSeqnums()]
+        self.dates = self.dates + fileManager.getDates()
+        self.nbrows = len(self.filenames)
+        self.order = getFilesOrder(self.filenames)
     
     
         
