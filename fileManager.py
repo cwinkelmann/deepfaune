@@ -114,7 +114,8 @@ class FileManager:
         return max(self.seqnum)
     
     def getFileNamesBySeqnum(self, num):
-        indices = np.nonzero(self.seqnum==num)[0]
+        seqnum = np.array(self.seqnum)
+        indices = np.nonzero(seqnum==num)[0]
         res = [self.filenames[k] for k in indices]
         return res
     

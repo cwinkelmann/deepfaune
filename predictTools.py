@@ -123,7 +123,7 @@ class PredictorBase(ABC):
     
     def correctPredictionsWithSequence(self, maxlag):
         self.fileManager.findSequences(maxlag)
-        seqnum = self.fileManager.getSeqnums()
+        seqnum = np.array(self.fileManager.getSeqnums())
         for i in range(1, max(seqnum)+1):
             indices = np.nonzero(seqnum==i)[0]
             df_prediction = pd.DataFrame({'prediction':[self.predictedclass_base[k] for k in indices], 'score':[self.predictedscore_base[k] for k in indices]})
