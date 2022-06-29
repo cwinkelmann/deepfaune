@@ -13,20 +13,22 @@ txt_classes = ["badger","ibex","red deer","chamois","cat","roe deer","dog","squi
 maxlag = 20
 threshold = 0.5
 
-df_filename = pd.DataFrame({'filename':sorted(
-    [f for f in  Path(sys.argv[1]).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
-    [f for f in  Path(sys.argv[1]).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
-    [f for f in  Path(sys.argv[1]).rglob('*.[Bb][Mm][Pp]') if not f.parents[1].match('*deepfaune_*')] +
-    [f for f in  Path(sys.argv[1]).rglob('*.[Tt][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
-    [f for f in  Path(sys.argv[1]).rglob('*.[Gg][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
-    [f for f in  Path(sys.argv[1]).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
-)})
+filenames = sorted(
+    [str(f) for f in  Path(sys.argv[1]).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+    [str(f) for f in  Path(sys.argv[1]).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+    [str(f) for f in  Path(sys.argv[1]).rglob('*.[Bb][Mm][Pp]') if not f.parents[1].match('*deepfaune_*')] +
+    [str(f) for f in  Path(sys.argv[1]).rglob('*.[Tt][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
+    [str(f) for f in  Path(sys.argv[1]).rglob('*.[Gg][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
+    [str(f) for f in  Path(sys.argv[1]).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
+)
 
-predictor = Predictor(df_filename, threshold, txt_classes, "empty", "undefined")
+predictor = Predictor(filenames, threshold, txt_classes, "empty", "undefined")
 predictor.allBatch()
-df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates = predictor.getPredictionsWithSequence(maxlag)
+predictedclass_base, predictedscore_base = predictor.getPredictions()
+predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequences(maxlag)
+dates = predictor.getDates()
 
-preddf = pd.DataFrame({'filename':df_filename["filename"], 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
+preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
 
 preddf.to_csv("results.csv")
 print('Done, results saved in "results.csv"')
