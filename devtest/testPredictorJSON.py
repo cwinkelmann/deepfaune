@@ -14,9 +14,12 @@ threshold = 0.5
 
 predictor = PredictorJSON(sys.argv[1], threshold, txt_classes, "empty", "undefined")
 predictor.allBatch()
-df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates = predictor.getPredictionsWithSequence(maxlag)
+filenames = predictor.getFileNames()
+predictedclass_base, predictedscore_base = predictor.getPredictions()
+predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequences(maxlag)
+dates = predictor.getDates()
 
-preddf = pd.DataFrame({'filename':df_filename["filename"], 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
+preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
 
 preddf.to_csv("results.csv")
 print('Done, results saved in "results.csv"')
