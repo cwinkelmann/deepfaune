@@ -139,9 +139,9 @@ class FileManager:
     
     def merge(self, fileManager):
         m = self.getMaxSeqnum()
-        self.filenames = self.filenames + fileManager.getFileNames()
-        self.seqnum = self.seqnum + [k+m for k in fileManager.getSeqnums()]
-        self.dates = self.dates + fileManager.getDates()
+        self.filenames += fileManager.getFileNames()
+        self.seqnum += [k+m for k in fileManager.getSeqnums()]
+        self.dates += fileManager.getDates()
         self.nbrows = len(self.filenames)
         self.order = getFilesOrder(self.filenames)
     

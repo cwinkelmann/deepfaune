@@ -134,7 +134,14 @@ class PredictorBase(ABC):
                     self.predictedscore[j] = meanscore
     
     def merge(self, predictor):
-        pass
+        self.fileManager.merge(predictor.fileManager)
+        self.nbfiles += predictor.nbfiles
+        self.prediction += predictor.prediction
+        self.predictedclass_base += predictor.predictedclass_base
+        self.predictedscore_base += predictor.predictedscore_base
+        self.predictedclass += predictor.predictedclass
+        self.predictedscore += predictor.predictedscore
+        self.resetBatch()
     
 
 class Predictor(PredictorBase):
