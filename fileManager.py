@@ -87,10 +87,13 @@ class FileManager:
                 datesorder = np.argsort(subdates)
                 self.seqnum[self.order[datesorder[0]+lowerbound]] = currseqnum
                 for j in range(1, i-lowerbound):
-                    date = datetime.strptime(subdates[datesorder[j]], "%Y:%m:%d %H:%M:%S")
-                    datepre = datetime.strptime(subdates[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
-                    lag = date-datepre
-                    if lag>timedelta(seconds=maxlag):
+                    try:
+                        date = datetime.strptime(subdates[datesorder[j]], "%Y:%m:%d %H:%M:%S")
+                        datepre = datetime.strptime(subdates[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
+                        lag = date-datepre
+                        if lag>timedelta(seconds=maxlag):
+                            currseqnum += 1
+                    except:
                         currseqnum += 1
                     self.seqnum[self.order[datesorder[j]+lowerbound]] = currseqnum
                 currseqnum += 1
@@ -100,10 +103,13 @@ class FileManager:
         datesorder = np.argsort(subdates)
         self.seqnum[self.order[datesorder[0]+lowerbound]] = currseqnum        
         for j in range(1, i-lowerbound+1):
-            date = datetime.strptime(subdates[datesorder[j]], "%Y:%m:%d %H:%M:%S")
-            datepre = datetime.strptime(subdates[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
-            lag = date-datepre
-            if lag>timedelta(seconds=maxlag):
+            try:
+                date = datetime.strptime(subdates[datesorder[j]], "%Y:%m:%d %H:%M:%S")
+                datepre = datetime.strptime(subdates[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
+                lag = date-datepre
+                if lag>timedelta(seconds=maxlag):
+                    currseqnum += 1
+            except:
                 currseqnum += 1
             self.seqnum[self.order[datesorder[j]+lowerbound]] = currseqnum
             
