@@ -76,7 +76,7 @@ class FileManager:
     def findSequences(self, maxlag):
         if self.dates == []:
             self.findDates()
-        currdir = op.dirname(str(self.filenames[self.order[0]]))
+        currdir = op.dirname(self.filenames[self.order[0]])
         currseqnum = 1
         lowerbound = 0
         for i in range(1, self.nbrows):

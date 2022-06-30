@@ -111,7 +111,7 @@ class DetectorJSON:
         self.k = 0
         
     def nextBestBoxDetection(self):
-        image_path = str(self.df_json["file"][self.k])
+        image_path = self.df_json["file"][self.k]
         image = cv2.imread(image_path)
         if image is None:
             self.k += 1
