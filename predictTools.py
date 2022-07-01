@@ -134,9 +134,11 @@ class PredictorBase(ABC):
                     self.predictedscore[j] = meanscore
     
     def merge(self, predictor):
+        if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
+            exit("You can not merge incompatible predictors (incompatible type or number of classes)")
         self.fileManager.merge(predictor.fileManager)
         self.nbfiles += predictor.nbfiles
-        self.prediction += predictor.prediction
+        self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
         self.predictedclass_base += predictor.predictedclass_base
         self.predictedscore_base += predictor.predictedscore_base
         self.predictedclass += predictor.predictedclass
@@ -259,5 +261,9 @@ class PredictorJSON(PredictorBase):
             self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
+        
+    def merge(self, predictor):
+        super().merge(predictor)
+        self.detector.merge(predictor.detector)
         
         

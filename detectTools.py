@@ -101,13 +101,14 @@ class Detector:
 from load_api_results import load_api_results
 import contextlib
 import os
+import pandas as pd
 
 class DetectorJSON:
     
     def __init__(self, jsonfilename):
         # getting results in a dataframe
         with contextlib.redirect_stdout(open(os.devnull, 'w')):
-            self.df_json, df_notUsed = load_api_results(jsonfilename)
+            self.df_json, _ = load_api_results(jsonfilename)
         self.k = 0
         
     def nextBestBoxDetection(self):
@@ -142,4 +143,12 @@ class DetectorJSON:
         return self.df_json.shape[0]
     
     def getFileNames(self):
-        return self.df_json["file"].to_numpy()
+        return list(self.df_json["file"].to_numpy())
+    
+    def resetDetection(self):
+        self.k = 0
+        
+    def merge(self, detector):
+        self.df_json = pd.concat([self.df_json, detector.df_json], ignore_index=True)
+        self.resetDetection()
+        
