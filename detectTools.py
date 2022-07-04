@@ -110,7 +110,7 @@ class DetectorJSON:
         with contextlib.redirect_stdout(open(os.devnull, 'w')):
             self.df_json, _ = load_api_results(jsonfilename)
         self.k = 0
-        
+    
     def nextBestBoxDetection(self):
         image_path = self.df_json["file"][self.k]
         image = cv2.imread(image_path)
@@ -118,7 +118,7 @@ class DetectorJSON:
             self.k += 1
             return [], False
         try: 
-            bbox_norm = self.df_json['detections'][self.k][0]["bbox"]
+            bbox_norm = self.df_json['detections'][self.k][0]["bbox"] # the first one has the highest score
         except:
             bbox_norm = []    
         self.k += 1
