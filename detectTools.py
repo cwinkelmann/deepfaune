@@ -101,14 +101,17 @@ class Detector:
 from load_api_results import load_api_results
 import contextlib
 import os
+from numpy import argmax
 
 class DetectorJSON:
     
-    def __init__(self, jsonfilename):
+    def __init__(self, jsonfilename, threshold=0.):
         # getting results in a dataframe
         with contextlib.redirect_stdout(open(os.devnull, 'w')):
             self.df_json, df_notused = load_api_results(jsonfilename)
+        self.threshold = threshold
         self.k = 0
+
 
     # We assume JSON categories are:
     # 1 : animal
@@ -117,8 +120,12 @@ class DetectorJSON:
     # Additionnaly we assume the empty category:
     # 0 : empty
     def nextBestBoxDetection(self):
-        try: 
-            category = int(self.df_json['detections'][self.k][0]["category"])
+        try:
+            bestboxidx = argmax([box['conf'] for box in self.df_json['detections'][self.k]])
+            if self.df_json['detections'][self.k][bestboxidx]['conf']>self.threshold:
+                category = int(self.df_json['detections'][self.k][bestboxidx]['category'])
+            else:
+                category = 0
         except:
             category = 0
         # is an animal detected ?
