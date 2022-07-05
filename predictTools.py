@@ -49,13 +49,12 @@ class PredictorBase(ABC):
         self.fileManager = FileManager(filenames)
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
         self.nbclasses=len(txt_classes[LANG])
-        self.nbfiles = len(filenames)
-        self.prediction = np.zeros(shape=(self.nbfiles, self.nbclasses+1), dtype=np.float32)
+        self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1. # by default, predicted as empty
         self.predictedclass_base = []
         self.predictedscore_base = []
-        self.predictedclass = [""]*self.nbfiles
-        self.predictedscore = [0]*self.nbfiles
+        self.predictedclass = [""]*self.fileManager.nbFiles()
+        self.predictedscore = [0]*self.fileManager.nbFiles()
         self.threshold = threshold
         self.resetBatch()
     
@@ -72,7 +71,7 @@ class PredictorBase(ABC):
     
     def allBatch(self):
         self.resetBatch()
-        while self.k1<self.nbfiles:
+        while self.k1<self.fileManager.nbFiles():
             self.nextBatch()
         
     def computePredictions(self):
@@ -85,17 +84,20 @@ class PredictorBase(ABC):
     
     def resetBatch(self):
         self.k1 = 0 # batch start
-        self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles) # batch end
+        self.k2 = min(self.k1+BATCH_SIZE,self.fileManager.nbFiles()) # batch end
         self.batch = 1 # batch num
         
     def getPredictionsWithSequences(self, maxlag):
         if self.predictedclass_base == []:
             self.computePredictions()
         self.correctPredictionsWithSequence(maxlag)
-        return self.predictedclass, self.predictedscore, self.fileManager.getSeqnums()
+        return self.predictedclass, self.predictedscore
     
-    def getFileNames(self):
-        return self.fileManager.getFileNames()
+    def getFilenames(self):
+        return self.fileManager.getFilenames()
+    
+    def getSeqnums(self):
+        return self.fileManager.getSeqnums()
     
     def getDates(self):
         return self.fileManager.getDates()
@@ -136,7 +138,6 @@ class PredictorBase(ABC):
         if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
             exit("You can not merge incompatible predictors (incompatible type or number of classes)")
         self.fileManager.merge(predictor.fileManager)
-        self.nbfiles += predictor.nbfiles
         self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
         self.predictedclass_base += predictor.predictedclass_base
         self.predictedscore_base += predictor.predictedscore_base
@@ -152,12 +153,12 @@ class Predictor(PredictorBase):
         self.classifier = Classifier()
 
     def nextBatch(self):
-        if self.k1>=self.nbfiles:
+        if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:
             idxnonempty = []
             for k in range(self.k1,self.k2):
-                image_path = self.fileManager.getFileName(k)
+                image_path = self.fileManager.getFilename(k)
                 original_image = cv2.imread(image_path)
                 if original_image is None:
                     pass # Corrupted image, considered as empty
@@ -173,7 +174,7 @@ class Predictor(PredictorBase):
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
-            self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
+            self.k2 = min(self.k1+BATCH_SIZE,self.fileManager.nbFiles())
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
                 
@@ -192,11 +193,11 @@ class PredictorVideo(PredictorBase):
         self.batch = 1
     
     def nextBatch(self):
-        if self.k1>=self.nbfiles:
+        if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:   
             idxnonempty = []      
-            video_path = self.fileManager.getFileName(self.k1)
+            video_path = self.fileManager.getFilename(self.k1)
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
@@ -226,7 +227,7 @@ class PredictorVideo(PredictorBase):
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
-            self.k2 = min(self.k1+1,self.nbfiles)
+            self.k2 = min(self.k1+1,self.fileManager.nbFiles())
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
@@ -237,10 +238,10 @@ class PredictorJSON(PredictorBase):
     def __init__(self, jsonfilename, threshold, LANG):
          self.detector = DetectorJSON(jsonfilename)
          self.classifier = Classifier()
-         super().__init__(self.detector.getFileNames(), threshold, LANG) # inherits all
+         super().__init__(self.detector.getFilenames(), threshold, LANG) # inherits all
     
     def nextBatch(self):
-        if self.k1>=self.nbfiles:
+        if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:
             idxnonempty = []
@@ -262,7 +263,7 @@ class PredictorJSON(PredictorBase):
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
-            self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
+            self.k2 = min(self.k1+BATCH_SIZE,self.fileManager.nbFiles())
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         

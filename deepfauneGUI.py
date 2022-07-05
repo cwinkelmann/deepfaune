@@ -224,11 +224,8 @@ while True:
             else:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles>0:
-                predictedclass_base = ['' for k in range(nbfiles)] # before autocorrect with sequences
-                predictedscore_base = ['' for k in range(nbfiles)] # idem
                 predictedclass = ['' for k in range(nbfiles)] 
                 predictedscore = ['' for k in range(nbfiles)] 
-                seqnum = np.repeat(0, nbfiles)
                 window['-RUN-'].Update(disabled=False)
                 window['-THRESHOLD-'].Update(disabled=False)
                 if not VIDEO:
@@ -284,13 +281,10 @@ while True:
         if VIDEO:
             predictedclass_base, predictedscore_base = predictor.getPredictions()
             predictedclass, predictedscore = predictedclass_base, predictedscore_base
-            dates = ['']*nbfiles
-            seqnum = [i for i in range(1,nbfiles+1)]
         else:
             frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
             predictedclass_base, predictedscore_base = predictor.getPredictions()
-            predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequences(maxlag)
-            dates = predictor.getDates()
+            predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
             frgbprint(" terminé", " done")
         ########################
         ########################
@@ -306,7 +300,7 @@ while True:
             window['-SAVEXLSX-'].Update(disabled=False)
         window['-ALLTABROW-'].Update(disabled=False)
     elif event == '-SAVECSV-':
-        preddf  = pd.DataFrame({'filename':filenames, 'date':dates, 'seqnum':seqnum,
+        preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
@@ -316,7 +310,7 @@ while True:
             preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
             window['-SAVECSV-'].Update(disabled=True)
     elif event == '-SAVEXLSX-':
-        preddf  = pd.DataFrame({'filename':filenames, 'date':dates, 'seqnum':seqnum,
+        preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)

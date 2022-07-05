@@ -37,10 +37,10 @@ from datetime import datetime, timedelta
 import os.path as op
 
 def getFilesOrder(filenames):
-    nbrows = len(filenames)
-    numdir = np.array([0]*nbrows)
+    nbfiles = len(filenames)
+    numdir = np.array([0]*nbfiles)
     dirs = []
-    for i in range(0, nbrows):
+    for i in range(0, nbfiles):
         dirname = op.dirname(filenames[i])
         try:
             dirindex = dirs.index(dirname)
@@ -69,17 +69,15 @@ class FileManager:
     def __init__(self, filenames):
         self.order = getFilesOrder(filenames)
         self.filenames = filenames
-        self.nbrows = len(filenames)
-        self.seqnum = [0]*self.nbrows
-        self.dates = []
+        self.seqnum = [0]*len(self.filenames)
+        self.dates = ['']*len(self.filenames)
     
     def findSequences(self, maxlag):
-        if self.dates == []:
-            self.findDates()
+        self.findDates()
         currdir = op.dirname(self.filenames[self.order[0]])
         currseqnum = 1
         lowerbound = 0
-        for i in range(1, self.nbrows):
+        for i in range(1, len(self.filenames)):
             dirname = op.dirname(self.filenames[self.order[i]])
             if currdir != dirname:
                 currdir = dirname
@@ -119,7 +117,7 @@ class FileManager:
     def getMaxSeqnum(self):
         return max(self.seqnum)
     
-    def getFileNamesBySeqnum(self, num):
+    def getFilenamesBySeqnum(self, num):
         seqnum = np.array(self.seqnum)
         indices = np.nonzero(seqnum==num)[0]
         res = [self.filenames[k] for k in indices]
@@ -130,19 +128,21 @@ class FileManager:
     
     def getDates(self):
         return self.dates
-    
-    def getFileNames(self):
+
+    def nbFiles(self):
+        return len(self.filenames)
+                      
+    def getFilenames(self):
         return self.filenames
     
-    def getFileName(self, k):
+    def getFilename(self, k):
         return self.filenames[k]
     
     def merge(self, fileManager):
         m = self.getMaxSeqnum()
-        self.filenames += fileManager.getFileNames()
+        self.filenames += fileManager.getFilenames()
         self.seqnum += [k+m for k in fileManager.getSeqnums()]
         self.dates += fileManager.getDates()
-        self.nbrows = len(self.filenames)
         self.order = getFilesOrder(self.filenames)
     
     

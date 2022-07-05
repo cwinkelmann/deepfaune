@@ -157,7 +157,7 @@ class DetectorJSON:
     def getNbFiles(self):
         return self.df_json.shape[0]
     
-    def getFileNames(self):
+    def getFilenames(self):
         return list(self.df_json["file"].to_numpy())
     
     def resetDetection(self):
