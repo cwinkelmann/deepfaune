@@ -101,43 +101,57 @@ class Detector:
 from load_api_results import load_api_results
 import contextlib
 import os
-import pandas as pd
+from pandas import concat
+from numpy import argmax
 
 class DetectorJSON:
     
-    def __init__(self, jsonfilename):
+    def __init__(self, jsonfilename, threshold=0.):
         # getting results in a dataframe
         with contextlib.redirect_stdout(open(os.devnull, 'w')):
             self.df_json, _ = load_api_results(jsonfilename)
-        self.k = 0
-    
+        self.k = 0    
+
+    # We assume JSON categories are:
+    # 1 : animal
+    # 2 : person
+    # 3 : vehicle
+    # Additionnaly we assume the empty category:
+    # 0 : empty
     def nextBestBoxDetection(self):
-        image_path = self.df_json["file"][self.k]
+        try:
+            bestboxidx = argmax([box['conf'] for box in self.df_json['detections'][self.k]])
+            if self.df_json['detections'][self.k][bestboxidx]['conf']>self.threshold:
+                category = int(self.df_json['detections'][self.k][bestboxidx]['category'])
+            else:
+                category = 0
+        except:
+            category = 0
+        # is an animal detected ?
+        if category != 1:
+            self.k += 1
+            return [], category
+        # if yes, cropping the bounding box
+        image_path = str(self.df_json["file"][self.k])
         image = cv2.imread(image_path)
         if image is None:
             self.k += 1
-            return [], False
-        try: 
-            bbox_norm = self.df_json['detections'][self.k][0]["bbox"] # the first one has the highest score
-        except:
-            bbox_norm = []    
+            return [], 0
+        bbox_norm = self.df_json['detections'][self.k][0]["bbox"]
         self.k += 1
-        if bbox_norm != []:
-            img_h, img_w = image.shape[:2]
-            xmin = int(bbox_norm[0] * img_w)
-            ymin = int(bbox_norm[1] * img_h)
-            box_w = int(bbox_norm[2] * img_w)
-            box_h = int(bbox_norm[3] * img_h)
-            box_size = max(box_w, box_h)
-            xmin = max(0, min(xmin - int((box_size - box_w) / 2),img_w - box_w))
-            ymin = max(0, min(ymin - int((box_size - box_h) / 2),img_h - box_h))
-            box_w = min(img_w, box_size)
-            box_h = min(img_h, box_size)
-            croppedimage = image[max(0,ymin):min(img_h,ymin + box_h),
-                                 max(0,xmin):min(img_w,xmin + box_w)]
-            return croppedimage, True
-        else:
-            return [], False
+        img_h, img_w = image.shape[:2]
+        xmin = int(bbox_norm[0] * img_w)
+        ymin = int(bbox_norm[1] * img_h)
+        box_w = int(bbox_norm[2] * img_w)
+        box_h = int(bbox_norm[3] * img_h)
+        box_size = max(box_w, box_h)
+        xmin = max(0, min(xmin - int((box_size - box_w) / 2),img_w - box_w))
+        ymin = max(0, min(ymin - int((box_size - box_h) / 2),img_h - box_h))
+        box_w = min(img_w, box_size)
+        box_h = min(img_h, box_size)
+        croppedimage = image[max(0,ymin):min(img_h,ymin + box_h),
+                             max(0,xmin):min(img_w,xmin + box_w)]
+        return croppedimage, category
         
     def getNbFiles(self):
         return self.df_json.shape[0]
@@ -149,6 +163,5 @@ class DetectorJSON:
         self.k = 0
         
     def merge(self, detector):
-        self.df_json = pd.concat([self.df_json, detector.df_json], ignore_index=True)
+        self.df_json = concat([self.df_json, detector.df_json], ignore_index=True)
         self.resetDetection()
-        

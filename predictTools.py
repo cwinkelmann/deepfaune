@@ -36,40 +36,37 @@ import pandas as pd
 from abc import ABC, abstractmethod
 
 from detectTools import Detector, DetectorJSON
-from classifTools import Classifier
+from classifTools import Classifier, CROP_SIZE, txt_classes, idx_human, idx_vehicle
 from fileManager import FileManager
 
-from classifTools import CROP_SIZE, NBCLASSES
-
 BATCH_SIZE = 8
+txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
+txt_empty = {'fr':"vide", 'gb':"empty"}
 
 class PredictorBase(ABC):
-    def __init__(self, filenames, threshold, txt_classes, txt_empty, txt_undefined):
+    def __init__(self, filenames, threshold, LANG):
+        self.LANG = LANG
         self.fileManager = FileManager(filenames)
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
-        self.nbclasses=len(txt_classes)
+        self.nbclasses=len(txt_classes[LANG])
         self.nbfiles = len(filenames)
         self.prediction = np.zeros(shape=(self.nbfiles, self.nbclasses+1), dtype=np.float32)
-        self.prediction[:,self.nbclasses] = 1 # by default, predicted as empty
+        self.prediction[:,self.nbclasses] = 1. # by default, predicted as empty
         self.predictedclass_base = []
         self.predictedscore_base = []
-        self.predictedclass = [0]*self.nbfiles
+        self.predictedclass = [""]*self.nbfiles
         self.predictedscore = [0]*self.nbfiles
-        self.txt_classesempty = txt_classes+[txt_empty]
-        self.txt_empty_lang = txt_empty
-        self.txt_undefined = txt_undefined
         self.threshold = threshold
-        if (self.nbclasses!=NBCLASSES):
-            raise SystemExit('Incoherent number of classes between classes list and classifier shape.')
         self.resetBatch()
     
     def prediction2class(self, prediction):
-        class_pred = [self.txt_undefined for i in range(len(prediction))] 
+        txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
+        class_pred = [txt_undefined[self.LANG] for i in range(len(prediction))] 
         score_pred = [0. for i in range(len(prediction))] 
         for i in range(len(prediction)):
             pred = prediction[i]
             if(max(pred)>=self.threshold):
-                class_pred[i] = self.txt_classesempty[np.argmax(pred)]
+                class_pred[i] = txt_classesempty_lang[np.argmax(pred)]
             score_pred[i] = int(max(pred)*100)/100.
         return class_pred, score_pred
     
@@ -108,12 +105,13 @@ class PredictorBase(ABC):
         pass
     
     def majorityVotingInSequence(self, df_prediction):
+        txt_empty_lang = txt_empty[self.LANG]
         majority = df_prediction.groupby(['prediction']).sum()
         meanscore = df_prediction.groupby(['prediction']).mean()['score']
-        if list(majority.index) == [self.txt_empty_lang]:
-            return self.txt_empty_lang, 1.
+        if list(majority.index) == [txt_empty_lang]:
+            return txt_empty_lang, 1.
         else:
-            notempty = (majority.index != self.txt_empty_lang) # skipping empty images in sequence
+            notempty = (majority.index != txt_empty_lang) # skipping empty images in sequence
             majority = majority[notempty]
             meanscore = meanscore[notempty]
             best = np.argmax(majority['score']) # selecting class with best total score
@@ -122,6 +120,7 @@ class PredictorBase(ABC):
             return majorityclass, int(majorityscore*100)/100.
     
     def correctPredictionsWithSequence(self, maxlag):
+        txt_empty_lang = txt_empty[self.LANG]
         self.fileManager.findSequences(maxlag)
         seqnum = np.array(self.fileManager.getSeqnums())
         for i in range(1, max(seqnum)+1):
@@ -129,7 +128,7 @@ class PredictorBase(ABC):
             df_prediction = pd.DataFrame({'prediction':[self.predictedclass_base[k] for k in indices], 'score':[self.predictedscore_base[k] for k in indices]})
             majorityclass, meanscore = self.majorityVotingInSequence(df_prediction)
             for j in indices:
-                if self.predictedclass[j] != self.txt_empty_lang:
+                if self.predictedclass[j] != txt_empty_lang:
                     self.predictedclass[j] = majorityclass
                     self.predictedscore[j] = meanscore
     
@@ -145,11 +144,10 @@ class PredictorBase(ABC):
         self.predictedscore += predictor.predictedscore
         self.resetBatch()
     
-
 class Predictor(PredictorBase):
     
-    def __init__(self, filenames, threshold, txt_classes, txt_empty, txt_undefined):
-        super().__init__(filenames, threshold, txt_classes, txt_empty, txt_undefined) # inherits all
+    def __init__(self, filenames, threshold, LANG):
+        super().__init__(filenames, threshold, LANG) # inherits all
         self.detector = Detector()
         self.classifier = Classifier()
 
@@ -181,11 +179,10 @@ class Predictor(PredictorBase):
                 
 
 
-
 class PredictorVideo(PredictorBase):
     
-    def __init__(self, filenames, threshold, txt_classes, txt_empty, txt_undefined):
-         super().__init__(filenames, threshold, txt_classes, txt_empty, txt_undefined) # inherits all
+    def __init__(self, filenames, threshold, LANG):
+         super().__init__(filenames, threshold, LANG) # inherits all
          self.detector = Detector()
          self.classifier = Classifier()
 
@@ -234,12 +231,13 @@ class PredictorVideo(PredictorBase):
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
 
+
 class PredictorJSON(PredictorBase):
     
-    def __init__(self, jsonfilename, threshold, txt_classes, txt_empty, txt_undefined):
+    def __init__(self, jsonfilename, threshold, LANG):
          self.detector = DetectorJSON(jsonfilename)
          self.classifier = Classifier()
-         super().__init__(self.detector.getFileNames(), threshold, txt_classes, txt_empty, txt_undefined) # inherits all
+         super().__init__(self.detector.getFileNames(), threshold, LANG) # inherits all
     
     def nextBatch(self):
         if self.k1>=self.nbfiles:
@@ -247,10 +245,16 @@ class PredictorJSON(PredictorBase):
         else:
             idxnonempty = []
             for k in range(self.k1,self.k2):
-                croppedimage, nonempty = self.detector.nextBestBoxDetection()
-                if nonempty:
+                croppedimage, category = self.detector.nextBestBoxDetection()
+                if category > 0: # not empty
+                    self.prediction[k,self.nbclasses] = 0.
+                if category == 1: # animal
                     self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                     idxnonempty.append(k)
+                if category == 2: # human
+                    self.prediction[k,idx_human] = 1.
+                if category == 3: # vehicle
+                    self.prediction[k,idx_vehicle] = 1.
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty

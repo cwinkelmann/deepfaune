@@ -8,8 +8,7 @@ sys.path.append(curdir+'/../')
 
 ## DEEPFAUNE objects
 from predictTools import Predictor
-
-txt_classes = ["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]
+LANG = 'gb'
 maxlag = 20
 threshold = 0.5
 
@@ -22,10 +21,10 @@ filenames = sorted(
     [str(f) for f in  Path(sys.argv[1]).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
 )
 
-predictor = Predictor(filenames, threshold, txt_classes, "empty", "undefined")
+predictor = Predictor(filenames, threshold, LANG)
 predictor.allBatch()
 
-filenames = sorted(
+filenames2 = sorted(
     [str(f) for f in  Path(sys.argv[2]).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
     [str(f) for f in  Path(sys.argv[2]).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
     [str(f) for f in  Path(sys.argv[2]).rglob('*.[Bb][Mm][Pp]') if not f.parents[1].match('*deepfaune_*')] +
@@ -34,7 +33,7 @@ filenames = sorted(
     [str(f) for f in  Path(sys.argv[2]).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
 )
 
-predictor2 = Predictor(filenames, threshold, txt_classes, "empty", "undefined")
+predictor2 = Predictor(filenames2, threshold, LANG)
 predictor2.allBatch()
 
 predictor.merge(predictor2)
@@ -42,17 +41,8 @@ predictor.merge(predictor2)
 predictedclass_base, predictedscore_base = predictor.getPredictions()
 predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequences(maxlag)
 dates = predictor.getDates()
-
 filenames = predictor.getFileNames()
 
 preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
-preddf.to_csv("results1.csv")
-
-predictor.allBatch()
-predictedclass_base, predictedscore_base = predictor.getPredictions()
-predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequences(maxlag)
-
-preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
-preddf.to_csv("results2.csv")
-
+preddf.to_csv("results.csv")
 print('Done, results saved in "results.csv"')

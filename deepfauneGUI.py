@@ -40,7 +40,7 @@ sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.3.2"
+VERSION = "0.4.0"
 LANG = "fr"
 DEBUG = False
 
@@ -76,8 +76,7 @@ windowoptions.close()
 ### GUI TEXT
 ####################################################################################
 from classifTools import txt_classes
-txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
-txt_empty = {'fr':"vide", 'gb':"empty"}
+from predictTools import txt_undefined, txt_empty
 txt_other =  {'fr':"autre", 'gb':"other"}
 if VIDEO:
     txt_imagefolder = {'fr':"Dossier de vidéos", 'gb':"Video folder"}
@@ -262,9 +261,9 @@ while True:
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
         window.refresh()
         if VIDEO:
-            predictor = PredictorVideo(filenames, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG])
+            predictor = PredictorVideo(filenames, threshold, LANG)
         else:
-            predictor = Predictor(filenames, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG])
+            predictor = Predictor(filenames, threshold, LANG)
         frgbprint("terminé","done")
         window.refresh()
         if LANG=="fr":

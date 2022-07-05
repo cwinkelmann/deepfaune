@@ -46,7 +46,8 @@ CROP_SIZE = 300
 hdf5 = "efficientnet_22classesOnlycroppedImgAugB3.hdf5"
 txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","humain","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
               'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]}
-NBCLASSES = len(txt_classes['fr'])
+idx_human = 8
+idx_vehicle = 21
     
 ####################################################################################
 ### CLASSIFIER 
@@ -57,7 +58,7 @@ class Classifier:
         base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(CROP_SIZE,CROP_SIZE,3))
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
-        x = Dense(NBCLASSES)(x) #number of classes
+        x = Dense(len(txt_classes['fr']))(x) #number of classes
         preds = Activation("softmax")(x)
         self.model = Model(inputs=base_model.input,outputs=preds)
         self.model.load_weights(hdf5)

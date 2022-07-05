@@ -9,7 +9,7 @@ sys.path.append(curdir+'/../')
 ## DEEPFAUNE objects
 from predictTools import Predictor
 
-txt_classes = ["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]
+LANG = 'gb'
 maxlag = 20
 threshold = 0.5
 
@@ -22,7 +22,7 @@ filenames = sorted(
     [str(f) for f in  Path(sys.argv[1]).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
 )
 
-predictor = Predictor(filenames, threshold, txt_classes, "empty", "undefined")
+predictor = Predictor(filenames, threshold, LANG)
 predictor.allBatch()
 predictedclass_base, predictedscore_base = predictor.getPredictions()
 predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequences(maxlag)
