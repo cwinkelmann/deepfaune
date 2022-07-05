@@ -76,8 +76,7 @@ windowoptions.close()
 ### GUI TEXT
 ####################################################################################
 from classifTools import txt_classes
-txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
-txt_empty = {'fr':"vide", 'gb':"empty"}
+from predictTools import txt_undefined, txt_empty
 txt_other =  {'fr':"autre", 'gb':"other"}
 if VIDEO:
     txt_imagefolder = {'fr':"Dossier de vidéos", 'gb':"Video folder"}
@@ -262,9 +261,9 @@ while True:
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
         window.refresh()
         if VIDEO:
-            predictor = PredictorVideo(df_filename, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG])
+            predictor = PredictorVideo(df_filename, threshold, LANG)
         else:
-            predictor = Predictor(df_filename, threshold, txt_classes[LANG], txt_empty[LANG], txt_undefined[LANG])
+            predictor = Predictor(df_filename, threshold, LANG)
         frgbprint("terminé","done")
         window.refresh()
         if LANG=="fr":

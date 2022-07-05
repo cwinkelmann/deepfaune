@@ -9,7 +9,7 @@ sys.path.append(curdir+'/../')
 ## DEEPFAUNE objects
 from predictTools import Predictor
 
-txt_classes = ["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]
+LANG = 'fr'
 maxlag = 20
 threshold = 0.5
 
@@ -22,7 +22,7 @@ df_filename = pd.DataFrame({'filename':sorted(
     [f for f in  Path(sys.argv[1]).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
 )})
 
-predictor = Predictor(df_filename, threshold, txt_classes, "empty", "undefined")
+predictor = Predictor(df_filename, threshold, LANG)
 predictor.allBatch()
 df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates = predictor.getPredictionsWithSequence(maxlag)
 
