@@ -118,7 +118,7 @@ class DetectorJSON:
     # 0 : empty
     def nextBestBoxDetection(self):
         try: 
-            category = self.df_json['detections'][self.k][0]["category"]
+            category = int(self.df_json['detections'][self.k][0]["category"])
         except:
             category = 0
         # is an animal detected ?
