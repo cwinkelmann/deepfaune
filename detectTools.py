@@ -110,6 +110,7 @@ class DetectorJSON:
         # getting results in a dataframe
         with contextlib.redirect_stdout(open(os.devnull, 'w')):
             self.df_json, _ = load_api_results(jsonfilename)
+        self.threshold = 0
         self.k = 0    
 
     # We assume JSON categories are:
