@@ -51,8 +51,8 @@ class PredictorBase(ABC):
         self.nbclasses=len(txt_classes[LANG])
         self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1. # by default, predicted as empty
-        self.predictedclass_base = []
-        self.predictedscore_base = []
+        self.predictedclass_base = [""]*self.fileManager.nbFiles()
+        self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.predictedclass = []
         self.predictedscore = []
         self.threshold = threshold
@@ -73,12 +73,9 @@ class PredictorBase(ABC):
         pass
     
     def getPredictions(self):
-        if self.predictedclass_base == []:
-            self.predictedclass_base, self.predictedscore_base = self.__prediction2class(self.prediction)
         return self.predictedclass_base, self.predictedscore_base
             
     def getPredictionsWithSequences(self, maxlag):
-        self.getPredictions()
         if self.predictedclass == []:
             self.__correctPredictionsWithSequence(maxlag)
         return self.predictedclass, self.predictedscore
@@ -115,16 +112,19 @@ class PredictorBase(ABC):
             self.predictedscore += predictor.predictedscore
         self.resetBatch()
         
-    def __prediction2class(self, prediction):
+    def __prediction2class(self, batchOnly=True):
+        if batchOnly:
+            k1 = self.k1
+            k2 = self.k2
+        else:
+            k1 = 0
+            k2 = self.fileManager.nbFiles()
         txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
-        class_pred = [txt_undefined[self.LANG] for i in range(len(prediction))] 
-        score_pred = [0. for i in range(len(prediction))] 
-        for i in range(len(prediction)):
-            pred = prediction[i]
+        for k in range(k1,k2):
+            pred = self.prediction[k,]
             if(max(pred)>=self.threshold):
-                class_pred[i] = txt_classesempty_lang[np.argmax(pred)]
-            score_pred[i] = int(max(pred)*100)/100.
-        return class_pred, score_pred        
+                self.predictedclass_base[k] = txt_classesempty_lang[np.argmax(pred)]
+            self.predictedscore_base[k] = int(max(pred)*100)/100.
     
     def __majorityVotingInSequence(self, df_prediction):
         txt_empty_lang = txt_empty[self.LANG]
@@ -182,7 +182,9 @@ class Predictor(PredictorBase):
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self._PredictorBase__prediction2class(self.prediction[self.k1:self.k2,])
+            self._PredictorBase__prediction2class(batchOnly=True)
+            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
+            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
@@ -235,7 +237,9 @@ class PredictorVideo(PredictorBase):
                 predictionbynonemptyframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxnonempty],:,:,:])
                 self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbynonemptyframe,axis=0)/len(idxnonempty)
                 self.prediction[self.k1,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self._PredictorBase__prediction2class(self.prediction[self.k1:self.k2,])   
+            self._PredictorBase__prediction2class(batchOnly=True)
+            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
+            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
@@ -271,7 +275,9 @@ class PredictorJSON(PredictorBase):
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self._PredictorBase__prediction2class(self.prediction[self.k1:self.k2,])
+            self._PredictorBase__prediction2class(batchOnly=True)
+            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
+            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
