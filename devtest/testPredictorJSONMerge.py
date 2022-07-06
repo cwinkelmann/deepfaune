@@ -20,9 +20,10 @@ predictor2.allBatch()
 predictor.merge(predictor2)
 
 predictedclass_base, predictedscore_base = predictor.getPredictions()
-predictedclass, predictedscore, seqnum = predictor.getPredictionsWithSequences(maxlag)
+predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
 filenames = predictor.getFileNames()
 dates = predictor.getDates()
+seqnum = predictor.getSeqnums()
 
 preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
 preddf.to_csv("results.csv")

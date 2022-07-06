@@ -56,41 +56,30 @@ class PredictorBase(ABC):
         self.predictedclass = [""]*self.fileManager.nbFiles()
         self.predictedscore = [0]*self.fileManager.nbFiles()
         self.threshold = threshold
-        self.resetBatch()
-    
-    def prediction2class(self, prediction):
-        txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
-        class_pred = [txt_undefined[self.LANG] for i in range(len(prediction))] 
-        score_pred = [0. for i in range(len(prediction))] 
-        for i in range(len(prediction)):
-            pred = prediction[i]
-            if(max(pred)>=self.threshold):
-                class_pred[i] = txt_classesempty_lang[np.argmax(pred)]
-            score_pred[i] = int(max(pred)*100)/100.
-        return class_pred, score_pred
-    
-    def allBatch(self):
-        self.resetBatch()
-        while self.k1<self.fileManager.nbFiles():
-            self.nextBatch()
-        
-    def computePredictions(self):
-        self.predictedclass_base, self.predictedscore_base = self.prediction2class(self.prediction)
-        
-    def getPredictions(self):
-        if self.predictedclass_base == []:
-            self.computePredictions()
-        return self.predictedclass_base, self.predictedscore_base
+        self.resetBatch()    
     
     def resetBatch(self):
         self.k1 = 0 # batch start
         self.k2 = min(self.k1+BATCH_SIZE,self.fileManager.nbFiles()) # batch end
         self.batch = 1 # batch num
         
-    def getPredictionsWithSequences(self, maxlag):
+    def allBatch(self):
+        self.resetBatch()
+        while self.k1<self.fileManager.nbFiles():
+            self.nextBatch()
+        
+    @abstractmethod
+    def nextBatch(self):
+        pass
+    
+    def getPredictions(self):
         if self.predictedclass_base == []:
-            self.computePredictions()
-        self.correctPredictionsWithSequence(maxlag)
+            self.predictedclass_base, self.predictedscore_base = self.__prediction2class(self.prediction)
+        return self.predictedclass_base, self.predictedscore_base
+            
+    def getPredictionsWithSequences(self, maxlag):
+        self.getPredictions()
+        self.__correctPredictionsWithSequence(maxlag)
         return self.predictedclass, self.predictedscore
     
     def getFilenames(self):
@@ -101,12 +90,30 @@ class PredictorBase(ABC):
     
     def getDates(self):
         return self.fileManager.getDates()
+        
+    def merge(self, predictor):
+        if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
+            exit("You can not merge incompatible predictors (incompatible type or number of classes)")
+        self.fileManager.merge(predictor.fileManager)
+        self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
+        self.predictedclass_base += predictor.predictedclass_base
+        self.predictedscore_base += predictor.predictedscore_base
+        self.predictedclass += predictor.predictedclass
+        self.predictedscore += predictor.predictedscore
+        self.resetBatch()
+        
+    def __prediction2class(self, prediction):
+        txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
+        class_pred = [txt_undefined[self.LANG] for i in range(len(prediction))] 
+        score_pred = [0. for i in range(len(prediction))] 
+        for i in range(len(prediction)):
+            pred = prediction[i]
+            if(max(pred)>=self.threshold):
+                class_pred[i] = txt_classesempty_lang[np.argmax(pred)]
+            score_pred[i] = int(max(pred)*100)/100.
+        return class_pred, score_pred
     
-    @abstractmethod
-    def nextBatch(self):
-        pass
-    
-    def majorityVotingInSequence(self, df_prediction):
+    def __majorityVotingInSequence(self, df_prediction):
         txt_empty_lang = txt_empty[self.LANG]
         majority = df_prediction.groupby(['prediction']).sum()
         meanscore = df_prediction.groupby(['prediction']).mean()['score']
@@ -121,29 +128,19 @@ class PredictorBase(ABC):
             majorityscore = meanscore[best] # overall score as the mean for this class
             return majorityclass, int(majorityscore*100)/100.
     
-    def correctPredictionsWithSequence(self, maxlag):
+    def __correctPredictionsWithSequence(self, maxlag):
         txt_empty_lang = txt_empty[self.LANG]
         self.fileManager.findSequences(maxlag)
         seqnum = np.array(self.fileManager.getSeqnums())
         for i in range(1, max(seqnum)+1):
             indices = np.nonzero(seqnum==i)[0]
             df_prediction = pd.DataFrame({'prediction':[self.predictedclass_base[k] for k in indices], 'score':[self.predictedscore_base[k] for k in indices]})
-            majorityclass, meanscore = self.majorityVotingInSequence(df_prediction)
+            majorityclass, meanscore = self.__majorityVotingInSequence(df_prediction)
             for j in indices:
                 if self.predictedclass[j] != txt_empty_lang:
                     self.predictedclass[j] = majorityclass
                     self.predictedscore[j] = meanscore
     
-    def merge(self, predictor):
-        if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
-            exit("You can not merge incompatible predictors (incompatible type or number of classes)")
-        self.fileManager.merge(predictor.fileManager)
-        self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
-        self.predictedclass_base += predictor.predictedclass_base
-        self.predictedscore_base += predictor.predictedscore_base
-        self.predictedclass += predictor.predictedclass
-        self.predictedscore += predictor.predictedscore
-        self.resetBatch()
     
 class Predictor(PredictorBase):
     
@@ -170,7 +167,7 @@ class Predictor(PredictorBase):
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])
+            predictedclass_batch, predictedscore_batch = self.__prediction2class(self.prediction[self.k1:self.k2,])
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
@@ -223,7 +220,7 @@ class PredictorVideo(PredictorBase):
                 predictionbynonemptyframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxnonempty],:,:,:])
                 self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbynonemptyframe,axis=0)/len(idxnonempty)
                 self.prediction[self.k1,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])   
+            predictedclass_batch, predictedscore_batch = self.__prediction2class(self.prediction[self.k1:self.k2,])   
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
@@ -259,7 +256,7 @@ class PredictorJSON(PredictorBase):
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])
+            predictedclass_batch, predictedscore_batch = self.__prediction2class(self.prediction[self.k1:self.k2,])
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
