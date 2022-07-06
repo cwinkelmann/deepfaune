@@ -71,9 +71,12 @@ class FileManager:
         self.filenames = filenames
         self.seqnum = [0]*len(self.filenames)
         self.dates = ['']*len(self.filenames)
+        self.__findDates()
+
+    def __findDates(self):
+        self.dates = [getDateFromExif(file) for file in self.filenames]
     
     def findSequences(self, maxlag):
-        self.findDates()
         currdir = op.dirname(self.filenames[self.order[0]])
         currseqnum = 1
         lowerbound = 0
@@ -111,9 +114,6 @@ class FileManager:
                 currseqnum += 1
             self.seqnum[self.order[datesorder[j]+lowerbound]] = currseqnum
             
-    def findDates(self):
-        self.dates = [getDateFromExif(file) for file in self.filenames]
-    
     def getMaxSeqnum(self):
         return max(self.seqnum)
     
