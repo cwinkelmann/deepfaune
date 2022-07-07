@@ -138,6 +138,9 @@ class FileManager:
     def getFilename(self, k):
         return self.filenames[k]
     
+    def getSortedFilename(self, k):
+        return self.filenames[self.order[k]]
+
     def merge(self, fileManager):
         m = self.getMaxSeqnum()
         self.filenames += fileManager.getFilenames()

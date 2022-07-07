@@ -51,7 +51,7 @@ class PredictorBase(ABC):
         self.nbclasses=len(txt_classes[LANG])
         self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1. # by default, predicted as empty
-        self.predictedclass_base = [""]*self.fileManager.nbFiles()
+        self.predictedclass_base = [txt_undefined[LANG]]*self.fileManager.nbFiles()
         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.predictedclass = []
         self.predictedscore = []
