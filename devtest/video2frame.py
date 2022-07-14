@@ -6,7 +6,7 @@ import sys
 
 YOLO_SIZE=608
 CROP_SIZE=300
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 
 
 import numpy as np
@@ -33,7 +33,7 @@ for frame_nb in range(0, BATCH_SIZE*fps, fps):
     ret,frame = video.read()
     #if frame was read correctly, save frame to name path
     if ret:
-        name = "frame" + str(frame_nb) + '.jpg'
+        name = video_path[:-4]+"_F" + str(frame_nb) + '.jpg'
         # save extracted frame to name path
         cv2.imwrite(name, frame)
         #else break out
