@@ -1,6 +1,7 @@
 2022-07-06  Vincent Miele  <vincent.miele@univ-lyon1.fr>
     
 	    Version 0.4.0
+	    * New detector weights, with a more restrictive threshold to enhance empty detection.
 	    * Modified API with better encapsulation.
 	    * New class PredictorJSON to hanlde JSON results from MegaDetector.
 	    * Directory demo/ now contains example of API use.

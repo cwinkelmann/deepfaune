@@ -49,7 +49,7 @@ class Detector:
     def __init__(self):
         self.yolo = cv2.dnn.readNetFromDarknet(config, model)
             
-    def bestBoxDetection(self, image, threshold=0.25):
+    def bestBoxDetection(self, image, threshold=0.5):
         '''
         in/out as numpy int array (0-255) in BGR
         '''
@@ -66,7 +66,7 @@ class Detector:
             for detection in output:
                 scores = detection[5:]
                 boxclass = np.argmax(scores)
-                confidence = scores[boxclass]        
+                confidence = scores[boxclass]
                 if confidence > threshold:
                     # Bounding box in [0,1]x[0,1]
                     (boxcenterx, boxcentery, boxwidth, boxheight) = detection[0:4]
