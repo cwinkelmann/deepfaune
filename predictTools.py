@@ -36,109 +36,159 @@ import pandas as pd
 from abc import ABC, abstractmethod
 
 from detectTools import Detector, DetectorJSON
-from classifTools import Classifier, txt_classes
-from sequenceTools import ImageBoxDiff, reorderAndCorrectPredictionWithSequence
-from classifTools import CROP_SIZE, txt_classes, idx_human, idx_vehicle
+from classifTools import Classifier, CROP_SIZE, txt_classes, idx_human, idx_vehicle
+from fileManager import FileManager
 
 BATCH_SIZE = 8
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 txt_empty = {'fr':"vide", 'gb':"empty"}
 
 class PredictorBase(ABC):
-    def __init__(self, nbfiles, threshold, LANG):
+    def __init__(self, filenames, threshold, LANG):
         self.LANG = LANG
+        self.fileManager = FileManager(filenames)
         self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
         self.nbclasses=len(txt_classes[LANG])
-        self.nbfiles = nbfiles
-        self.df_filename = None
-        self.prediction = np.zeros(shape=(self.nbfiles, self.nbclasses+1), dtype=np.float32)
+        self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1. # by default, predicted as empty
-        self.predictedclass_base = []
-        self.predictedscore_base = []
+        self.predictedclass_base = [txt_undefined[LANG]]*self.fileManager.nbFiles()
+        self.predictedscore_base = [0.]*self.fileManager.nbFiles()
+        self.predictedclass = []
+        self.predictedscore = []
         self.threshold = threshold
-        self.resetBatch()
-    
-    def prediction2class(self, prediction):
-        txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
-        class_pred = [txt_undefined[self.LANG] for i in range(len(prediction))] 
-        score_pred = [0. for i in range(len(prediction))] 
-        for i in range(len(prediction)):
-            pred = prediction[i]
-            if(max(pred)>=self.threshold):
-                class_pred[i] = txt_classesempty_lang[np.argmax(pred)]
-            score_pred[i] = int(max(pred)*100)/100.
-        return class_pred, score_pred
-    
-    def allBatch(self):
-        self.resetBatch()
-        while self.k1<self.nbfiles:
-            self.nextBatch()
-        
-    def getPredictions(self):
-        self.predictedclass_base, self.predictedscore_base = self.prediction2class(self.prediction)  
-        return self.predictedclass_base, self.predictedscore_base
+        self.resetBatch()    
     
     def resetBatch(self):
         self.k1 = 0 # batch start
-        self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles) # batch end
+        self.k2 = min(self.k1+BATCH_SIZE,self.fileManager.nbFiles()) # batch end
         self.batch = 1 # batch num
         
-    def getPredictionsWithSequence(self, maxlag):
-        if self.predictedclass_base == []:
-            self.getPredictions()
-        return reorderAndCorrectPredictionWithSequence(self.df_filename, self.predictedclass_base, self.predictedscore_base, maxlag, txt_empty[self.LANG])
-    
-    def getFileNames(self): # doesn't take reorder due to sequences into account
-        return self.df_filename.to_numpy()
-    
+    def allBatch(self):
+        self.resetBatch()
+        while self.k1<self.fileManager.nbFiles():
+            self.nextBatch()
+        
     @abstractmethod
     def nextBatch(self):
         pass
     
+    def getPredictions(self):
+        return self.predictedclass_base, self.predictedscore_base
+            
+    def getPredictionsWithSequences(self, maxlag):
+        if self.predictedclass == []:
+            self.__correctPredictionsWithSequence(maxlag)
+        return self.predictedclass, self.predictedscore
+    
+    def getFilenames(self):
+        return self.fileManager.getFilenames()
+    
+    def getSeqnums(self):
+        return self.fileManager.getSeqnums()
+    
+    def getDates(self):
+        return self.fileManager.getDates()
+        
+    def merge(self, predictor):
+        if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
+            exit("You can not merge incompatible predictors (incompatible type or number of classes)")
+        self.fileManager.merge(predictor.fileManager)
+        self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
+        if self.predictedclass_base == [] or predictor.predictedclass_base == []:
+            self.predictedclass_base = []
+        else:
+            self.predictedclass_base += predictor.predictedclass_base
+        if self.predictedscore_base == [] or predictor.predictedscore_base == []:
+             self.predictedscore_base = []
+        else:            
+            self.predictedscore_base += predictor.predictedscore_base
+        if self.predictedclass == [] or predictor.predictedclass == []:
+            self.predictedclass = []
+        else:
+            self.predictedclass += predictor.predictedclass
+        if self.predictedscore == [] or predictor.predictedscore == []:
+             self.predictedscore = []
+        else:            
+            self.predictedscore += predictor.predictedscore
+        self.resetBatch()
+        
+    def __prediction2class(self, batchOnly=True):
+        if batchOnly:
+            k1 = self.k1
+            k2 = self.k2
+        else:
+            k1 = 0
+            k2 = self.fileManager.nbFiles()
+        txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
+        for k in range(k1,k2):
+            pred = self.prediction[k,]
+            if(max(pred)>=self.threshold):
+                self.predictedclass_base[k] = txt_classesempty_lang[np.argmax(pred)]
+            self.predictedscore_base[k] = int(max(pred)*100)/100.
+    
+    def __majorityVotingInSequence(self, df_prediction):
+        txt_empty_lang = txt_empty[self.LANG]
+        majority = df_prediction.groupby(['prediction']).sum()
+        meanscore = df_prediction.groupby(['prediction']).mean()['score']
+        if list(majority.index) == [txt_empty_lang]:
+            return txt_empty_lang, 1.
+        else:
+            notempty = (majority.index != txt_empty_lang) # skipping empty images in sequence
+            majority = majority[notempty]
+            meanscore = meanscore[notempty]
+            best = np.argmax(majority['score']) # selecting class with best total score
+            majorityclass = majority.index[best]
+            majorityscore = meanscore[best] # overall score as the mean for this class
+            return majorityclass, int(majorityscore*100)/100.
+    
+    def __correctPredictionsWithSequence(self, maxlag):
+        self.predictedclass = [""]*self.fileManager.nbFiles()
+        self.predictedscore = [0]*self.fileManager.nbFiles()
+        txt_empty_lang = txt_empty[self.LANG]
+        self.fileManager.findSequences(maxlag)
+        seqnum = np.array(self.fileManager.getSeqnums())
+        for i in range(1, max(seqnum)+1):
+            indices = np.nonzero(seqnum==i)[0]
+            df_prediction = pd.DataFrame({'prediction':[self.predictedclass_base[k] for k in indices], 'score':[self.predictedscore_base[k] for k in indices]})
+            majorityclass, meanscore = self.__majorityVotingInSequence(df_prediction)
+            for j in indices:
+                if self.predictedclass[j] != txt_empty_lang:
+                    self.predictedclass[j] = majorityclass
+                    self.predictedscore[j] = meanscore
     
     
 class Predictor(PredictorBase):
     
-    def __init__(self, df_filename, threshold, LANG):
-        super().__init__(df_filename.shape[0], threshold, LANG) # inherits all
-        self.df_filename = df_filename
+    def __init__(self, filenames, threshold, LANG):
+        super().__init__(filenames, threshold, LANG) # inherits all
         self.detector = Detector()
         self.classifier = Classifier()
-        self.idiff = ImageBoxDiff()
 
     def nextBatch(self):
-        if self.k1>=self.nbfiles:
+        if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:
             idxnonempty = []
             for k in range(self.k1,self.k2):
-                image_path = str(self.df_filename["filename"][k])
+                image_path = self.fileManager.getFilename(k)
                 original_image = cv2.imread(image_path)
-                similarityWithPreviousImage = self.idiff.nextSimilarity(original_image)
-                if similarityWithPreviousImage<0.99:
-                    if original_image is None:
-                        pass # Corrupted image, considered as empty
-                    else:
-                        croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
-                        if nonempty:
-                            self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                            idxnonempty.append(k)
+                if original_image is None:
+                    pass # Corrupted image, considered as empty
                 else:
-                    #print("Images",self.df_filename["filename"][k-1],"and",self.df_filename["filename"][k],"are identical => predicted as empty")
-                    try:
-                        idxnonempty.remove(k-1)
-                    except:
-                        pass
-                    self.prediction[k-1,0:self.nbclasses] = 0
-                    self.prediction[k-1,self.nbclasses] = 1 # previous is also empty since too similar
+                    croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
+                    if nonempty:
+                        self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                        idxnonempty.append(k)
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])
+            self._PredictorBase__prediction2class(batchOnly=True)
+            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
+            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
-            self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
+            self.k2 = min(self.k1+BATCH_SIZE,self.fileManager.nbFiles())
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
                 
@@ -146,12 +196,10 @@ class Predictor(PredictorBase):
 
 class PredictorVideo(PredictorBase):
     
-    def __init__(self, df_filename, threshold, LANG):
-         super().__init__(df_filename.shape[0], threshold, LANG) # inherits all
-         self.df_filename = df_filename
+    def __init__(self, filenames, threshold, LANG):
+         super().__init__(filenames, threshold, LANG) # inherits all
          self.detector = Detector()
          self.classifier = Classifier()
-         self.idiff = ImageBoxDiff()
 
     def resetBatch(self):
         self.k1 = 0
@@ -159,11 +207,11 @@ class PredictorVideo(PredictorBase):
         self.batch = 1
     
     def nextBatch(self):
-        if self.k1>=self.nbfiles:
+        if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:   
             idxnonempty = []      
-            video_path = str(self.df_filename["filename"][self.k1])   
+            video_path = self.fileManager.getFilename(self.k1)
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
@@ -189,11 +237,13 @@ class PredictorVideo(PredictorBase):
                 predictionbynonemptyframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxnonempty],:,:,:])
                 self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbynonemptyframe,axis=0)/len(idxnonempty)
                 self.prediction[self.k1,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])   
+            self._PredictorBase__prediction2class(batchOnly=True)
+            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
+            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
-            self.k2 = min(self.k1+1,self.nbfiles)
+            self.k2 = min(self.k1+1,self.fileManager.nbFiles())
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
@@ -204,11 +254,10 @@ class PredictorJSON(PredictorBase):
     def __init__(self, jsonfilename, threshold, LANG):
          self.detector = DetectorJSON(jsonfilename)
          self.classifier = Classifier()
-         super().__init__(self.detector.getNbFiles(), threshold, LANG) # inherits all
-         self.df_filename = pd.DataFrame({'filename': self.detector.getFileNames()})
+         super().__init__(self.detector.getFilenames(), threshold, LANG) # inherits all
     
     def nextBatch(self):
-        if self.k1>=self.nbfiles:
+        if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:
             idxnonempty = []
@@ -226,14 +275,18 @@ class PredictorJSON(PredictorBase):
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
-            predictedclass_batch, predictedscore_batch = self.prediction2class(self.prediction[self.k1:self.k2,])
+            self._PredictorBase__prediction2class(batchOnly=True)
+            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
+            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
-            self.k2 = min(self.k1+BATCH_SIZE,self.nbfiles)
+            self.k2 = min(self.k1+BATCH_SIZE,self.fileManager.nbFiles())
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
-    def getFileNames(self):
-        return self.detector.getFileNames()
+    def merge(self, predictor):
+        super().merge(predictor)
+        self.detector.merge(predictor.detector)
+        
         

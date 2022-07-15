@@ -202,39 +202,36 @@ while True:
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
             if VIDEO:
-                df_filename = pd.DataFrame({'filename':sorted(
-                    [f for f in  Path(testdir).rglob('*.[Aa][Vv][Ii]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Mm][Pp]4') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Mm][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Mm][Oo][Vv]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Mm]4[Vv]') if not f.parents[1].match('*deepfaune_*')]
-                )})
+                filenames = sorted(
+                    [str(f) for f in  Path(testdir).rglob('*.[Aa][Vv][Ii]') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Mm][Pp]4') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Mm][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Mm][Oo][Vv]') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Mm]4[Vv]') if not f.parents[1].match('*deepfaune_*')]
+                )
             else:
-                df_filename = pd.DataFrame({'filename':sorted(
-                    [f for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Bb][Mm][Pp]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Tt][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Gg][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
-                    [f for f in  Path(testdir).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
-                )})
-            nbfiles = df_filename.shape[0]
+                filenames = sorted(
+                    [str(f) for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Bb][Mm][Pp]') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Tt][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Gg][Ii][Ff]') if not f.parents[1].match('*deepfaune_*')] +
+                    [str(f) for f in  Path(testdir).rglob('*.[Pp][Nn][Gg]') if not f.parents[1].match('*deepfaune_*')]
+                )
+            nbfiles = len(filenames)
             if VIDEO:
                 frgbprint("Nombre de vidéos : "+str(nbfiles), "Number of videos: "+str(nbfiles))
             else:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles>0:
-                predictedclass_base = ['' for k in range(nbfiles)] # before autocorrect with sequences
-                predictedscore_base = ['' for k in range(nbfiles)] # idem
                 predictedclass = ['' for k in range(nbfiles)] 
                 predictedscore = ['' for k in range(nbfiles)] 
-                seqnum = np.repeat(0, df_filename.shape[0])
                 window['-RUN-'].Update(disabled=False)
                 window['-THRESHOLD-'].Update(disabled=False)
                 if not VIDEO:
                     window['-LAG-'].Update(disabled=False)
                 window['-ALLTABROW-'].Update(disabled=False)
-                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],
+                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames],
                                                                    predictedclass, predictedscore].tolist())
             else:
                 sg.popup_error('Incorrect image folder - no image found', keep_on_top=True)
@@ -261,9 +258,9 @@ while True:
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
         window.refresh()
         if VIDEO:
-            predictor = PredictorVideo(df_filename, threshold, LANG)
+            predictor = PredictorVideo(filenames, threshold, LANG)
         else:
-            predictor = Predictor(df_filename, threshold, LANG)
+            predictor = Predictor(filenames, threshold, LANG)
         frgbprint("terminé","done")
         window.refresh()
         if LANG=="fr":
@@ -279,20 +276,20 @@ while True:
             frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
             frgbprint(" terminé", " done")
             window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"][k1:k2]], predictedclass_batch, predictedscore_batch].tolist())                    
+            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())                    
             window.refresh()
         if VIDEO:
             predictedclass_base, predictedscore_base = predictor.getPredictions()
             predictedclass, predictedscore = predictedclass_base, predictedscore_base
-            seqnum = [i for i in range(1,nbfiles+1)]
         else:
             frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-            df_filename, predictedclass_base, predictedscore_base, predictedclass, predictedscore, seqnum, dates = predictor.getPredictionsWithSequence(maxlag)
+            predictedclass_base, predictedscore_base = predictor.getPredictions()
+            predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
             frgbprint(" terminé", " done")
         ########################
         ########################
         # Update and next actions
-        window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]], predictedclass, predictedscore].tolist())
+        window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames], predictedclass, predictedscore].tolist())
         window['-RUN-'].Update(disabled=True)
         window['-FOLDERBROWSE-'].Update(disabled=False)
         window['-SUBFOLDERS-'].Update(disabled=False)
@@ -303,7 +300,7 @@ while True:
             window['-SAVEXLSX-'].Update(disabled=False)
         window['-ALLTABROW-'].Update(disabled=False)
     elif event == '-SAVECSV-':
-        preddf  = pd.DataFrame({'filename':df_filename["filename"], 'date':dates, 'seqnum':seqnum,
+        preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
@@ -313,7 +310,7 @@ while True:
             preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
             window['-SAVECSV-'].Update(disabled=True)
     elif event == '-SAVEXLSX-':
-        preddf  = pd.DataFrame({'filename':df_filename["filename"], 'date':dates, 'seqnum':seqnum,
+        preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
@@ -357,9 +354,9 @@ while True:
                    sg.Button(txt_prevpred[LANG], key='-PREVIOUS-'),
                    sg.Button(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
-        windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True) 
+        windowimg = sg.Window(basename(filenames[curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True) 
         if VIDEO:
-            video = cv2.VideoCapture(str(df_filename['filename'][curridx]))
+            video = cv2.VideoCapture(filenames[curridx])
             video.set(cv2.CAP_PROP_POS_FRAMES, 1)
             ret,image = video.read()
             if not ret:
@@ -367,7 +364,7 @@ while True:
             else:
                 image = cv2.resize(image, (600,500))
         else:
-            image = cv2.imread(str(df_filename['filename'][curridx]))
+            image = cv2.imread(filenames[curridx])
             if image is None:
                 image = np.zeros((600,500,3), np.uint8)
             else:
@@ -383,7 +380,7 @@ while True:
                     predictedclass[curridx] = valuesimg['-CORRECTION-']
                     predictedscore[curridx] = 1.0
                     windowimg.Element('-CORRECTIONSCORE-').Update("\tScore: 1.0")
-                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
+                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames],predictedclass,predictedscore].tolist())
                     window['-TABROW-'].Update(disabled=True)
                     if hasrun: savecsvstate = False
                     if pkgutil.find_loader("openpyxl") is not None:
@@ -419,7 +416,7 @@ while True:
                             if curridx==len(predictedclass):
                                 curridx = 0
                 if VIDEO:
-                    video = cv2.VideoCapture(str(df_filename['filename'][curridx]))
+                    video = cv2.VideoCapture(filenames[curridx])
                     video.set(cv2.CAP_PROP_POS_FRAMES, 1)
                     ret,image = video.read()
                     if not ret:
@@ -427,7 +424,7 @@ while True:
                     else:
                         image = cv2.resize(image, (600,500))
                 else:
-                    image = cv2.imread(str(df_filename['filename'][curridx]))
+                    image = cv2.imread(filenames[curridx])
                     if image is None:
                         image = np.zeros((600,500,3), np.uint8)
                     else:
@@ -435,7 +432,7 @@ while True:
                 is_success, png_buffer = cv2.imencode(".png", image)
                 bio = BytesIO(png_buffer)
                 windowimg["-IMAGE-"].update(data=bio.getvalue())
-                windowimg.TKroot.title(basename(df_filename['filename'][curridx]))
+                windowimg.TKroot.title(basename(filenames[curridx]))
                 windowimg["-CORRECTION-"].Update(predictedclass[curridx])
                 windowimg["-CORRECTIONSCORE-"].Update("\tScore: "+str(predictedscore[curridx]))
         windowimg.close()
@@ -462,12 +459,12 @@ while True:
                 mkdir(join(testdir,"deepfaune_"+now,subfolder))
             if values["-CP-"] == True:
                 for k in range(nbfiles):
-                    shutil.copyfile(df_filename["filename"][k],
-                                    join(testdir,"deepfaune_"+now,predictedclass[k],basename(df_filename['filename'][k])))
+                    shutil.copyfile(filenames[k],
+                                    join(testdir,"deepfaune_"+now,predictedclass[k],basename(filenames[k])))
             if values["-MV-"] == True:
                 for k in range(nbfiles):
-                    shutil.move(df_filename["filename"][k],
-                                join(testdir,"deepfaune_"+now,predictedclass[k],basename(df_filename['filename'][k])))
+                    shutil.move(filenames[k],
+                                join(testdir,"deepfaune_"+now,predictedclass[k],basename(filenames[k])))
             window['-SUBFOLDERS-'].Update(disabled=True)
             window['-CP-'].Update(disabled=True)
             window['-MV-'].Update(disabled=True)

@@ -101,6 +101,7 @@ class Detector:
 from load_api_results import load_api_results
 import contextlib
 import os
+from pandas import concat
 from numpy import argmax
 
 class DetectorJSON:
@@ -108,10 +109,9 @@ class DetectorJSON:
     def __init__(self, jsonfilename, threshold=0.):
         # getting results in a dataframe
         with contextlib.redirect_stdout(open(os.devnull, 'w')):
-            self.df_json, df_notused = load_api_results(jsonfilename)
-        self.threshold = threshold
-        self.k = 0
-
+            self.df_json, _ = load_api_results(jsonfilename)
+        self.threshold = 0
+        self.k = 0    
 
     # We assume JSON categories are:
     # 1 : animal
@@ -157,5 +157,12 @@ class DetectorJSON:
     def getNbFiles(self):
         return self.df_json.shape[0]
     
-    def getFileNames(self):
-        return self.df_json["file"].to_numpy()
+    def getFilenames(self):
+        return list(self.df_json["file"].to_numpy())
+    
+    def resetDetection(self):
+        self.k = 0
+        
+    def merge(self, detector):
+        self.df_json = concat([self.df_json, detector.df_json], ignore_index=True)
+        self.resetDetection()
