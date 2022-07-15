@@ -66,14 +66,14 @@ layout = [[sg.Image(key="-IMAGE-")],
            sg.Button("OK", bind_return_key=True, key='-OK-'),
            sg.Button("Error", bind_return_key=True, key='-ERROR-')],
            [sg.Text("Image 1/"+str(nbfiles), key='-NUM-')]]
-windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(350, 300), font = ("Arial", 14), finalize=True) 
+windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(600, 500), font = ("Arial", 14), finalize=True) 
 
 image = cv2.imread(str(df_filename['filename'][curridx]))
 
 if image is None:
-    image = np.zeros((300,200,3), np.uint8)
+    image = np.zeros((600,400,3), np.uint8)
 else:
-    image = cv2.resize(image, (300,200))
+    image = cv2.resize(image, (600,400))
     
 is_success, png_buffer = cv2.imencode(".png", image)
 bio = BytesIO(png_buffer)
@@ -109,9 +109,9 @@ while(True):
                 
         image = cv2.imread(str(df_filename['filename'][curridx]))
         if image is None:
-            image = np.zeros((300,200,3), np.uint8)
+            image = np.zeros((600,400,3), np.uint8)
         else:
-            image = cv2.resize(image, (300,200))
+            image = cv2.resize(image, (600,400))
         is_success, png_buffer = cv2.imencode(".png", image)
         bio = BytesIO(png_buffer)
         windowimg["-IMAGE-"].update(data=bio.getvalue())
