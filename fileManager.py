@@ -80,6 +80,7 @@ class FileManager:
         currdir = op.dirname(self.filenames[self.order[0]])
         currseqnum = 1
         lowerbound = 0
+        i = 0
         for i in range(1, len(self.filenames)):
             dirname = op.dirname(self.filenames[self.order[i]])
             if currdir != dirname:
