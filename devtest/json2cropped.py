@@ -76,7 +76,7 @@ while True:
                 croppedfilename = join(CROPPEDHUMANPATH,prefix+"_crop"+str(kbox)+".jpg")
             if category == 3: # vehicle
                 croppedfilename = join(CROPPEDVEHICLEPATH,prefix+"_crop"+str(kbox)+".jpg")
-            print(filename, croppedfilename, category)
+            # print(filename, croppedfilename, category)
             cv2.imwrite(croppedfilename, croppedimage)
     except IndexError:
         break
