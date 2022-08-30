@@ -33,7 +33,8 @@
 
 import sys
 import os
-import pandas as pd
+from os.path import join, basename
+import cv2
 
 ## IMPORT DEEPFAUNE CLASSES
 curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -42,21 +43,41 @@ sys.path.append(curdir+'/../') # to add the deepfaune path
 from detectTools import DetectorJSON
 from fileManager import FileManager
 
+if (len(sys.argv)!=6):
+    print("Usage: python json2cropped.py <FILE.JSON> <CROPPEDANIMALPATH> <CROPPEDHUMANPATH> <CROPPEDVEHICLEPATH> <THRESHOLD>")
+    exit()
 jsonfilename = sys.argv[1]
-threshold = float(sys.argv[2])
+CROPPEDANIMALPATH = sys.argv[2]
+CROPPEDHUMANPATH = sys.argv[3]
+CROPPEDVEHICLEPATH = sys.argv[4]
+threshold = float(sys.argv[5])
+
+
 detector = DetectorJSON(jsonfilename, threshold)
 
+prevfilename = ''
+kbox = 0
 while True:
     try:
+        # filenames
         filename  = detector.getCurrentFilename()
+        prefix = basename(filename).rsplit(".",1)[0]
+        if filename == prevfilename:
+            kbox += 1
+        else:
+            prevfilename = filename
+            kbox = 0
+        # cropping in RGB format
         croppedimage, category = detector.nextBoxDetection()
-        if category == 1:
-            pass
-        if category == 2: # human
-            pass
-        if category == 3: # vehicle
-            pass
-        print(filename, category)
+        if category>0:
+            if category == 1:
+                croppedfilename = join(CROPPEDANIMALPATH,prefix+"_crop"+str(kbox)+".jpg")
+            if category == 2: # human
+                croppedfilename = join(CROPPEDHUMANPATH,prefix+"_crop"+str(kbox)+".jpg")
+            if category == 3: # vehicle
+                croppedfilename = join(CROPPEDVEHICLEPATH,prefix+"_crop"+str(kbox)+".jpg")
+            print(filename, croppedfilename, category)
+            cv2.imwrite(croppedfilename, croppedimage)
     except IndexError:
         break
         

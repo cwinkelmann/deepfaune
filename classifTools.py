@@ -65,7 +65,8 @@ class Classifier:
         
     def predictOnBatch(self, batchtensor, workers=1):
         return self.model.predict(batchtensor, workers=workers)
-    
+
+    # croppedimage in BGR loaded by opencv
     def preprocessImage(self, croppedimage):
         # Convert img to RGB
         croppedimage2classifier =  resize(cvtColor(croppedimage, COLOR_BGR2RGB), (CROP_SIZE,CROP_SIZE))
