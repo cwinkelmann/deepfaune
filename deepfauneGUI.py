@@ -129,27 +129,46 @@ else:
 prediction = [[],[]]
 threshold = threshold_default = 0.5
 maxlag = maxlag_default = 20 # seconds
-left_col = [
-    [sg.Image(filename=r'icons/cameratrap-nb.png'),sg.Image(filename=r'icons/logoINEE.png')],
-    [sg.Text("DEEPFAUNE",size=(12,1), font=("Helvetica", 35)), sg.Text("version "+VERSION)],[sg.Text("\n\n\n")],
-    [sg.Text(txt_imagefolder[LANG]), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
-    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
-    [sg.Text(txt_sequencemaxlag[LANG]+'\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
-    [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
-    [sg.Button(txt_run[LANG], key='-RUN-'), sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
-    [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
+main_tab = [
+    [sg.Image(filename=r'icons/1316-white-small.png'),sg.Image(filename=r'icons/logoINEE.png', expand_x=True)],
+    [sg.Text("DEEPFAUNE", font=("Helvetica", 35)), sg.Text("version "+VERSION)],
+    [sg.Text(txt_imagefolder[LANG]), sg.In(expand_x=True, enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
+    [sg.Frame('Parameters', font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Text(txt_confidence[LANG]+'\t', expand_x=True), sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
+        [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')]
+    ])],
+    [sg.Frame('Execution', font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Multiline(size=(40, 3), default_text=txt_import[LANG], write_only=True, expand_x=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
+        [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', border_width=4, expand_x=True, key='-PROGBAR-',bar_color=['Blue','White'])]
+    ])],
+    [sg.Button(txt_run[LANG], key='-RUN-')]
 ]
-right_col=[
-    [sg.Multiline(size=(69, 10), default_text=txt_import[LANG], write_only=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
-    [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
-              vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
-              enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
-              key='-TABRESULTS-')],      
-    [sg.Button(txt_showall[LANG], key='-ALLTABROW-'),sg.Button(txt_showselected[LANG], key='-TABROW-')]
+results_tab = [
+    [sg.Frame('Resultats', font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
+                  vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
+                  enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
+                  key='-TABRESULTS-')],  
+        [sg.Button(txt_showall[LANG], key='-ALLTABROW-'),sg.Button(txt_showselected[LANG], key='-TABROW-')],
+    ])],   
+    [sg.Frame('Enregistrement', font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
+        [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
+    ])]
 ]
-layout = [[sg.Column(left_col, element_justification='l' ),
-           sg.Column(right_col, element_justification='l')]] 
-window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14)).Finalize()
+
+credits_tab = [
+    [sg.Text("Copyright CNRS")]
+]
+
+#layout = [[sg.Column(left_col, element_justification='l' ),
+#           sg.Column(right_col, element_justification='l')]]
+layout = [[sg.TabGroup(
+    [[sg.Tab('Home', main_tab), sg.Tab('Results', results_tab, expand_x=True), sg.Tab('A propos', credits_tab, expand_x=True)]]
+    , expand_x=True, expand_y=True)]]
+
+
+window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14), resizable=True).Finalize()
 window['-FOLDERBROWSE-'].Update(disabled=True)
 window['-RUN-'].Update(disabled=True)
 window['-THRESHOLD-'].Update(disabled=True)
