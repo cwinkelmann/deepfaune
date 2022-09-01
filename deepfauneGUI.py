@@ -211,6 +211,7 @@ else:
 testdir = ""
 rowidx = [-1]
 hasrun = False
+imgmoved  = False
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
@@ -355,7 +356,7 @@ while True:
             window['-TABROW-'].Update(disabled=True)
         else:
             window['-TABROW-'].Update(disabled=False) 
-    elif event == '-ALLTABROW-' or event == '-TABROW-':
+    elif (event == '-ALLTABROW-' or event == '-TABROW-') and imgmoved == False :
         if event == '-TABROW-' and rowidx[0]>=0:
             curridx = rowidx[0]
         else:
@@ -482,6 +483,12 @@ while True:
             confirm = sg.popup_yes_no(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
             if confirm == 'Yes':
                 frgbprint("Déplacement vers "+join(testdir,"deepfaune_"+now), "Moving to "+join(testdir,"deepfaune_"+now))
+                window['-ALLTABROW-'].Update(disabled=True)
+                window['-SUBFOLDERS-'].Update(disabled=True)
+                window['-SUBFOLDERS-'].Update(disabled=True)
+                window['-CP-'].Update(disabled=True)
+                window['-MV-'].Update(disabled=True)
+                imgmoved = True
         if confirm == 'Yes':
             import shutil
             mkdir(join(testdir,"deepfaune_"+now))
