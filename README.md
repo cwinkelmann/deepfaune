@@ -1,7 +1,7 @@
 #  WELCOME TO DEEPFAUNE SOFTWARE REPOSITORY
 
 
-<img src="icons/1316.jpg" width="20%">
+<img src="img/1316.jpg" width="20%">
 <img src="icons/logoINEE.png" width="50%" align=right>
 
 
@@ -32,10 +32,10 @@ The latest versions are available at:
 
 
 ### 1. Get the source code of the latest release, directly from this site. 
-First of all, get the `zip` archive by clicking on the button ![button](icons/button.jpg) on the top right of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
+First of all, get the `zip` archive by clicking on the button ![button](img/button.jpg) on the top right of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
 This will open the following window where you can download the whole directory as a `zip` file (warning, it's a huge file):
 
-![button](icons/buttonzip.jpg)
+![button](img/buttonzip.jpg)
 
 Then, uncompress the zip file.
 

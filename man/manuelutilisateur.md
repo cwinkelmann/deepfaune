@@ -23,11 +23,11 @@ Certains pièges photographiques sont programmés pour prendre une suite d’ima
 ATTENTION : L’information du « site » dans lequel les images ont été prises n’existe pas. Il faut donc veiller à ce que les images de différents sites soient stockées dans des dossiers séparés. Si les images de sites différents sont contenues dans un même dossier, l’information de « séquence » sera faussée.
 
 ### Organisation de l’interface
-L’interface est composée d’une fenêtre principale organisée en 2 panneaux :
+L’interface est composée d’une fenêtre principale organisée avec plusieurs onglets :
 
-- à gauche, les commandes permettant de sélectionner le dossier d’images à classer, définir les paramètres de classification et  choisir les modalités de sortie pour les résultats
+- les commandes permettant de sélectionner le dossier d’images à classer, définir les paramètres de classification et la liste des commandes effectuées en temps réel par le programme
 
-- à droite, la liste des commandes effectuées en temps réel par le programme et une fenêtre de prévisualisation des résultats sous forme de tableau. 
+-  les commandes permettant de choisir les modalités de sortie pour les résultats et une fenêtre de prévisualisation des résultats sous forme de tableau.
 
 Une seconde fenêtre permet de visualiser les images et les prédictions.
 
@@ -75,13 +75,13 @@ Le délai de temps maximal par séquence indique le temps maximal (en secondes) 
 Sélectionner le délai de temps maximal par séquence en secondes dans la section « Délai max / séquence » en faisant augmenter/diminuer le chiffre avec les flèches haut/bas situées à droite.
 
 #### ETAPE 7 : Lancement de la prédiction
-Une fois que les valeurs des paramètres sont définies, lancer la prédiction en cliquant sur le bouton « Lancer » en bas à gauche de la fenêtre.
+Une fois que les valeurs des paramètres sont définies, lancer la prédiction en cliquant sur le bouton « Lancer » en bas de la fenêtre.
 La barre d’état en bas à gauche se remplit en fonction de l’avancée des calculs. Elle est totalement remplie quand le programme a fini de tourner.
 
-Une série de commandes vont s’afficher dans le panneau en haut à droite de la fenêtre. Les lignes qui apparaissent retracent l’ensemble des commandes effectuées par le programme. Ces lignes indiquent le dossier sélectionné, le nombre d’images contenues dans ce fichier, l’état d’avancement du calcul (en batchs = groupes d’images traitées en même temps) et les étapes d’autocorrection grâce au paramètre de séquence pré-établi. 
+Une série de commandes vont s’afficher. Les lignes qui apparaissent retracent l’ensemble des commandes effectuées par le programme. Ces lignes indiquent le dossier sélectionné, le nombre d’images contenues dans ce fichier, l’état d’avancement du calcul (en batchs = groupes d’images traitées en même temps) et les étapes d’autocorrection grâce au paramètre de séquence pré-établi.
 
 #### ETAPE 8 : Visualisation des résultats dans le tableau
-Les prédictions faites apparaissent dans le panneau droit en bas à gauche sous forme d’un tableau contenant le nom du fichier, la prédiction et le score de confiance associé à cette prédiction par ligne.
+Les prédictions faites apparaissent dans le deuxième onglet sous forme d’un tableau contenant le nom du fichier, la prédiction et le score de confiance associé à cette prédiction par ligne.
 
 #### ETAPE 9 : Visualisation des résultats sous forme de diaporama
 Les images classées peuvent être visualisées une à une dans une fenêtre séparée en cliquant sur le bouton « Afficher les images ». Ceci affiche toutes les images pour lesquelles des prédictions ont été faites. 
@@ -105,8 +105,7 @@ Pour modifier la prédiction du modèle, taper au clavier dans la section « Pr
 Pour sortir de la fenêtre de visualisation diaporama, cliquer sur le bouton « Close ». 
 
 #### ETAPE 11 : Sauvegarde des résultats dans un fichier CSV ou XSLX
-Les résultats sont disponibles sous forme de tableau aux formats `.csv` et `.xlsx`.  Pour enregistrer les résultats sous forme de tableau, cliquer sur les boutons « Enregistrer en CSV » ou « Enregistrer en XSLX » selon le format choisi. 
-Sous forme de dossiers
+Les résultats sont disponibles sous forme de tableau aux formats `.csv` et `.xlsx`.  Pour enregistrer les résultats sous forme de tableau, cliquer sur les boutons « Enregistrer en CSV » ou « Enregistrer en XSLX » selon le format choisi.
 
 #### ETAPE 11 bis : Sauvegarde des résultats dans des sous-dossiers d'images
 Les résultats sont sauvegardés dans le dossier parent (contenant les images à annoter) sous forme d’un sous-dossier nommé : « deepdaune_{DATE}_{HEURE} ». La date et l’heure contenues dans le nom de dossier sont la date et l’heure associée au lancement du programme sur un ensemble d’images. 

@@ -28,11 +28,11 @@ CAREFUL: The information concerning where the images were taken ("study area") d
 
 ### Interface layout
 
-The interface is composed of one main window, subdivided in two panels: 
+The interface is composed of one main window, subdivided in different tabs: 
 
-- on the left, there are the commands enabling to select the folder with images to classify, define the classification parameters and choose the output modalities
+- a first tab with the commands enabling to select the folder with images to classify, define the classification parameters and the list of real-time commands that are performed by the software
+- a second tab with a window to visualize the results in table format and options to choose the output modalities
 
-- on the right, there are the list of real-time commands that are performed by the software as well as a window to visualize the results in table format.
 
 A second window allows the user to visualize the images and their associated predictions. 
 
@@ -72,7 +72,7 @@ The program will load the parameters of the classification model. This step can 
 #### STEP 4 : Select the folder containing the images that need to be classified 
 Select the folder to sort out by clicking on the "Choose" button, on the higher left corner in the Image folder section. The images that need classification need to be stored in the same parent folder.
 
-#### STEP 5 : Defin the confidence threshold 
+#### STEP 5 : Define the confidence threshold 
 The confidence threshold is the miminum threshold for which a prediction is kept (eg. with a 50% threshold, any image predicted with a score under 50% will be predicted as "uncertain").
 Select the confidence threshold in the "Confidence threshold" section by increasing/decreasing the value using the up/down arrows on the right.
 
@@ -82,13 +82,13 @@ Select the maximum time difference within a sequences (in seconds) in the "Max d
 
 #### STEP 7 : Launch the prediction
 
-Once the parameter values have been defined, launch the prediction by clicking on the "Launch" button on the lower left corner.
-The processing bar on the lower left corner will fill up as the model completes each task. It is full when the program has finished.
+Once the parameter values have been defined, launch the prediction by clicking on the "Launch" button.
+The processing bar will fill up as the model completes each task. It is full when the program has finished.
 
-Several command lines will appear in the higher right corner. The lines that appear keep track of all the tasks that are performed by the program. These lines indicate which folder has been selected, the number of images contained in the folder, how many tasks have been completed (in batches = groups of images that are classified at the same time) and the autocorrection steps that are performed according to the sequence paramater.
+Several command lines will appear. The lines that appear keep track of all the tasks that are performed by the program. These lines indicate which folder has been selected, the number of images contained in the folder, how many tasks have been completed (in batches = groups of images that are classified at the same time) and the autocorrection steps that are performed according to the sequence paramater.
 
 #### STEP 8 : Visualizing the results in a table
-The predictions appear in a table, on the right panel, which contains the name of the file, the prediction and the confidence score that are associated to the prediction, for each line. 
+The predictions appear in a table, on the second tab, which contains the name of the file, the prediction and the confidence score that are associated to the prediction, for each line. 
 
 #### STEP 9 : Visualizing the results as a slide show
 The images that have been classified by the model can be visualized independently in a seperate window by clicking on the "Display images" button. This will display all the images for which predictions have been made. 
