@@ -141,7 +141,7 @@ main_tab = [
         [sg.Multiline(size=(40, 3), default_text=txt_import[LANG], write_only=True, expand_x=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
         [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', border_width=4, expand_x=True, key='-PROGBAR-',bar_color=['Blue','White'])]
     ])],
-    [sg.Button(txt_run[LANG], key='-RUN-')]
+    [sg.Button(txt_run[LANG], expand_x=True, key='-RUN-')]
 ]
 results_tab = [
     [sg.Frame('Resultats', font='Any 13', expand_x=True, expand_y=True, layout=[
