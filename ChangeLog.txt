@@ -1,3 +1,8 @@
+2022-09-01  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+
+	    Version 0.4.1
+	    * New GUI shape with tabs
+
 2022-07-06  Vincent Miele  <vincent.miele@univ-lyon1.fr>
     
 	    Version 0.4.0
