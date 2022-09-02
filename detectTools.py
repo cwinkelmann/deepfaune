@@ -120,25 +120,24 @@ class DetectorJSON:
         # getting results in a dataframe
         with contextlib.redirect_stdout(open(os.devnull, 'w')):
             self.df_json, _ = load_api_results(jsonfilename)
+            # removing lines with Failure event
+            if 'failure' in self.df_json.keys():
+                self.df_json = self.df_json[self.df_json['failure'].isnull()]
+                self.df_json.reset_index(drop=True, inplace = True)
+                self.df_json.drop('failure', axis=1, inplace=True)
         self.threshold = threshold
         self.k = 0 # current image index
         self.kbox = 0 # current box index
 
     def nextBestBoxDetection(self):
-        isempty = False
-        if not self.df_json['failure'].isnull()[self.k]: # failure
-            isempty = True
-        else:
-            if len(self.df_json['detections'][self.k]) == 0: # is empty
-                isempty = True
-        if not isempty:
+        if len(self.df_json['detections'][self.k]): # is non empty
             # Focus on the most confident bounding box coordinates
             self.kbox = argmax([box['conf'] for box in self.df_json['detections'][self.k]])
             if self.df_json['detections'][self.k][self.kbox]['conf']>self.threshold:
                 category = int(self.df_json['detections'][self.k][self.kbox]['category'])
             else:
                 category = 0
-        else:
+        else: # is empty
             category = 0
         # is an animal detected ?
         if category != 1:
@@ -153,13 +152,8 @@ class DetectorJSON:
     def nextBoxDetection(self):
         if self.k >= len(self.df_json):
             raise IndexError # no next box
-        isempty = False
-        if not self.df_json['failure'].isnull()[self.k]: # failure
-            isempty = True
-        else:
-            if len(self.df_json['detections'][self.k]) == 0: # is empty
-                isempty = True
-        if not isempty:
+        # is an animal detected ?
+        if len(self.df_json['detections'][self.k]):
             # is box above threshold ?
             if self.df_json['detections'][self.k][self.kbox]['conf']>self.threshold:
                 category = int(self.df_json['detections'][self.k][self.kbox]['category'])
@@ -182,7 +176,7 @@ class DetectorJSON:
         image_path = str(self.df_json["file"][self.k])
         image = cv2.imread(image_path)
         if image is None:
-            return [], 0
+            return []
         bbox_norm = self.df_json['detections'][self.k][self.kbox]["bbox"]
         img_h, img_w = image.shape[:2]
         xmin = int(bbox_norm[0] * img_w)

@@ -60,7 +60,9 @@ kbox = 0
 while True:
     try:
         # filenames
+        print("toto---------------------------------------------")
         filename  = detector.getCurrentFilename()
+        print("tata---------------------------------------------")
         prefix = basename(filename).rsplit(".",1)[0]
         if filename == prevfilename:
             kbox += 1
@@ -76,8 +78,9 @@ while True:
                 croppedfilename = join(CROPPEDHUMANPATH,prefix+"_crop"+str(kbox)+".jpg")
             if category == 3: # vehicle
                 croppedfilename = join(CROPPEDVEHICLEPATH,prefix+"_crop"+str(kbox)+".jpg")
-            # print(filename, croppedfilename, category)
-            cv2.imwrite(croppedfilename, croppedimage)
+            print(filename, croppedfilename, category)
+            if croppedimage != []:
+                cv2.imwrite(croppedfilename, croppedimage)
     except IndexError:
         break
         
