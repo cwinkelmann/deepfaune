@@ -40,7 +40,7 @@ sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 LANG = "fr"
 DEBUG = False
 
@@ -108,6 +108,13 @@ else:
 txt_savepred = {'fr':"Enregistrer", 'gb':"Save"}
 txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
 txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
+txt_maintab = {'fr':"Accueil", 'gb':"Home"}
+txt_resultstab = {'fr':"Résultats", 'gb':"Results"}
+txt_creditstab = {'fr':"A propos", 'gb':"About DeepFaune"}
+txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
+txt_predframe = {'fr':"Prédictions", 'gb':"Predictions"}
+txt_saveframe = {'fr':"Enregistrement", 'gb':"Save as"}
+
 if VIDEO:
     txt_restrict = {'fr':["Toutes vidéos","Vidéos indéfinies","Vidéos vides","Vidéos non vides"], 'gb':["All videos","Undefined videos","Empty videos","Non empty videos"]}
 else:
@@ -129,27 +136,46 @@ else:
 prediction = [[],[]]
 threshold = threshold_default = 0.5
 maxlag = maxlag_default = 20 # seconds
-left_col = [
-    [sg.Image(filename=r'icons/cameratrap-nb.png'),sg.Image(filename=r'icons/logoINEE.png')],
-    [sg.Text("DEEPFAUNE",size=(12,1), font=("Helvetica", 35)), sg.Text("version "+VERSION)],[sg.Text("\n\n\n")],
-    [sg.Text(txt_imagefolder[LANG]), sg.In(size=(25,1), enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
-    [sg.Text(txt_confidence[LANG]+'\t'), sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
-    [sg.Text(txt_sequencemaxlag[LANG]+'\t'), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')],
-    [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', size=(20, 2), border_width=4, key='-PROGBAR-',bar_color=['Blue','White'])],
-    [sg.Button(txt_run[LANG], key='-RUN-'), sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
-    [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
+main_tab = [
+    [sg.Image(filename=r'icons/1316-white-small.png'),sg.Text("DEEPFAUNE", font=("Helvetica", 30)), sg.Image(filename=r'icons/logoINEE.png', expand_x=True)],
+    [sg.Text(txt_imagefolder[LANG]), sg.In(expand_x=True, enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
+    [sg.Frame(txt_paramframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Text(txt_confidence[LANG]+'\t', expand_x=True), sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
+        [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True), sg.Spin(values=[i for i in range(5, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')]
+    ])],
+    [sg.Frame('Execution', font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Multiline(size=(40, 3), default_text=txt_import[LANG], write_only=True, expand_x=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
+        [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', border_width=4, expand_x=True, key='-PROGBAR-',bar_color=['Blue','White'], style='vista')]
+    ])],
+    [sg.Button(txt_run[LANG], expand_x=True, key='-RUN-')]
 ]
-right_col=[
-    [sg.Multiline(size=(69, 10), default_text=txt_import[LANG], write_only=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
-    [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
-              vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
-              enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
-              key='-TABRESULTS-')],      
-    [sg.Button(txt_showall[LANG], key='-ALLTABROW-'),sg.Button(txt_showselected[LANG], key='-TABROW-')]
+results_tab = [
+    [sg.Frame(txt_predframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
+                  vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
+                  enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
+                  key='-TABRESULTS-')],  
+        [sg.Button(txt_showall[LANG], key='-ALLTABROW-'),sg.Button(txt_showselected[LANG], key='-TABROW-')],
+    ])],   
+    [sg.Frame(txt_saveframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
+        [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
+    ])]
 ]
-layout = [[sg.Column(left_col, element_justification='l' ),
-           sg.Column(right_col, element_justification='l')]] 
-window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14)).Finalize()
+credits_tab = [
+    [sg.Text("DeepFaune - version "+VERSION)],
+    [sg.Text("Copyright CNRS - Licence CeCILL")],
+    [sg.Text("https://www.deepfaune.cnrs.fr", font=('Any 13', 14, 'underline'), enable_events=True, key='-URL-')]
+]
+
+#layout = [[sg.Column(left_col, element_justification='l' ),
+#           sg.Column(right_col, element_justification='l')]]
+layout = [[sg.TabGroup(
+    [[sg.Tab(txt_maintab[LANG], main_tab), sg.Tab(txt_resultstab[LANG], results_tab, expand_x=True), sg.Tab(txt_creditstab[LANG], credits_tab, expand_x=True)]],
+    expand_x=True, expand_y=True)]]
+
+
+window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14), resizable=True).Finalize()
 window['-FOLDERBROWSE-'].Update(disabled=True)
 window['-RUN-'].Update(disabled=True)
 window['-THRESHOLD-'].Update(disabled=True)
@@ -185,12 +211,17 @@ else:
 testdir = ""
 rowidx = [-1]
 hasrun = False
+imgmoved  = False
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
     event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    elif event == '-URL-':
+        import webbrowser
+        webbrowser.open("https://www.deepfaune.cnrs.fr")
+        continue
     elif event == '-FOLDER-':
         window['-SAVECSV-'].Update(disabled=True)
         window['-SAVEXLSX-'].Update(disabled=True)
@@ -325,7 +356,7 @@ while True:
             window['-TABROW-'].Update(disabled=True)
         else:
             window['-TABROW-'].Update(disabled=False) 
-    elif event == '-ALLTABROW-' or event == '-TABROW-':
+    elif (event == '-ALLTABROW-' or event == '-TABROW-') and imgmoved == False :
         if event == '-TABROW-' and rowidx[0]>=0:
             curridx = rowidx[0]
         else:
@@ -354,21 +385,21 @@ while True:
                    sg.Button(txt_prevpred[LANG], key='-PREVIOUS-'),
                    sg.Button(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
-        windowimg = sg.Window(basename(filenames[curridx]), layout, size=(650, 600), font = ("Arial", 14), finalize=True) 
+        windowimg = sg.Window(basename(filenames[curridx]), layout, size=(525, 500), font = ("Arial", 14), finalize=True) 
         if VIDEO:
             video = cv2.VideoCapture(filenames[curridx])
             video.set(cv2.CAP_PROP_POS_FRAMES, 1)
             ret,image = video.read()
             if not ret:
-                image = np.zeros((600,500,3), np.uint8)
+                image = np.zeros((400,500,3), np.uint8)
             else:
-                image = cv2.resize(image, (600,500))
+                image = cv2.resize(image, (500,400))
         else:
             image = cv2.imread(filenames[curridx])
             if image is None:
-                image = np.zeros((600,500,3), np.uint8)
+                image = np.zeros((400,500,3), np.uint8)
             else:
-                image = cv2.resize(image, (600,500))
+                image = cv2.resize(image, (500,400))
         is_success, png_buffer = cv2.imencode(".png", image)
         bio = BytesIO(png_buffer)
         windowimg["-IMAGE-"].update(data=bio.getvalue())
@@ -420,15 +451,15 @@ while True:
                     video.set(cv2.CAP_PROP_POS_FRAMES, 1)
                     ret,image = video.read()
                     if not ret:
-                        image = np.zeros((600,500,3), np.uint8)
+                        image = np.zeros((500,400,3), np.uint8)
                     else:
-                        image = cv2.resize(image, (600,500))
+                        image = cv2.resize(image, (500,400))
                 else:
                     image = cv2.imread(filenames[curridx])
                     if image is None:
-                        image = np.zeros((600,500,3), np.uint8)
+                        image = np.zeros((500,400,3), np.uint8)
                     else:
-                        image = cv2.resize(image, (600,500))
+                        image = cv2.resize(image, (500,400))
                 is_success, png_buffer = cv2.imencode(".png", image)
                 bio = BytesIO(png_buffer)
                 windowimg["-IMAGE-"].update(data=bio.getvalue())
@@ -452,6 +483,12 @@ while True:
             confirm = sg.popup_yes_no(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
             if confirm == 'Yes':
                 frgbprint("Déplacement vers "+join(testdir,"deepfaune_"+now), "Moving to "+join(testdir,"deepfaune_"+now))
+                window['-ALLTABROW-'].Update(disabled=True)
+                window['-SUBFOLDERS-'].Update(disabled=True)
+                window['-SUBFOLDERS-'].Update(disabled=True)
+                window['-CP-'].Update(disabled=True)
+                window['-MV-'].Update(disabled=True)
+                imgmoved = True
         if confirm == 'Yes':
             import shutil
             mkdir(join(testdir,"deepfaune_"+now))
