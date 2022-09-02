@@ -125,14 +125,20 @@ class DetectorJSON:
         self.kbox = 0 # current box index
 
     def nextBestBoxDetection(self):
-        if len(self.df_json['detections'][self.k]): # is non empty
+        isempty = False
+        if not self.df_json['failure'].isnull()[self.k]: # failure
+            isempty = True
+        else:
+            if len(self.df_json['detections'][self.k]) == 0: # is empty
+                isempty = True
+        if not isempty:
             # Focus on the most confident bounding box coordinates
             self.kbox = argmax([box['conf'] for box in self.df_json['detections'][self.k]])
             if self.df_json['detections'][self.k][self.kbox]['conf']>self.threshold:
                 category = int(self.df_json['detections'][self.k][self.kbox]['category'])
             else:
                 category = 0
-        else: # is empty
+        else:
             category = 0
         # is an animal detected ?
         if category != 1:
@@ -147,8 +153,13 @@ class DetectorJSON:
     def nextBoxDetection(self):
         if self.k >= len(self.df_json):
             raise IndexError # no next box
-        # is an animal detected ?
-        if len(self.df_json['detections'][self.k]):
+        isempty = False
+        if not self.df_json['failure'].isnull()[self.k]: # failure
+            isempty = True
+        else:
+            if len(self.df_json['detections'][self.k]) == 0: # is empty
+                isempty = True
+        if not isempty:
             # is box above threshold ?
             if self.df_json['detections'][self.k][self.kbox]['conf']>self.threshold:
                 category = int(self.df_json['detections'][self.k][self.kbox]['category'])
