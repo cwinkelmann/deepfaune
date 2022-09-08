@@ -35,8 +35,10 @@ import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
 
+import torch
+
 from detectTools import Detector, DetectorJSON
-from classifTools import Classifier, CROP_SIZE, txt_classes, idx_human, idx_vehicle
+from devtest.classifToolsPytorch import txt_classes, CROP_SIZE, Classifier
 from fileManager import FileManager
 
 BATCH_SIZE = 8
@@ -47,7 +49,7 @@ class PredictorBase(ABC):
     def __init__(self, filenames, threshold, LANG):
         self.LANG = LANG
         self.fileManager = FileManager(filenames)
-        self.cropped_data = np.ones(shape=(BATCH_SIZE,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
+        self.cropped_data = torch.ones((BATCH_SIZE,3,CROP_SIZE,CROP_SIZE))
         self.nbclasses=len(txt_classes[LANG])
         self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,self.nbclasses] = 1. # by default, predicted as empty
@@ -268,10 +270,10 @@ class PredictorJSON(PredictorBase):
                 if category == 1: # animal
                     self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                     idxnonempty.append(k)
-                if category == 2: # human
-                    self.prediction[k,idx_human] = 1.
-                if category == 3: # vehicle
-                    self.prediction[k,idx_vehicle] = 1.
+                # if category == 2: # human
+                #     self.prediction[k,idx_human] = 1.
+                # if category == 3: # vehicle
+                #     self.prediction[k,idx_vehicle] = 1.
             if len(idxnonempty):
                 self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty

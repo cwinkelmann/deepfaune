@@ -1,1 +1,5 @@
 ﻿.idea
+deepfaune-yolov4.weights
+efficientnet_22classesOnlycroppedImgAugB3.hdf5
+efficientnet_b3_22_produc3.pt
+*.pt
