@@ -38,7 +38,7 @@ from abc import ABC, abstractmethod
 import torch
 
 from detectTools import Detector, DetectorJSON
-from devtest.classifToolsPytorch import txt_classes, CROP_SIZE, Classifier
+from classifTools import txt_classes, CROP_SIZE, Classifier
 from fileManager import FileManager
 
 BATCH_SIZE = 8

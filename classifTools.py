@@ -35,19 +35,24 @@
 ### LOADING CLASSIFIER
 ####################################################################################
 from os import environ
+
+import torch
+from matplotlib import pyplot as plt
+from torchvision.transforms import InterpolationMode, transforms
+
+from devtest.model import Model
+
 environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # silencing TensorFlow
-from tensorflow.keras.layers import Dense,GlobalAveragePooling2D,Activation
-from tensorflow.keras.models import Model
-from tensorflow.keras.applications.efficientnet import EfficientNetB3
-from tensorflow.keras.applications.efficientnet import preprocess_input
 from cv2 import cvtColor,COLOR_BGR2RGB,resize
 
 CROP_SIZE = 300
-hdf5 = "efficientnet_22classesOnlycroppedImgAugB3.hdf5"
-txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","humain","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide","oiseau","renard","sanglier","vache","vehicule"],
-              'gb':["badger","ibex","red deer","chamois","cat","roe deer","dog","squirrel","human","lagomorph","wolf","lynx","marmot","micromammal","mouflon","sheep","mustelide","bird","fox","wild boar","cow","vehicle"]}
-idx_human = 8
-idx_vehicle = 21
+NBCLASSE = 22
+BACKBONE = "efficientnet_b3"
+weight_path = "efficientnet_b3_22_produc3.pt"
+
+txt_classes = {'fr':["blaireau","bouquetin","cerf","chamois","chat","chevreuil","chien","ecureuil","equide","lagomorphe","loup","lynx","marmotte","micromammifere","mouflon","mouton","mustelide" ,"oiseau","ours","renard","sanglier","vache"]  ,
+              'gb':["badger", "ibex", "deer", "chamois", "cat", "roe_deer", "dog", "squirrel", "equid", "lagomorph", "wolf", "lynx", "marmot", "small_mammal", "mouflon", "sheep", "mustelid" ",bird", "bear", "fox", "wild_boar", "cow"]}
+
     
 ####################################################################################
 ### CLASSIFIER 
@@ -55,21 +60,19 @@ idx_vehicle = 21
 class Classifier:
     
     def __init__(self):
-        base_model = EfficientNetB3(include_top=False, weights=None, input_shape=(CROP_SIZE,CROP_SIZE,3))
-        x = base_model.output
-        x = GlobalAveragePooling2D()(x)
-        x = Dense(len(txt_classes['fr']))(x) #number of classes
-        preds = Activation("softmax")(x)
-        self.model = Model(inputs=base_model.input,outputs=preds)
-        self.model.load_weights(hdf5)
+        self.model = Model(backbone=BACKBONE, num_classes=NBCLASSE)
+        self.model.load_weights(weight_path)
+        self.transforms = transforms.Compose(
+    [transforms.ToPILImage(),transforms.Resize((300, 300), interpolation=InterpolationMode.NEAREST),
+         transforms.ToTensor()])
         
     def predictOnBatch(self, batchtensor, workers=1):
-        return self.model.predict(batchtensor, workers=workers)
+        return self.model.predict(batchtensor)
 
     # croppedimage in BGR loaded by opencv
     def preprocessImage(self, croppedimage):
-        # Convert img to RGB
-        croppedimage2classifier =  resize(cvtColor(croppedimage, COLOR_BGR2RGB), (CROP_SIZE,CROP_SIZE))
-        # This method does nothing and only kept as a placeholder
-        # to align the API surface between different versions of model
-        return preprocess_input(croppedimage2classifier)
+        batch = self.transforms(croppedimage)
+        #gestion plusieurs images
+        if len(batch.shape) == 3:
+            batch = batch.unsqueeze(dim=0)
+        return batch
