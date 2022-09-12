@@ -36,14 +36,13 @@
 ####################################################################################
 from os import environ
 
-import torch
-from matplotlib import pyplot as plt
+from PIL import Image
 from torchvision.transforms import InterpolationMode, transforms
 
 from devtest.model import Model
 
 environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # silencing TensorFlow
-from cv2 import cvtColor,COLOR_BGR2RGB,resize
+from cv2 import cvtColor, COLOR_BGR2RGB, resize, cv2
 
 CROP_SIZE = 300
 NBCLASSE = 22
@@ -63,7 +62,7 @@ class Classifier:
         self.model = Model(backbone=BACKBONE, num_classes=NBCLASSE)
         self.model.load_weights(weight_path)
         self.transforms = transforms.Compose(
-    [transforms.ToPILImage(),transforms.Resize((300, 300), interpolation=InterpolationMode.NEAREST),
+    [transforms.Resize((300, 300), interpolation=InterpolationMode.NEAREST),
          transforms.ToTensor()])
         
     def predictOnBatch(self, batchtensor, workers=1):
@@ -71,7 +70,9 @@ class Classifier:
 
     # croppedimage in BGR loaded by opencv
     def preprocessImage(self, croppedimage):
-        batch = self.transforms(croppedimage)
+        croppedimage = cv2.cvtColor(croppedimage, cv2.COLOR_BGR2RGB)
+        croppedimage_pil = Image.fromarray(croppedimage)
+        batch = self.transforms(croppedimage_pil)
         #gestion plusieurs images
         if len(batch.shape) == 3:
             batch = batch.unsqueeze(dim=0)
