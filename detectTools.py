@@ -64,13 +64,14 @@ class Detector:
         yololayers = [self.yolo.getLayerNames()[i - 1] for i in self.yolo.getUnconnectedOutLayers()]
         layerOutputs = self.yolo.forward(yololayers)
         boxes_detected = []
+        categories_detected = []
         confidences_scores = []
         for output in layerOutputs:
             # Looping over each of the detections
             for detection in output:
                 scores = detection[5:]
-                boxclass = np.argmax(scores)
-                confidence = scores[boxclass]
+                category = 1+np.argmax(scores) # category>0 non empty (==0)
+                confidence = scores[np.argmax(scores)]
                 if confidence > threshold:
                     # Bounding box in [0,1]x[0,1]
                     (boxcenterx, boxcentery, boxwidth, boxheight) = detection[0:4]
@@ -78,24 +79,33 @@ class Detector:
                     cornerx = (boxcenterx - (boxwidth / 2))
                     cornery = (boxcentery - (boxheight / 2))
                     boxes_detected.append([cornerx, cornery, boxwidth, boxheight])
+                    categories_detected.append(category)
                     confidences_scores.append(float(confidence))
-                    # Removing overlap and duplicates
+        # Removing overlap and duplicates
         final_boxes = cv2.dnn.NMSBoxes(boxes_detected, confidences_scores, threshold, threshold)
         if len(final_boxes):
             # Focus on the most confident bounding box
             kbox = final_boxes[0]
             (cornerx, cornery) = (boxes_detected[kbox][0], boxes_detected[kbox][1])        
             (boxwidth, boxheight) = (boxes_detected[kbox][2], boxes_detected[kbox][3])
-            # Back to image dimension in pixels
-            cornerx = np.around(cornerx*width).astype("int")
-            boxwidth = np.around(boxwidth*width).astype("int")
-            cornery = np.around(cornery*height).astype("int")
-            boxheight = np.around(boxheight*height).astype("int")
-            #print((cornerx, cornery),(cornerx+boxwidth, cornery+boxheight))
-            croppedimage = image[max(0,cornery):min(height,cornery+boxheight),
-                                 max(0,cornerx):min(width,cornerx+boxwidth)]
-            return croppedimage, True
-        return [], False
+            category = categories_detected[kbox]
+            # is an animal detected ?
+            if category != 1:
+                croppedimage = []
+            # if yes, cropping the bounding box
+            else:
+                # Back to image dimension in pixels
+                cornerx = np.around(cornerx*width).astype("int")
+                boxwidth = np.around(boxwidth*width).astype("int")
+                cornery = np.around(cornery*height).astype("int")
+                boxheight = np.around(boxheight*height).astype("int")
+                #print((cornerx, cornery),(cornerx+boxwidth, cornery+boxheight))
+                croppedimage = image[max(0,cornery):min(height,cornery+boxheight),
+                                     max(0,cornerx):min(width,cornerx+boxwidth)]
+        else: # is empty
+            category = 0
+            croppedimage = []
+        return croppedimage, category
 
 
 ####################################################################################

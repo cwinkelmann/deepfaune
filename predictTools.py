@@ -170,20 +170,20 @@ class Predictor(PredictorBase):
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:
-            idxnonempty = []
+            idxanimal = []
             for k in range(self.k1,self.k2):
                 image_path = self.fileManager.getFilename(k)
                 original_image = cv2.imread(image_path)
                 if original_image is None:
                     pass # Corrupted image, considered as empty
                 else:
-                    croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
-                    if nonempty:
+                    croppedimage, category = self.detector.bestBoxDetection(original_image)
+                    if category == 1: # animal
                         self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                        idxnonempty.append(k)
-            if len(idxnonempty):
-                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
-                self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
+                        idxanimal.append(k)
+            if len(idxanimal):
+                self.prediction[idxanimal,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], cv2.getNumThreads())
+                self.prediction[idxanimal,self.nbclasses] = 0 # not empty
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
@@ -212,7 +212,7 @@ class PredictorVideo(PredictorBase):
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:   
-            idxnonempty = []      
+            idxanimal = []      
             video_path = self.fileManager.getFilename(self.k1)
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -230,14 +230,14 @@ class PredictorVideo(PredictorBase):
                     pass # Corrupted or unavailable image, considered as empty
                 else:
                     original_image = frame
-                    croppedimage, nonempty = self.detector.bestBoxDetection(original_image)
-                    if nonempty:
+                    croppedimage, category = self.detector.bestBoxDetection(original_image)
+                    if category == 1: # animal
                         self.cropped_data[k,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                        idxnonempty.append(k)
+                        idxanimal.append(k)
                 k = k+1
-            if len(idxnonempty):
-                predictionbynonemptyframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxnonempty],:,:,:])
-                self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbynonemptyframe,axis=0)/len(idxnonempty)
+            if len(idxanimal):
+                predictionbyanimalframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
+                self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbyanimalframe,axis=0)/len(idxanimal)
                 self.prediction[self.k1,self.nbclasses] = 0 # not empty
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
@@ -262,21 +262,21 @@ class PredictorJSON(PredictorBase):
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:
-            idxnonempty = []
+            idxanimal = []
             for k in range(self.k1,self.k2):
                 croppedimage, category = self.detector.nextBestBoxDetection()
                 if category > 0: # not empty
                     self.prediction[k,self.nbclasses] = 0.
                 if category == 1: # animal
                     self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                    idxnonempty.append(k)
+                    idxanimal.append(k)
                 # if category == 2: # human
                 #     self.prediction[k,idx_human] = 1.
                 # if category == 3: # vehicle
                 #     self.prediction[k,idx_vehicle] = 1.
-            if len(idxnonempty):
-                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
-                self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
+            if len(idxanimal):
+                self.prediction[idxanimal,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], cv2.getNumThreads())
+                self.prediction[idxanimal,self.nbclasses] = 0 # not empty
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
