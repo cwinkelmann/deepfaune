@@ -246,14 +246,13 @@ class PredictorVideo(PredictorBase):
                     if category > 0: # not empty
                         idxnonempty.append(k)
                     if category == 1: # animal
-                        self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                        self.cropped_data[k,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxanimal.append(k)
                     if category == 2: # human
                         predictionallframe[k,self.idxhuman] = 1.
                     if category == 3: # vehicle
                         predictionallframe[k,self.idxvehicle] = 1.
                 k = k+1
-            print(idxanimal)
             if len(idxanimal): # predicting species in frames with animal 
                 predictionallframe[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
             if len(idxnonempty): # not empty
