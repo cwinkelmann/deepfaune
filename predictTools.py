@@ -34,6 +34,7 @@ import cv2
 import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
+from math import log
 
 import torch
 
@@ -183,7 +184,7 @@ class Predictor(PredictorBase):
                 else:
                     croppedimage, category = self.detector.bestBoxDetection(original_image)
                     if category > 0: # not empty
-                        self.prediction[k,-1] = 0 # not empty
+                        self.prediction[k,-1] = 0.
                     if category == 1: # animal
                         self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxanimal.append(k)
@@ -191,8 +192,8 @@ class Predictor(PredictorBase):
                         self.prediction[k,self.idxhuman] = 1.
                     if category == 3: # vehicle
                         self.prediction[k,self.idxvehicle] = 1.
-            if len(idxanimal):
-                self.prediction[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], cv2.getNumThreads())
+            if len(idxanimal): # predicting species in images with animal 
+                self.prediction[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
@@ -221,7 +222,8 @@ class PredictorVideo(PredictorBase):
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:   
-            idxanimal = []      
+            idxanimal = []
+            idxnonempty = []
             video_path = self.fileManager.getFilename(self.k1)
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -231,6 +233,7 @@ class PredictorVideo(PredictorBase):
             lag = fps # lag between two successice frames
             while((BATCH_SIZE-1)*lag>total_frames):
                 lag = lag-1 # reducing lag if video duration is less than BATCH_SIZE sec
+            predictionallframe = np.zeros(shape=(BATCH_SIZE, self.nbclasses), dtype=np.float32)
             k = 0
             for kframe in range(0, BATCH_SIZE*lag, lag):
                 video.set(cv2.CAP_PROP_POS_FRAMES, kframe)
@@ -241,18 +244,23 @@ class PredictorVideo(PredictorBase):
                     original_image = frame
                     croppedimage, category = self.detector.bestBoxDetection(original_image)
                     if category > 0: # not empty
-                        self.prediction[k,-1] = 0 # not empty
+                        idxnonempty.append(k)
                     if category == 1: # animal
                         self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxanimal.append(k)
                     if category == 2: # human
-                        self.prediction[k,self.idxhuman] = 1.
+                        predictionallframe[k,self.idxhuman] = 1.
                     if category == 3: # vehicle
-                        self.prediction[k,self.idxvehicle] = 1.
+                        predictionallframe[k,self.idxvehicle] = 1.
                 k = k+1
-            if len(idxanimal):
-                predictionbyanimalframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
-                self.prediction[self.k1,0:len(txt_classes[self.LANG])] = np.sum(predictionbyanimalframe,axis=0)/len(idxanimal)
+            print(idxanimal)
+            if len(idxanimal): # predicting species in frames with animal 
+                predictionallframe[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
+            if len(idxnonempty): # not empty
+                self.prediction[self.k1,-1] = 0.
+                # voting with frames with animal/human/vehicle
+                self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionallframe[idxnonempty,:],axis=0)/len(idxnonempty)
+                # could be -log(1-x) for x in predictionallframe to exponantially favor scores close to 1.
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
@@ -280,7 +288,7 @@ class PredictorJSON(PredictorBase):
             for k in range(self.k1,self.k2):
                 croppedimage, category = self.detector.nextBestBoxDetection()
                 if category > 0: # not empty
-                    self.prediction[k,-1] = 0 # not empty
+                    self.prediction[k,-1] = 0
                 if category == 1: # animal
                     self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                     idxanimal.append(k)
@@ -289,7 +297,7 @@ class PredictorJSON(PredictorBase):
                 if category == 3: # vehicle
                      self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal):
-                self.prediction[idxanimal,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], cv2.getNumThreads())
+                self.prediction[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
