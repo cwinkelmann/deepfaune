@@ -252,8 +252,7 @@ class PredictorVideo(PredictorBase):
                 k = k+1
             if len(idxanimal):
                 predictionbyanimalframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
-                self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionbyanimalframe,axis=0)/len(idxanimal)
-                self.prediction[self.k1,self.nbclasses] = 0 # not empty
+                self.prediction[self.k1,0:len(txt_classes[self.LANG])] = np.sum(predictionbyanimalframe,axis=0)/len(idxanimal)
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
