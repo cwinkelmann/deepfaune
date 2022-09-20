@@ -47,7 +47,7 @@ from torchvision.transforms import InterpolationMode, transforms
 from cv2 import cv2
 
 CROP_SIZE = 300
-NBCLASSE = 22
+NBCLASSES = 22
 BACKBONE = "efficientnet_b3"
 weight_path = "efficientnet_b3_22_produc3.pt"
 
@@ -65,22 +65,21 @@ txt_classes = {
 class Classifier:
 
     def __init__(self):
-        self.model = Model(backbone=BACKBONE, num_classes=NBCLASSE)
+        self.model = Model()
         self.model.loadWeights(weight_path)
         self.transforms = transforms.Compose(
     [transforms.Resize((300, 300), interpolation=InterpolationMode.NEAREST),
          transforms.ToTensor()])
 
-    def predictOnBatch(self, batchtensor, workers=1):
+    def predictOnBatch(self, batchtensor):
         return self.model.predict(batchtensor)
 
     # croppedimage in BGR loaded by opencv
     def preprocessImage(self, croppedimage):
         croppedimage = cv2.cvtColor(croppedimage, cv2.COLOR_BGR2RGB)
         croppedimagePil = Image.fromarray(croppedimage)
-        batch = self.transforms(croppedimagePil)
-        batch = batch.unsqueeze(dim=0)
-        return batch
+        preprocessimage = self.transforms(croppedimagePil)
+        return preprocessimage.unsqueeze(dim=0)
 
 
 ####################################################################################
@@ -88,20 +87,20 @@ class Classifier:
 ####################################################################################
 
 class Model(nn.Module):
-    def __init__(self, backbone="efficientnet_b3", num_classes=10):
+    def __init__(self, backbone=BACKBONE, nbclasses=NBCLASSES):
         """
         Constructor of model using pre-train image detector with classifier
 
         :param backbone: name of pre-train model (see >>>timm.list_models(pretrained=True))  : str
-        :param num_classes: number of class for classification : int
+        :param nbclasses : number of class for classification : int
         """
         super().__init__()
         if backbone not in timm.list_models(pretrained=True):
             raise Exception("{} is not a known pretrain model \n Please choose a model in this list :"
                             "({})".format(backbone, timm.list_models(pretrained=True)))
-        self.base_model = timm.create_model(backbone, pretrained=True, num_classes=num_classes)
+        self.base_model = timm.create_model(backbone, pretrained=True, num_classes=nbclasses )
         self.backbone = backbone
-        self.num_classes = num_classes
+        self.nbclasses = nbclasses
 
     def forward(self, input):
         x = self.base_model(input)
@@ -140,16 +139,15 @@ class Model(nn.Module):
             if self.backbone != args['backbone']:
                 raise Exception("You load a model ({}) that does not have the same architecture as the initial model "
                                 "({})".format(args['backbone'], self.backbone))
-            if self.num_classes != args['num_classes']:
+            if self.nbclasses != args['num_classes']:
                 raise Exception("You load a model ({}) that does not have the same number of class"
-                                "({})".format(args['num_classes'], self.num_classes))
-
+                                "({})".format(args['num_classes'], self.nbclasses))
             self.backbone = args['backbone']
-            self.num_classes = args['num_classes']
+            self.nbclasses = args['num_classes']
             self.load_state_dict(params['state_dict'])
             print("\n The loading checkpoint was successful ! \n")
             print("\tModel : ", self.backbone)
-            print("\tNumber of classes : ", self.num_classes)
+            print("\tNumber of classes : ", self.nbclasses)
             print("")
         except Exception as e:
             print("\n/!\ Can't load checkpoint model /!\ because :\n\n " + str(e), file=sys.stderr)
