@@ -182,7 +182,7 @@ class Predictor(PredictorBase):
                         self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxnonempty.append(k)
             if len(idxnonempty):
-                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:], cv2.getNumThreads())
+                self.prediction[idxnonempty,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxnonempty],:,:,:])
                 self.prediction[idxnonempty,self.nbclasses] = 0 # not empty
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
