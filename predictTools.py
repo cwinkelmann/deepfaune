@@ -44,15 +44,19 @@ from fileManager import FileManager
 BATCH_SIZE = 8
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 txt_empty = {'fr':"vide", 'gb':"empty"}
+txt_labels = {'fr': txt_classes['fr']+["humain","vehicule"],
+              'gb': txt_classes['gb']+["human","vehicle"]}
 
 class PredictorBase(ABC):
     def __init__(self, filenames, threshold, LANG):
         self.LANG = LANG
         self.fileManager = FileManager(filenames)
         self.cropped_data = torch.ones((BATCH_SIZE,3,CROP_SIZE,CROP_SIZE))
-        self.nbclasses=len(txt_classes[LANG])
+        self.nbclasses = len(txt_labels[self.LANG])
+        self.idxhuman = len(txt_classes[self.LANG]) # idx of 'human' class in prediction
+        self.idxvehicle = self.idxhuman+1 # idx of 'vehicle' class in prediction
         self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
-        self.prediction[:,self.nbclasses] = 1. # by default, predicted as empty
+        self.prediction[:,-1] = 1. # by default, predicted as empty
         self.predictedclass_base = [txt_undefined[LANG]]*self.fileManager.nbFiles()
         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.predictedclass = []
@@ -121,11 +125,11 @@ class PredictorBase(ABC):
         else:
             k1 = 0
             k2 = self.fileManager.nbFiles()
-        txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
+        txt_labelsempty_lang = txt_labels[self.LANG] + [txt_empty[self.LANG]]
         for k in range(k1,k2):
             pred = self.prediction[k,]
             if(max(pred)>=self.threshold):
-                self.predictedclass_base[k] = txt_classesempty_lang[np.argmax(pred)]
+                self.predictedclass_base[k] = txt_labelsempty_lang[np.argmax(pred)]
             self.predictedscore_base[k] = int(max(pred)*100)/100.
     
     def __majorityVotingInSequence(self, df_prediction):
@@ -178,12 +182,17 @@ class Predictor(PredictorBase):
                     pass # Corrupted image, considered as empty
                 else:
                     croppedimage, category = self.detector.bestBoxDetection(original_image)
+                    if category > 0: # not empty
+                        self.prediction[k,-1] = 0 # not empty
                     if category == 1: # animal
                         self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxanimal.append(k)
+                    if category == 2: # human
+                        self.prediction[k,self.idxhuman] = 1.
+                    if category == 3: # vehicle
+                        self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal):
-                self.prediction[idxanimal,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], cv2.getNumThreads())
-                self.prediction[idxanimal,self.nbclasses] = 0 # not empty
+                self.prediction[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], cv2.getNumThreads())
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
@@ -231,9 +240,15 @@ class PredictorVideo(PredictorBase):
                 else:
                     original_image = frame
                     croppedimage, category = self.detector.bestBoxDetection(original_image)
+                    if category > 0: # not empty
+                        self.prediction[k,-1] = 0 # not empty
                     if category == 1: # animal
-                        self.cropped_data[k,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                        self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxanimal.append(k)
+                    if category == 2: # human
+                        self.prediction[k,self.idxhuman] = 1.
+                    if category == 3: # vehicle
+                        self.prediction[k,self.idxvehicle] = 1.
                 k = k+1
             if len(idxanimal):
                 predictionbyanimalframe = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
@@ -266,17 +281,16 @@ class PredictorJSON(PredictorBase):
             for k in range(self.k1,self.k2):
                 croppedimage, category = self.detector.nextBestBoxDetection()
                 if category > 0: # not empty
-                    self.prediction[k,self.nbclasses] = 0.
+                    self.prediction[k,-1] = 0 # not empty
                 if category == 1: # animal
                     self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                     idxanimal.append(k)
-                # if category == 2: # human
-                #     self.prediction[k,idx_human] = 1.
-                # if category == 3: # vehicle
-                #     self.prediction[k,idx_vehicle] = 1.
+                if category == 2: # human
+                     self.prediction[k,self.idxhuman] = 1.
+                if category == 3: # vehicle
+                     self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal):
                 self.prediction[idxanimal,0:self.nbclasses] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], cv2.getNumThreads())
-                self.prediction[idxanimal,self.nbclasses] = 0 # not empty
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]

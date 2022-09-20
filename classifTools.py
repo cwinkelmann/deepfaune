@@ -55,8 +55,9 @@ txt_classes = {
     'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevreuil", "chien", "ecureuil", "equide", "lagomorphe",
            "loup", "lynx", "marmotte", "micromammifere", "mouflon", "mouton", "mustelide", "oiseau", "ours", "renard",
            "sanglier", "vache"],
-    'gb': ["badger", "ibex", "deer", "chamois", "cat", "roe deer", "dog", "squirrel", "equid", "lagomorph", "wolf",
-           "lynx", "marmot", "micromammal", "mouflon", "sheep", "mustelid" ",bird", "bear", "fox", "wild boar", "cow"]}
+    'gb': ["badger", "ibex", "red deer", "chamois", "cat", "roe deer", "dog", "squirrel", "equide", "lagomorph", "wolf",
+           "lynx", "marmot", "micromammal", "mouflon", "sheep", "mustelide", "bird", "bear", "fox", "wild boar", "cow"]
+}
 
 
 ####################################################################################
