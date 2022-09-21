@@ -37,6 +37,7 @@ import sys
 ####################################################################################
 from os import environ
 
+import cv2
 import numpy as np
 import timm
 import torch
@@ -44,7 +45,6 @@ import torch.nn as nn
 from PIL import Image
 from torchvision.transforms import InterpolationMode, transforms
 
-from cv2 import cv2
 
 CROP_SIZE = 300
 NBCLASSES = 22
@@ -96,10 +96,10 @@ class Model(nn.Module):
         :param nbclasses : number of class for classification : int
         """
         super().__init__()
-        if backbone not in timm.list_models(pretrained=True):
+        if backbone not in timm.list_models(pretrained=False):
             raise Exception("{} is not a known pretrain model \n Please choose a model in this list :"
                             "({})".format(backbone, timm.list_models(pretrained=True)))
-        self.base_model = timm.create_model(backbone, pretrained=True, num_classes=nbclasses )
+        self.base_model = timm.create_model(backbone, pretrained=False, num_classes=nbclasses)
         self.backbone = backbone
         self.nbclasses = nbclasses
 
