@@ -60,9 +60,7 @@ kbox = 0
 while True:
     try:
         # filenames
-        print("toto---------------------------------------------")
         filename  = detector.getCurrentFilename()
-        print("tata---------------------------------------------")
         prefix = basename(filename).rsplit(".",1)[0]
         if filename == prevfilename:
             kbox += 1
