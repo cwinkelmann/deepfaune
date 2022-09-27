@@ -77,9 +77,9 @@ class Classifier:
 
     # croppedimage in BGR loaded by opencv
     def preprocessImage(self, croppedimage):
-        croppedimage = cv2.cvtColor(croppedimage, cv2.COLOR_BGR2RGB)
-        croppedimagePil = Image.fromarray(croppedimage)
-        preprocessimage = self.transforms(croppedimagePil)
+        # croppedimage = cv2.cvtColor(croppedimage, cv2.COLOR_BGR2RGB)
+        # croppedimagePil = Image.fromarray(croppedimage)
+        preprocessimage = self.transforms(croppedimage)
         return preprocessimage.unsqueeze(dim=0)
 
 
