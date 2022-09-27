@@ -39,7 +39,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-YOLO_SIZE=1280
+YOLO_SIZE=640
 model = 'deepfaune-yolov4.weights'
 config = 'deepfaune-yolov4.cfg'
 
