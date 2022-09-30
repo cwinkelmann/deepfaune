@@ -35,13 +35,11 @@
 ### LOADING YOLO
 ####################################################################################
 import cv2
-import numpy as np
 import torch
 from PIL import Image
 
-YOLO_SIZE=640
-model = 'deepfaune-yolov4.weights'
-config = 'deepfaune-yolov4.cfg'
+YOLO_SIZE = 640
+model = 'yolov5_last.pt'
 
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -49,7 +47,7 @@ config = 'deepfaune-yolov4.cfg'
 class Detector:
     
     def __init__(self):
-        self.yolo = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5_last.pt')
+        self.yolo = torch.hub.load('ultralytics/yolov5', 'custom', path=model)
 
 
     """

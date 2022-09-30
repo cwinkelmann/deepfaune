@@ -32,18 +32,16 @@
 # knowledge of the CeCILL license and that you accept its terms.
 
 import sys
-####################################################################################
-### LOADING CLASSIFIER
-####################################################################################
-from os import environ
 
-import cv2
 import numpy as np
 import timm
 import torch
 import torch.nn as nn
-from PIL import Image
 from torchvision.transforms import InterpolationMode, transforms
+
+####################################################################################
+### LOADING CLASSIFIER
+####################################################################################
 
 
 CROP_SIZE = 300
@@ -75,10 +73,8 @@ class Classifier:
     def predictOnBatch(self, batchtensor):
         return self.model.predict(batchtensor)
 
-    # croppedimage in BGR loaded by opencv
+    # croppedimage loaded by PIL
     def preprocessImage(self, croppedimage):
-        # croppedimage = cv2.cvtColor(croppedimage, cv2.COLOR_BGR2RGB)
-        # croppedimagePil = Image.fromarray(croppedimage)
         preprocessimage = self.transforms(croppedimage)
         return preprocessimage.unsqueeze(dim=0)
 
