@@ -35,11 +35,11 @@
 ### LOADING YOLO
 ####################################################################################
 import cv2
-import torch
 from PIL import Image
+import yolov5
 
 YOLO_SIZE = 640
-model = 'yolov5_last.pt'
+model = 'yolov5/yolov5m6_best.pt'
 
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -47,34 +47,35 @@ model = 'yolov5_last.pt'
 class Detector:
     
     def __init__(self):
-        self.yolo = torch.hub.load('ultralytics/yolov5', 'custom', path=model)
-
+        self.yolo = yolov5.load(model)
 
     """
     :param image: image in BGR loaded by opencv
     :param threshold : above threshold, keep the best box given
     """
-    def bestBoxDetection(self, image, threshold=0.5):
+    def bestBoxDetection(self, image_cv, threshold=0.5):
         '''
         in/out as numpy int array (0-255) in BGR
         '''
-        croppedimage = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(croppedimage)
+        self.yolo.conf = threshold
+        self.yolo.max_det = 1
+
+        image = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image)
+
         results = self.yolo(image, size=YOLO_SIZE)
 
-        detections = results.pandas().xyxy[0]
+        detection = results.pred[0].numpy()
 
-        if not len(detections):
+        if not len(detection):
             return [], 0
 
-        detection = detections.iloc[0]
-        score = float(detection['confidence'])
-        if score >= threshold:
-            ret_images = image.crop((detection['xmin'], detection['ymin'], detection['xmax'],detection['ymax']))
-            categories = detection['class'] + 1
-            return ret_images, int(categories)
-        else:
-            return [], 0
+        boxe = detection[0, :4]  # xmin, ymin, xmax, ymax
+
+        categorie = detection[0, 5] + 1
+        crop = image.crop((boxe[0], boxe[1], boxe[2], boxe[3]))
+
+        return crop, int(categorie)
 
 
 ####################################################################################
