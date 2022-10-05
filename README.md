@@ -10,9 +10,9 @@
 # NEWS
 ---
 
-Release v0.4 is available. 
+Release v0.5 is available. 
 
-Supported categories/species :  BADGER, IBEX, RED DEER, CHAMOIS/ISARD, CAT, ROE DEER, DOG, SQUIRREL, LAGOMORPH, WOLF, LYNX, MARMOT, MICROMAMMAL, MOUFLON, SHEEP, MUSTELIDE, BIRD, FOX, WILD BOAR, COW, HUMAN/VEHICLE, EMPTY
+Supported categories/species :  BADGER, IBEX, RED DEER, CHAMOIS/ISARD, CAT, ROE DEER, DOG, SQUIRREL, LAGOMORPH, WOLF, LYNX, MARMOT, MICROMAMMAL, MOUFLON, SHEEP, MUSTELIDE, BIRD, FOX, WILD BOAR, COW, EQUIDE, BEAR, HUMAN/VEHICLE, EMPTY
 
 ---
 # INSTALL
@@ -50,7 +50,8 @@ Download the model parameters *inside the deepfaune folder* where you can find `
 On Linux or Windows **with PyPi (pip)**:
 
 - Python 3.x (and `pip` which might be called `pip3` on your system)
-- Tensorflow: `pip install tensorflow`
+- PyTorch: `pip install torch torchvision`
+- Timm: `pip install timm`
 - Pandas: `pip install pandas`
 - Numpy: `pip install numpy`
 - OpenCV: `pip install opencv-python`
@@ -60,7 +61,7 @@ On Linux or Windows **with PyPi (pip)**:
 
 On Windows with **[Anaconda Individual Edition](https://www.anaconda.com/products/individual)** (WARNING: during installation of Anaconda, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE).
 
-- Open Anaconda window, search for `tensorflow` and click to install it, , as explained [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)
+- Open Anaconda window, search for `torchvision` and click to install it, , as explained [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)
 - (optional) Open Anaconda window, search for `openpyxl` and click to install it
 
 ---
