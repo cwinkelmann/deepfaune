@@ -32,20 +32,13 @@
 # knowledge of the CeCILL license and that you accept its terms.
 
 import sys
-
 import numpy as np
 import timm
 import torch
 import torch.nn as nn
 from torchvision.transforms import InterpolationMode, transforms
 
-####################################################################################
-### LOADING CLASSIFIER
-####################################################################################
-
-
 CROP_SIZE = 300
-NBCLASSES = 22
 BACKBONE = "efficientnet_b3"
 weight_path = "efficientnet_b3_22_produc3.pt"
 
@@ -84,20 +77,14 @@ class Classifier:
 ####################################################################################
 
 class Model(nn.Module):
-    def __init__(self, backbone=BACKBONE, nbclasses=NBCLASSES):
+    def __init__(self):
         """
-        Constructor of model using pre-train image detector with classifier
-
-        :param backbone: name of pre-train model (see >>>timm.list_models(pretrained=True))  : str
-        :param nbclasses : number of class for classification : int
+        Constructor of model classifier
         """
         super().__init__()
-        if backbone not in timm.list_models(pretrained=False):
-            raise Exception("{} is not a known pretrain model \n Please choose a model in this list :"
-                            "({})".format(backbone, timm.list_models(pretrained=True)))
-        self.base_model = timm.create_model(backbone, pretrained=False, num_classes=nbclasses)
-        self.backbone = backbone
-        self.nbclasses = nbclasses
+        self.base_model = timm.create_model(BACKBONE, pretrained=False, num_classes=len(txt_classes['fr']))
+        self.backbone = BACKBONE
+        self.nbclasses = len(txt_classes['fr'])
 
     def forward(self, input):
         x = self.base_model(input)
@@ -127,9 +114,6 @@ class Model(nn.Module):
 
         if path[-3:] != ".pt":
             path += ".pt"
-
-        print("#" * 20)
-        print("\n Loading...")
         try:
             params = torch.load(path, map_location=device)
             args = params['args']
@@ -142,11 +126,6 @@ class Model(nn.Module):
             self.backbone = args['backbone']
             self.nbclasses = args['num_classes']
             self.load_state_dict(params['state_dict'])
-            print("\n The loading checkpoint was successful ! \n")
-            print("\tModel : ", self.backbone)
-            print("\tNumber of classes : ", self.nbclasses)
-            print("")
         except Exception as e:
             print("\n/!\ Can't load checkpoint model /!\ because :\n\n " + str(e), file=sys.stderr)
             raise e
-        print("#" * 20)
