@@ -31,12 +31,11 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL license and that you accept its terms.
 import cv2
+import torch
 import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
 from math import log
-
-import torch
 
 from detectTools import Detector, DetectorJSON
 from classifTools import txt_classes, CROP_SIZE, Classifier
