@@ -39,7 +39,7 @@ from PIL import Image
 import yolov5
 
 YOLO_SIZE = 640
-model = 'yolov5/yolov5m6_best.pt'
+model = 'deepfaune-yolov5.pt'
 
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -50,32 +50,24 @@ class Detector:
         self.yolo = yolov5.load(model)
 
     """
-    :param image: image in BGR loaded by opencv
+    :param imagecv: image in BGR loaded by opencv
     :param threshold : above threshold, keep the best box given
     """
-    def bestBoxDetection(self, image_cv, threshold=0.5):
+    def bestBoxDetection(self, imagecv, threshold=0.5):
         '''
         in/out as numpy int array (0-255) in BGR
         '''
         self.yolo.conf = threshold
-        self.yolo.max_det = 1
-
-        image = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB)
         image = Image.fromarray(image)
-
         results = self.yolo(image, size=YOLO_SIZE)
-
-        detection = results.pred[0].numpy()
-
+        detection = results.pred[0].numpy() # first box with highest confidence
         if not len(detection):
             return [], 0
-
-        boxe = detection[0, :4]  # xmin, ymin, xmax, ymax
-
-        categorie = detection[0, 5] + 1
-        crop = image.crop((boxe[0], boxe[1], boxe[2], boxe[3]))
-
-        return crop, int(categorie)
+        box = detection[0, :4]  # xmin, ymin, xmax, ymax
+        category = int(detection[0, 5] + 1)
+        croppedimage = image.crop((boxe[0], boxe[1], boxe[2], boxe[3]))
+        return croppedimage, category
 
 
 ####################################################################################

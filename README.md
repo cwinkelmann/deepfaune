@@ -41,9 +41,12 @@ Then, uncompress the zip file.
 
 ###  2. Download and unzip the model parameters
 Download the model parameters *inside the deepfaune folder* where you can find `deepfauneGUI.py`:
-- Animal detector parameters: for version >=0.3 [deepfaune-yolov4.weights](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
- (for version <=0.2 [checkpoints.zip](https://pbil.univ-lyon1.fr/software/download/deepfaune/))
-- Classifier parameters: [efficientnet_xxxx.hdf5](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+
+- Animal detector parameters: for version >=0.5 [deepfaune-yolov5.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+ (for version 0.3/0.4 [deepfaune-yolov4.weights](https://pbil.univ-lyon1.fr/software/download/deepfaune/))
+
+- Classifier parameters: [deepfaune-efficientnetB3.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+(for version 0.3/0.4 [efficientnet_22classesOnlycroppedImgAugB3.hdf5](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
 
 ### 3. Install the dependencies
 
@@ -51,6 +54,7 @@ On Linux or Windows **with PyPi (pip)**:
 
 - Python 3.x (and `pip` which might be called `pip3` on your system)
 - PyTorch: `pip install torch torchvision`
+- yolov5: `pip install yolov5`
 - Timm: `pip install timm`
 - Pandas: `pip install pandas`
 - Numpy: `pip install numpy`
@@ -92,7 +96,7 @@ For any question, bug or feedback, feel free to send an email to [Vincent Miele]
 
 `deepfaune` is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html)
 
-Commercial use of any element of `deepfaune` is forbidden.
+Commercial use of any element of `deepfaune` (code or model weights) is forbidden.
 
 ---
 # REFERENCES

@@ -40,7 +40,7 @@ from torchvision.transforms import InterpolationMode, transforms
 
 CROP_SIZE = 300
 BACKBONE = "efficientnet_b3"
-weight_path = "efficientnet_b3_22_produc3.pt"
+weight_path = "deepfaune-efficientnetB3.pt"
 
 txt_classes = {
     'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevreuil", "chien", "ecureuil", "equide", "lagomorphe",
