@@ -48,8 +48,10 @@ class Detector:
     def __init__(self):
         self.yolo = yolov5.load(model)
     """
-    :param imagecv: image in BGR loaded by opencv
+    :param imagecv: openCV image in BGR
     :param threshold : above threshold, keep the best box given
+    :return: cropped image, possibly None
+    :rtype: PIL image
     """
     def bestBoxDetection(self, imagecv, threshold=0.5):
         '''
@@ -98,9 +100,14 @@ class DetectorJSON:
         self.k = 0 # current image index
         self.kbox = 0 # current box index
         self.imagecv = None
-        self.nextImread() # current image
 
+    """
+    :return: cropped image, possibly None
+    :rtype: PIL image
+    """
     def nextBestBoxDetection(self):
+        if self.k >= len(self.df_json):
+            raise IndexError # no next box
         if len(self.df_json['detections'][self.k]): # is non empty
             # Focus on the most confident bounding box coordinates
             self.kbox = argmax([box['conf'] for box in self.df_json['detections'][self.k]])
@@ -115,17 +122,22 @@ class DetectorJSON:
             croppedimage = []
         # if yes, cropping the bounding box
         else:
+            self.nextImread()
             croppedimage = self.cropBox()
-        # goto next image
         self.k += 1
-        self.nextImread()
         return croppedimage, category
 
+    """
+    :return: cropped image, possibly None
+    :rtype: PIL image
+    """
     def nextBoxDetection(self):
         if self.k >= len(self.df_json):
             raise IndexError # no next box
         # is an animal detected ?
         if len(self.df_json['detections'][self.k]):
+            if self.kbox == 0:
+                self.nextImread() 
             # is box above threshold ?
             if self.df_json['detections'][self.k][self.kbox]['conf']>self.threshold:
                 category = int(self.df_json['detections'][self.k][self.kbox]['category'])
@@ -137,30 +149,29 @@ class DetectorJSON:
             if self.kbox >= len(self.df_json['detections'][self.k]):
                 self.k += 1
                 self.kbox = 0
-                #try: XXXX
-                self.nextImread()
         else: # is empty
             category = 0
             croppedimage = []
             self.k += 1
             self.kbox = 0
-            #try:
-            self.nextImread()
-            #catch: XXXXXXX
-            #    self.imagecv = None
         return croppedimage, category
 
+    """
+    :return: image from file
+    :rtype: openCV image
+    """
     def nextImread(self):
-        if self.k >= len(self.df_json): # XXXXX
-            raise IndexError # no next image
         image_path = str(self.df_json["file"][self.k])
         self.imagecv = cv2.imread(image_path)
     
+    """
+    :return: cropped image, possibly None
+    :rtype: PIL image
+    """
     def cropBox(self):
         if self.imagecv is None:
             return []
-        self.imagecv = cv2.imread(image_path)
-        image = cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(self.imagecv, cv2.COLOR_BGR2RGB)
         bbox_norm = self.df_json['detections'][self.k][self.kbox]["bbox"]
         img_h, img_w = image.shape[:2]
         xmin = int(bbox_norm[0] * img_w)
@@ -172,8 +183,8 @@ class DetectorJSON:
         ymin = max(0, min(ymin - int((box_size - box_h) / 2),img_h - box_h))
         box_w = min(img_w, box_size)
         box_h = min(img_h, box_size)
-        croppedimage = image[max(0,ymin):min(img_h,ymin + box_h),
-                             max(0,xmin):min(img_w,xmin + box_w)]
+        croppedimage = Image.fromarray(image[max(0,ymin):min(img_h,ymin + box_h),
+                                             max(0,xmin):min(img_w,xmin + box_w)])
         return croppedimage
         
     def getNbFiles(self):
