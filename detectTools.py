@@ -58,8 +58,7 @@ class Detector:
         in/out as numpy int array (0-255) in BGR
         '''
         self.yolo.conf = threshold
-        image = cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(image)
+        image = Image.fromarray(cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB))
         results = self.yolo(image, size=YOLO_SIZE)
         detection = results.pred[0].numpy() # first box with highest confidence
         if not len(detection):
