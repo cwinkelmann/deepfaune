@@ -53,12 +53,13 @@ image_path = sys.argv[1]
 image = cv2.imread(image_path)
 
 ## OBJECT DETECTION
-cropped_image, nonempty = detector.bestBoxDetection(image)
+croppedimage, category = detector.bestBoxDetection(image)
+croppedimage = np.asarray(croppedimage) # from PIL to cv2
 
-if(nonempty):
+if(category):
     ## CLASSIFICATION
-    print(cropped_image.shape)
-    batch = classifier.preprocessImage(cropped_image)
+    print(croppedimage.shape)
+    batch = classifier.preprocessImage(croppedimage)
     print(batch.shape)
     scores = classifier.predictOnBatch(batch)
     print("Prediction :", txt_classes[LANG][np.argmax(scores[0,:])])

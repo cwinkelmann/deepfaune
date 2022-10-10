@@ -36,8 +36,8 @@ for kframe in range(0, BATCH_SIZE*lag, lag):
         pass # Corrupted or unavailable image, considered as empty
     else:
         original_image = frame
-        croppedimage, nonempty = detector.bestBoxDetection(original_image)
-        if nonempty:
+        croppedimage, category = detector.bestBoxDetection(original_image)
+        if category>0:
             cropped_data[k,:,:,:] =  classifier.preprocessImage(croppedimage)
             idxnonempty.append(k)
     k = k+1

@@ -44,14 +44,16 @@ detector = DetectorJSON(sys.argv[1])
 classifier = Classifier()
 
 ## OBJECT DETECTION
-cropped_image, nonempty = detector.nextBestBoxDetection()
+croppedimage, nonempty = detector.nextBestBoxDetection()
+croppedimage = np.asarray(croppedimage) # from PIL to cv2
+print(category)
 
 if(nonempty):
     ## CLASSIFICATION
     import numpy as np
     cropped_tensor = np.ones(shape=(1,CROP_SIZE,CROP_SIZE,3), dtype=np.float32)
-    cropped_tensor[0,:,:,:] =  classifier.preprocessImage(cropped_image)
-    scores = classifier.predictOnBatch(cropped_tensor)
+    cropped_tensor[0,:,:,:] =  classifier.preprocessImage(croppedimage)
+    scores = classifier.predictOnBatch(croppedtensor)
     print("Prediction :", txt_classes[LANG][np.argmax(scores[0,:])])
 else:
     print("Prediction : vide/empty") 

@@ -19,7 +19,8 @@ croppedimage = image
 from detectTools import Detector
 detector = Detector()
 croppedimage, nonempty = detector.bestBoxDetection(image, 0.25)
-print(nonempty)
+croppedimage = np.asarray(croppedimage) # from PIL to cv2
+print(category)
 
 #######################
 #######################
