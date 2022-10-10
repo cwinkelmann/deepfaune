@@ -34,18 +34,19 @@
 import sys
 import os
 from os.path import join, basename
-import cv2
+import PIL
 
 ## IMPORT DEEPFAUNE CLASSES
 curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
 sys.path.append(curdir+'/../') # to add the deepfaune path
 
-from detectTools import DetectorJSON
-from fileManager import FileManager
-
 if (len(sys.argv)!=6):
     print("Usage: python json2cropped.py <FILE.JSON> <CROPPEDANIMALPATH> <CROPPEDHUMANPATH> <CROPPEDVEHICLEPATH> <THRESHOLD>")
     exit()
+    
+from detectTools import DetectorJSON
+from fileManager import FileManager
+
 jsonfilename = sys.argv[1]
 CROPPEDANIMALPATH = sys.argv[2]
 CROPPEDHUMANPATH = sys.argv[3]
@@ -60,9 +61,7 @@ kbox = 0
 while True:
     try:
         # filenames
-        print("toto---------------------------------------------")
         filename  = detector.getCurrentFilename()
-        print("tata---------------------------------------------")
         prefix = basename(filename).rsplit(".",1)[0]
         if filename == prevfilename:
             kbox += 1
@@ -79,8 +78,8 @@ while True:
             if category == 3: # vehicle
                 croppedfilename = join(CROPPEDVEHICLEPATH,prefix+"_crop"+str(kbox)+".jpg")
             print(filename, croppedfilename, category)
-            if croppedimage != []:
-                cv2.imwrite(croppedfilename, croppedimage)
+            if category>0:
+                croppedimage.save(croppedfilename)
     except IndexError:
         break
         
