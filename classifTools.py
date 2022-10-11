@@ -42,7 +42,7 @@ CROP_SIZE = 300
 BACKBONE = "efficientnet_b3"
 weight_path = "deepfaune-efficientnetB3.pt"
 
-txt_classes = {
+txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevreuil", "chien", "ecureuil", "equide", "lagomorphe",
            "loup", "lynx", "marmotte", "micromammifere", "mouflon", "mouton", "mustelide", "oiseau", "ours", "renard",
            "sanglier", "vache"],
@@ -82,9 +82,9 @@ class Model(nn.Module):
         Constructor of model classifier
         """
         super().__init__()
-        self.base_model = timm.create_model(BACKBONE, pretrained=False, num_classes=len(txt_classes['fr']))
+        self.base_model = timm.create_model(BACKBONE, pretrained=False, num_classes=len(txt_animalclasses['fr']))
         self.backbone = BACKBONE
-        self.nbclasses = len(txt_classes['fr'])
+        self.nbclasses = len(txt_animalclasses['fr'])
 
     def forward(self, input):
         x = self.base_model(input)

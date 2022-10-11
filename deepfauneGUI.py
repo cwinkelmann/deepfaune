@@ -75,8 +75,7 @@ windowoptions.close()
 ####################################################################################
 ### GUI TEXT
 ####################################################################################
-from classifTools import txt_classes
-from predictTools import txt_undefined, txt_empty
+from predictTools import txt_undefined, txt_empty, txt_classes
 txt_other =  {'fr':"autre", 'gb':"other"}
 if VIDEO:
     txt_imagefolder = {'fr':"Dossier de vidéos", 'gb':"Video folder"}

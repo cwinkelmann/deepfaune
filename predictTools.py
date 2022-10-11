@@ -38,22 +38,22 @@ from abc import ABC, abstractmethod
 from math import log
 
 from detectTools import Detector, DetectorJSON
-from classifTools import txt_classes, CROP_SIZE, Classifier
+from classifTools import txt_animalclasses, CROP_SIZE, Classifier
 from fileManager import FileManager
 
 BATCH_SIZE = 8
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 txt_empty = {'fr':"vide", 'gb':"empty"}
-txt_labels = {'fr': txt_classes['fr']+["humain","vehicule"],
-              'gb': txt_classes['gb']+["human","vehicle"]}
+txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
+               'gb': txt_animalclasses['gb']+["human","vehicle"]}
 
 class PredictorBase(ABC):
     def __init__(self, filenames, threshold, LANG):
         self.LANG = LANG
         self.fileManager = FileManager(filenames)
         self.cropped_data = torch.ones((BATCH_SIZE,3,CROP_SIZE,CROP_SIZE))
-        self.nbclasses = len(txt_labels[self.LANG])
-        self.idxhuman = len(txt_classes[self.LANG]) # idx of 'human' class in prediction
+        self.nbclasses = len(txt_classes[self.LANG])
+        self.idxhuman = len(txt_animalclasses[self.LANG]) # idx of 'human' class in prediction
         self.idxvehicle = self.idxhuman+1 # idx of 'vehicle' class in prediction
         self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,-1] = 1. # by default, predicted as empty
@@ -125,11 +125,11 @@ class PredictorBase(ABC):
         else:
             k1 = 0
             k2 = self.fileManager.nbFiles()
-        txt_labelsempty_lang = txt_labels[self.LANG] + [txt_empty[self.LANG]]
+        txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
         for k in range(k1,k2):
             pred = self.prediction[k,]
             if(max(pred)>=self.threshold):
-                self.predictedclass_base[k] = txt_labelsempty_lang[np.argmax(pred)]
+                self.predictedclass_base[k] = txt_classesempty_lang[np.argmax(pred)]
             self.predictedscore_base[k] = int(max(pred)*100)/100.
     
     def __majorityVotingInSequence(self, df_prediction):
@@ -192,7 +192,7 @@ class Predictor(PredictorBase):
                     if category == 3: # vehicle
                         self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal): # predicting species in images with animal 
-                self.prediction[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
+                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
@@ -253,7 +253,7 @@ class PredictorVideo(PredictorBase):
                         predictionallframe[k,self.idxvehicle] = 1.
                 k = k+1
             if len(idxanimal): # predicting species in frames with animal 
-                predictionallframe[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
+                predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
             if len(idxnonempty): # not empty
                 self.prediction[self.k1,-1] = 0.
                 # voting with frames with animal/human/vehicle
@@ -295,7 +295,7 @@ class PredictorJSON(PredictorBase):
                 if category == 3: # vehicle
                      self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal):
-                self.prediction[idxanimal,0:len(txt_classes[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
+                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
