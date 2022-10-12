@@ -63,11 +63,13 @@ class Detector:
         detection = results.pred[0].numpy() # first box with highest confidence
         if not len(detection):
             return [], 0
-        box = detection[0, :4]  # xmin, ymin, xmax, ymax
         category = int(detection[0, 5] + 1)
-        croppedimage = image.crop((box[0], box[1], box[2], box[3]))
+        box = detection[0, :4]  # xmin, ymin, xmax, ymax
+        # rectangular version:
+        # croppedimage = image.crop((box[0], box[1], box[2], box[3]))
+        # square version:
+        croppedimage = cropSquare(image, box)
         return croppedimage, category
-
 
 ####################################################################################
 ### BEST BOX DETECTION WITH JSON
@@ -122,7 +124,7 @@ class DetectorJSON:
         # if yes, cropping the bounding box
         else:
             self.nextImread()
-            croppedimage = self.cropBox()
+            croppedimage = self.cropCurrentBox()
         self.k += 1
         return croppedimage, category
 
@@ -140,7 +142,7 @@ class DetectorJSON:
             # is box above threshold ?
             if self.df_json['detections'][self.k][self.kbox]['conf']>self.threshold:
                 category = int(self.df_json['detections'][self.k][self.kbox]['category'])
-                croppedimage = self.cropBox()
+                croppedimage = self.cropCurrentBox()
             else: # considered as empty
                 category = 0
                 croppedimage = []
@@ -167,23 +169,17 @@ class DetectorJSON:
     :return: cropped image, possibly None
     :rtype: PIL image
     """
-    def cropBox(self):
+    def cropCurrentBox(self):
         if self.imagecv is None:
             return []
-        image = cv2.cvtColor(self.imagecv, cv2.COLOR_BGR2RGB)
-        bbox_norm = self.df_json['detections'][self.k][self.kbox]["bbox"]
-        img_h, img_w = image.shape[:2]
-        xmin = int(bbox_norm[0] * img_w)
-        ymin = int(bbox_norm[1] * img_h)
-        box_w = int(bbox_norm[2] * img_w)
-        box_h = int(bbox_norm[3] * img_h)
-        box_size = max(box_w, box_h)
-        xmin = max(0, min(xmin - int((box_size - box_w) / 2),img_w - box_w))
-        ymin = max(0, min(ymin - int((box_size - box_h) / 2),img_h - box_h))
-        box_w = min(img_w, box_size)
-        box_h = min(img_h, box_size)
-        croppedimage = Image.fromarray(image[max(0,ymin):min(img_h,ymin + box_h),
-                                             max(0,xmin):min(img_w,xmin + box_w)])
+        image = Image.fromarray(cv2.cvtColor(self.imagecv, cv2.COLOR_BGR2RGB))
+        box_norm = self.df_json['detections'][self.k][self.kbox]["bbox"]
+        xmin = int(box_norm[0] * image.width)
+        ymin = int(box_norm[1] * image.height)
+        xmax = xmin + int(box_norm[2] * image.width)
+        ymax = ymin + int(box_norm[3] * image.height)
+        box = [xmin, ymin, xmax, ymax]
+        croppedimage = cropSquare(image, box)
         return croppedimage
         
     def getNbFiles(self):
@@ -204,3 +200,23 @@ class DetectorJSON:
     def merge(self, detector):
         self.df_json = concat([self.df_json, detector.df_json], ignore_index=True)
         self.resetDetection()
+
+  
+####################################################################################
+### TOOLS
+####################################################################################      
+'''
+:return: cropped image, as squared as possible (rectangle if close to the borders)
+'''
+def cropSquare(image, box):
+    xsize = (box[2]-box[0])
+    ysize = (box[3]-box[1])
+    if xsize>ysize:
+        box[1] = box[1]-int((xsize-ysize)/2)
+        box[3] = box[3]+int((xsize-ysize)/2)
+    if ysize>xsize:
+        box[0] = box[0]-int((ysize-xsize)/2)
+        box[2] = box[2]+int((ysize-xsize)/2)
+    croppedimage = image.crop((max(0,box[0]), max(0,box[1]), min(box[2],image.width), min(box[3],image.height)))
+    # croppedimage.show()
+    return croppedimage
