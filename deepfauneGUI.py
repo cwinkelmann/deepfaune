@@ -149,19 +149,6 @@ main_tab = [
     ])],
     [sg.Button(txt_run[LANG], expand_x=True, key='-RUN-')]
 ]
-results_tab = [
-    [sg.Frame(txt_predframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
-        [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
-                  vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
-                  enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
-                  key='-TABRESULTS-')],  
-        [sg.Button(txt_showall[LANG], key='-ALLTABROW-'),sg.Button(txt_showselected[LANG], key='-TABROW-')],
-    ])],   
-    [sg.Frame(txt_saveframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
-        [sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
-        [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
-    ])]
-]
 listCB = []
 lineCB = []
 sorted_txt_classes_lang = sorted(txt_classes[LANG])
@@ -175,18 +162,29 @@ if lineCB:
 select_tab = [
     [sg.Frame('', listCB, font='Any 13', expand_x=True, expand_y=True)]
 ]
+results_tab = [
+    [sg.Frame(txt_predframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
+                  vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
+                  enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
+                  key='-TABRESULTS-')],  
+        [sg.Button(txt_showall[LANG], key='-ALLTABROW-'),sg.Button(txt_showselected[LANG], key='-TABROW-')],
+    ])],   
+    [sg.Frame(txt_saveframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
+        [sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
+        [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
+    ])]
+]
 credits_tab = [
     [sg.Text("DeepFaune - version "+VERSION)],
     [sg.Text("Copyright CNRS - Licence CeCILL")],
     [sg.Text("https://www.deepfaune.cnrs.fr", font=('Any 13', 14, 'underline'), enable_events=True, key='-URL-')]
 ]
 
-#layout = [[sg.Column(left_col, element_justification='l' ),
-#           sg.Column(right_col, element_justification='l')]]
 layout = [[sg.TabGroup(
     [[sg.Tab(txt_maintab[LANG], main_tab),
-      sg.Tab(txt_resultstab[LANG], results_tab, expand_x=True),
       sg.Tab(txt_selecttab[LANG], select_tab, expand_x=True),
+      sg.Tab(txt_resultstab[LANG], results_tab, expand_x=True),
       sg.Tab(txt_creditstab[LANG], credits_tab, expand_x=True)]],
     expand_x=True, expand_y=True)]]
 

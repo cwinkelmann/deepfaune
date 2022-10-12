@@ -133,10 +133,16 @@ class PredictorBase(ABC):
         txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
         for k in range(k1,k2):
             pred = self.prediction[k,]
+            if len(self.idxforbidden):
+                pred[self.idxforbidden] = 0.
+                pred = pred/np.sum(pred)
             idxmax = np.argmax(pred)
-            if not idxmax in self.idxforbidden:
-                if(max(pred)>=self.threshold):
-                    self.predictedclass_base[k] = txt_classesempty_lang[idxmax]
+            if(max(pred)>=self.threshold):
+                self.predictedclass_base[k] = txt_classesempty_lang[idxmax]
+            #idxmax = np.argmax(pred)
+            #if not idxmax in self.idxforbidden:
+            #    if(max(pred)>=self.threshold):
+            #        self.predictedclass_base[k] = txt_classesempty_lang[idxmax]
             self.predictedscore_base[k] = int(max(pred)*100)/100.
                 
     def __majorityVotingInSequence(self, df_prediction):
