@@ -40,7 +40,13 @@ while True:
                 forbiddenclasses += [label]
 window.close()
 
-idxforbidden = which(txt_classes[LANG] in forbiddenclasses)
-pred = self.prediction[k,-idxforbidden]
+
+prediction = np.random.sample((4,len(txt_classes[LANG])))
+
+idxforbidden = [idx for idx in range(0,len(txt_classes[LANG])) if txt_classes[LANG][idx] in forbiddenclasses]
+pred = prediction[k,]
+if np.argmax(pred) in idxforbidden:
+    print("Unknown")
+    
 if(max(pred)>=self.threshold):
     self.predictedclass_base[k] = txt_classesempty_lang[-idxforbidden][np.argmax(pred)]

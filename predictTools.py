@@ -55,6 +55,7 @@ class PredictorBase(ABC):
         self.nbclasses = len(txt_classes[self.LANG])
         self.idxhuman = len(txt_animalclasses[self.LANG]) # idx of 'human' class in prediction
         self.idxvehicle = self.idxhuman+1 # idx of 'vehicle' class in prediction
+        self.idxforbidden = [] # idx of forbidden classes
         self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,-1] = 1. # by default, predicted as empty
         self.predictedclass_base = [txt_undefined[LANG]]*self.fileManager.nbFiles()
@@ -94,6 +95,10 @@ class PredictorBase(ABC):
     
     def getDates(self):
         return self.fileManager.getDates()
+
+    def setForbiddenClasses(self, forbiddenclasses):
+        self.idxforbidden = [idx for idx in range(0,len(txt_classes[self.LANG]))
+                             if txt_classes[self.LANG][idx] in forbiddenclasses]
         
     def merge(self, predictor):
         if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
@@ -128,10 +133,12 @@ class PredictorBase(ABC):
         txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
         for k in range(k1,k2):
             pred = self.prediction[k,]
-            if(max(pred)>=self.threshold):
-                self.predictedclass_base[k] = txt_classesempty_lang[np.argmax(pred)]
+            idxmax = np.argmax(pred)
+            if not idxmax in self.idxforbidden:
+                if(max(pred)>=self.threshold):
+                    self.predictedclass_base[k] = txt_classesempty_lang[idxmax]
             self.predictedscore_base[k] = int(max(pred)*100)/100.
-    
+                
     def __majorityVotingInSequence(self, df_prediction):
         txt_empty_lang = txt_empty[self.LANG]
         majority = df_prediction.groupby(['prediction']).sum()
