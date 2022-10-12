@@ -98,6 +98,7 @@ class Model(nn.Module):
         """
         self.eval()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.to(device)
         total_output = []
         with torch.no_grad():
             x = data.to(device)
