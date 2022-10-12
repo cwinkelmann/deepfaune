@@ -450,13 +450,13 @@ while True:
                     video.set(cv2.CAP_PROP_POS_FRAMES, 1)
                     ret,image = video.read()
                     if not ret:
-                        image = np.zeros((500,400,3), np.uint8)
+                        image = np.zeros((400,500,3), np.uint8)
                     else:
                         image = cv2.resize(image, (500,400))
                 else:
                     image = cv2.imread(filenames[curridx])
                     if image is None:
-                        image = np.zeros((500,400,3), np.uint8)
+                        image = np.zeros((400,500,3), np.uint8)
                     else:
                         image = cv2.resize(image, (500,400))
                 is_success, png_buffer = cv2.imencode(".png", image)
