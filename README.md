@@ -19,6 +19,7 @@ Supported categories/species :  BADGER, IBEX, RED DEER, CHAMOIS/ISARD, CAT, ROE 
 ---
 
 ## FOR WINDOWS USERS
+`Deepfaune` sofware is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html).
 
 The latest versions are available at:
 [https://pbil.univ-lyon1.fr/software/download/deepfaune/](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
@@ -29,7 +30,7 @@ The latest versions are available at:
 
 
 ## FOR LINUX / MAC OS USERS (and WINDOWS  USERS used to Python)
-
+`Deepfaune` sofware is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html).
 
 ### 1. Get the source code of the latest release, directly from this site. 
 First of all, get the `zip` archive by clicking on the button ![button](img/button.jpg) on the top right of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
@@ -40,6 +41,8 @@ This will open the following window where you can download the whole directory a
 Then, uncompress the zip file.
 
 ###  2. Download and unzip the model parameters
+The model parameters are protected by the [CC BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0/) (Attribution-NonCommercial-ShareAlike 4.0 International).
+
 Download the model parameters *inside the deepfaune folder* where you can find `deepfauneGUI.py`:
 
 - Animal detector parameters: for version >=0.5 [deepfaune-yolov5.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
@@ -94,7 +97,9 @@ For any question, bug or feedback, feel free to send an email to [Vincent Miele]
 # LICENCE
 ---
 
-`deepfaune` is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html)
+`Deepfaune` sofware is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html).
+
+`Deepfaune` model parameters are released under the [CC BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0/) (Attribution-NonCommercial-ShareAlike 4.0 International).
 
 Commercial use of any element of `deepfaune` (code or model weights) is forbidden.
 
