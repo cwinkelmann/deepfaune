@@ -357,21 +357,19 @@ while True:
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
-        confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.csv")+"?", keep_on_top=True)
-        if confirm == 'Yes':
-            frgbprint("Enregistrement dans "+join(testdir,"deepfaune.csv"), "Saving to "+join(testdir,"deepfaune.csv"))
-            preddf.to_csv(join(testdir,"deepfaune.csv"), index=False)
-            window['-SAVECSV-'].Update(disabled=True)
+        csvpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.csv", default_extension='csv', initial_folder=testdir)
+        frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
+        preddf.to_csv(csvpath, index=False)
+        window['-SAVECSV-'].Update(disabled=True)
     elif event == '-SAVEXLSX-':
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
-        confirm = sg.popup_yes_no(txt_savepredictions[LANG]+join(testdir,"deepfaune.xslx")+"?", keep_on_top=True)
-        if confirm == 'Yes':
-            frgbprint("Enregistrement dans "+join(testdir,"deepfaune.xlsx"), "Saving to "+join(testdir,"deepfaune.xlsx"))
-            preddf.to_excel(join(testdir,"deepfaune.xlsx"), index=False)
-            window['-SAVEXLSX-'].Update(disabled=True)
+        xlsxpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.xlsx", default_extension='xlsx', initial_folder=testdir)
+        frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
+        preddf.to_excel(xlsxpath, index=False)
+        window['-SAVEXLSX-'].Update(disabled=True)
     elif event == '-TABRESULTS-':
         rowidx = values['-TABRESULTS-']
         if len(rowidx)==0:
