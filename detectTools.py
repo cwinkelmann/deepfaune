@@ -162,9 +162,8 @@ class DetectorJSON:
     :rtype: openCV image
     """
     def nextImread(self):
-        image_path = str(self.df_json["file"][self.k])
         try:
-            self.imagecv = cv2.imread(image_path)
+            self.imagecv = cv2.imread(str(self.df_json["file"][self.k]))
         except:
             self.imagecv = None
     
