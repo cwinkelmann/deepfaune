@@ -163,7 +163,11 @@ class DetectorJSON:
     """
     def nextImread(self):
         image_path = str(self.df_json["file"][self.k])
-        self.imagecv = cv2.imread(image_path)
+        try:
+            self.imagecv = cv2.imread(image_path)
+        except:
+            self.imagecv = None
+    
     
     """
     :return: cropped image, possibly None

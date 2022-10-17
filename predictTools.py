@@ -190,11 +190,11 @@ class Predictor(PredictorBase):
             idxanimal = []
             for k in range(self.k1,self.k2):
                 image_path = self.fileManager.getFilename(k)
-                original_image = cv2.imread(image_path)
-                if original_image is None:
+                imagecv = cv2.imread(image_path)
+                if imagecv is None:
                     pass # Corrupted image, considered as empty
                 else:
-                    croppedimage, category = self.detector.bestBoxDetection(original_image)
+                    croppedimage, category = self.detector.bestBoxDetection(imagecv)
                     if category > 0: # not empty
                         self.prediction[k,-1] = 0.
                     if category == 1: # animal
@@ -253,8 +253,8 @@ class PredictorVideo(PredictorBase):
                 if not ret:
                     pass # Corrupted or unavailable image, considered as empty
                 else:
-                    original_image = frame
-                    croppedimage, category = self.detector.bestBoxDetection(original_image)
+                    imagecv = frame
+                    croppedimage, category = self.detector.bestBoxDetection(imagecv)
                     if category > 0: # not empty
                         idxnonempty.append(k)
                     if category == 1: # animal

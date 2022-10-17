@@ -409,18 +409,21 @@ while True:
         if VIDEO:
             video = cv2.VideoCapture(filenames[curridx])
             video.set(cv2.CAP_PROP_POS_FRAMES, 1)
-            ret,image = video.read()
+            ret,imagecv = video.read()
             if not ret:
-                image = np.zeros((400,500,3), np.uint8)
+                imagecv = np.zeros((400,500,3), np.uint8)
             else:
-                image = cv2.resize(image, (500,400))
+                imagecv = cv2.resize(imagecv, (500,400))
         else:
-            image = cv2.imread(filenames[curridx])
-            if image is None:
-                image = np.zeros((400,500,3), np.uint8)
+            try:
+                imagecv = cv2.imread(filenames[curridx])
+            except:
+                imagecv = None
+            if imagecv is None:
+                imagecv = np.zeros((400,500,3), np.uint8)
             else:
-                image = cv2.resize(image, (500,400))
-        is_success, png_buffer = cv2.imencode(".png", image)
+                imagecv = cv2.resize(imagecv, (500,400))
+        is_success, png_buffer = cv2.imencode(".png", imagecv)
         bio = BytesIO(png_buffer)
         windowimg["-IMAGE-"].update(data=bio.getvalue())
         ### CORRECTING PREDICTION
@@ -469,18 +472,21 @@ while True:
                 if VIDEO:
                     video = cv2.VideoCapture(filenames[curridx])
                     video.set(cv2.CAP_PROP_POS_FRAMES, 1)
-                    ret,image = video.read()
+                    ret,imagecv = video.read()
                     if not ret:
-                        image = np.zeros((400,500,3), np.uint8)
+                        imagecv = np.zeros((400,500,3), np.uint8)
                     else:
-                        image = cv2.resize(image, (500,400))
+                        imagecv = cv2.resize(imagecv, (500,400))
                 else:
-                    image = cv2.imread(filenames[curridx])
-                    if image is None:
-                        image = np.zeros((400,500,3), np.uint8)
+                    try:
+                        imagecv = cv2.imread(filenames[curridx])
+                    except:
+                        imagecv = None
+                    if imagecv is None:
+                        imagecv = np.zeros((400,500,3), np.uint8)
                     else:
-                        image = cv2.resize(image, (500,400))
-                is_success, png_buffer = cv2.imencode(".png", image)
+                        imagecv = cv2.resize(imagecv, (500,400))
+                is_success, png_buffer = cv2.imencode(".png", imagecv)
                 bio = BytesIO(png_buffer)
                 windowimg["-IMAGE-"].update(data=bio.getvalue())
                 windowimg.TKroot.title(basename(filenames[curridx]))
