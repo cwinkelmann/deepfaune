@@ -226,7 +226,6 @@ testdir = ""
 rowidx = [-1]
 hasrun = False
 imgmoved  = False
-forbiddenclasses = []
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
@@ -292,6 +291,7 @@ while True:
         threshold = float(values['-THRESHOLD-'])
         maxlag = float(values['-LAG-'])
         hasrun = True
+        forbiddenclasses = []
         for label in sorted_txt_classes_lang:
             if not values[label]:
                 forbiddenclasses += [label]
