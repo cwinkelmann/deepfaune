@@ -109,6 +109,7 @@ txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
 txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
 txt_maintab = {'fr':"Accueil", 'gb':"Home"}
 txt_resultstab = {'fr':"Résultats", 'gb':"Results"}
+txt_selecttab = {'fr':"Sélection des classes", 'gb':"Classes selection"}
 txt_creditstab = {'fr':"A propos", 'gb':"About DeepFaune"}
 txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
 txt_predframe = {'fr':"Prédictions", 'gb':"Predictions"}
@@ -148,6 +149,19 @@ main_tab = [
     ])],
     [sg.Button(txt_run[LANG], expand_x=True, key='-RUN-')]
 ]
+listCB = []
+lineCB = []
+sorted_txt_classes_lang = sorted(txt_classes[LANG])
+for k in range(0,len(sorted_txt_classes_lang)):
+    lineCB = lineCB+[sg.CB(sorted_txt_classes_lang[k], key=sorted_txt_classes_lang[k], size=(12,1), default=True)]
+    if k%3==2:
+        listCB = listCB+[lineCB]
+        lineCB = []
+if lineCB:
+    listCB = listCB+[lineCB]
+select_tab = [
+    [sg.Frame('', listCB, font='Any 13', expand_x=True, expand_y=True)]
+]
 results_tab = [
     [sg.Frame(txt_predframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
         [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
@@ -167,10 +181,11 @@ credits_tab = [
     [sg.Text("https://www.deepfaune.cnrs.fr", font=('Any 13', 14, 'underline'), enable_events=True, key='-URL-')]
 ]
 
-#layout = [[sg.Column(left_col, element_justification='l' ),
-#           sg.Column(right_col, element_justification='l')]]
 layout = [[sg.TabGroup(
-    [[sg.Tab(txt_maintab[LANG], main_tab), sg.Tab(txt_resultstab[LANG], results_tab, expand_x=True), sg.Tab(txt_creditstab[LANG], credits_tab, expand_x=True)]],
+    [[sg.Tab(txt_maintab[LANG], main_tab),
+      sg.Tab(txt_selecttab[LANG], select_tab, expand_x=True),
+      sg.Tab(txt_resultstab[LANG], results_tab, expand_x=True),
+      sg.Tab(txt_creditstab[LANG], credits_tab, expand_x=True)]],
     expand_x=True, expand_y=True)]]
 
 
@@ -211,6 +226,7 @@ testdir = ""
 rowidx = [-1]
 hasrun = False
 imgmoved  = False
+forbiddenclasses = []
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
 while True:
@@ -276,6 +292,12 @@ while True:
         threshold = float(values['-THRESHOLD-'])
         maxlag = float(values['-LAG-'])
         hasrun = True
+        for label in sorted_txt_classes_lang:
+            if not values[label]:
+                forbiddenclasses += [label]
+        if len(forbiddenclasses):
+            frgbprint("Classes non selectionnées : ", "Unselected classes: ", end="")
+            print(forbiddenclasses)
         window['-RUN-'].Update(disabled=True)
         window['-FOLDERBROWSE-'].Update(disabled=True)
         window['-TABROW-'].Update(disabled=True)
@@ -291,6 +313,7 @@ while True:
             predictor = PredictorVideo(filenames, threshold, LANG)
         else:
             predictor = Predictor(filenames, threshold, LANG)
+        predictor.setForbiddenClasses(forbiddenclasses)
         frgbprint("terminé","done")
         window.refresh()
         if LANG=="fr":
