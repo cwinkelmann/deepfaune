@@ -329,7 +329,7 @@ while True:
             frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
             frgbprint(" terminé", " done")
             window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())                    
+            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
             window.refresh()
         if VIDEO:
             predictedclass_base, predictedscore_base = predictor.getPredictions()
