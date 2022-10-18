@@ -35,12 +35,13 @@ import sys
 import numpy as np
 import timm
 import torch
+from torch import tensor
 import torch.nn as nn
 from torchvision.transforms import InterpolationMode, transforms
 
-CROP_SIZE = 300
-BACKBONE = "efficientnet_b3"
-weight_path = "deepfaune-efficientnetB3.pt"
+CROP_SIZE = 288
+BACKBONE = "efficientnetv2_rw_s"
+weight_path = "deepfaune-efficientnetv2s.pt"
 
 txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevreuil", "chien", "ecureuil", "equide", "lagomorphe",
@@ -59,9 +60,10 @@ class Classifier:
     def __init__(self):
         self.model = Model()
         self.model.loadWeights(weight_path)
-        self.transforms = transforms.Compose(
-    [transforms.Resize((300, 300), interpolation=InterpolationMode.NEAREST),
-         transforms.ToTensor()])
+        self.transforms = transforms.Compose([
+            transforms.Resize(size=(CROP_SIZE, CROP_SIZE), interpolation=InterpolationMode.BICUBIC, max_size=None, antialias=None),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=tensor([0.4850, 0.4560, 0.4060]), std=tensor([0.2290, 0.2240, 0.2250]))])
 
     def predictOnBatch(self, batchtensor):
         return self.model.predict(batchtensor)

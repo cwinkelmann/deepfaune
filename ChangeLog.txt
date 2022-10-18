@@ -1,13 +1,15 @@
-2022-10-07  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-10-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.5.0
 	    * New categories 'bear' and 'equide' (in french 'ours' and 'equide').
-	    * Detection is now x3 faster.
-	    * Issue about confounding human/dog/vehicle categories is solved.
-	    * Moving from TensorFlow to PyTorch for classification.
+	    Moving from TensorFlow to PyTorch for classification.
 	    Model weights are now in 'deepfaune-efficientnetB3.pt' file.
-	    * Moving from yolov4 to yolov5m6 for detection.
+	    * Detection is now x3 faster.
+	    Moving from yolov4 to yolov5m6 for detection.
 	    Model weights are now in 'deepfaune-yolov5.pt' file.
+	    * Issue about confounding human/dog/vehicle categories is solved.
+	    * Users can choose the folder to save csv/xlsx files.
+	    * It is possible to select a subset of categories/species to keep for prediction.
 
 22022-09-01  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
