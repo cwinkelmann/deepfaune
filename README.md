@@ -48,7 +48,7 @@ Download the model parameters *inside the deepfaune folder* where you can find `
 - Animal detector parameters: for version >=0.5 [deepfaune-yolov5.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
  (for version 0.3/0.4 [deepfaune-yolov4.weights](https://pbil.univ-lyon1.fr/software/download/deepfaune/))
 
-- Classifier parameters: [deepfaune-efficientnetB3.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+- Classifier parameters: [deepfaune-efficientnetv2s.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
 (for version 0.3/0.4 [efficientnet_22classesOnlycroppedImgAugB3.hdf5](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
 
 ### 3. Install the dependencies
