@@ -48,6 +48,42 @@ txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
                'gb': txt_animalclasses['gb']+["human","vehicle"]}
 
 class PredictorBase(ABC):
+    """
+    Description TODO
+
+    Parameters
+    ----------
+    filenames : list[str]
+        Description TODO
+    threshold : float
+        Description TODO
+    LANG : str
+        Description TODO
+    parametres de __init__
+
+    Attributes
+    ----------
+    LANG : str
+        Description TODO
+    fileManager : FileManager
+        Description TODO
+    cropped_data : Tensor
+        Description TODO
+    nbclasses : int
+        Description TODO
+    idxhuman : int
+        Description TODO
+    A COMPLETER !! TODO
+    ce sont les attribut utilisable qui ne sont pas des méthodes
+
+    Methods
+    -------
+    resetBatch()
+        Description TODO
+    allBatch()
+        Description TODO
+    A COMPLETER !! mais pas sur que ca soit utile vu qu'on comment les fonctions TODO
+    """
     def __init__(self, filenames, threshold, LANG):
         self.LANG = LANG
         self.fileManager = FileManager(filenames)
@@ -66,11 +102,37 @@ class PredictorBase(ABC):
         self.resetBatch()    
     
     def resetBatch(self):
+        """
+        Description of function TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.setForbiddenClasses(['ours'])
+        TODO
+        Pas obligé de d'exemple
+        """
         self.k1 = 0 # batch start
         self.k2 = min(self.k1+BATCH_SIZE,self.fileManager.nbFiles()) # batch end
         self.batch = 1 # batch num
         
     def allBatch(self):
+        """
+        Description of function TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.setForbiddenClasses(['ours'])
+        TODO
+        Pas obligé de d'exemple
+        """
         self.resetBatch()
         while self.k1<self.fileManager.nbFiles():
             self.nextBatch()
@@ -80,9 +142,50 @@ class PredictorBase(ABC):
         pass
     
     def getPredictions(self):
+        """
+        Description of function TODO.
+
+        Returns
+        ----------
+        (list, list)
+            Description of return TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.setForbiddenClasses(['ours'])
+        TODO
+        Pas obligé de d'exemple
+        """
         return self.predictedclass_base, self.predictedscore_base
             
     def getPredictionsWithSequences(self, maxlag):
+        """
+        Description of function TODO.
+
+        Parameters
+        ----------
+        maxlag : type maxlag TODO
+            Description of parameter maxlag TODO.
+
+        Returns
+        ----------
+        (list, list)
+            Description of return TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.setForbiddenClasses(['ours'])
+        TODO
+        Pas obligé de d'exemple
+        """
         if self.predictedclass == []:
             self.__correctPredictionsWithSequence(maxlag)
         return self.predictedclass, self.predictedscore
@@ -91,16 +194,88 @@ class PredictorBase(ABC):
         return self.fileManager.getFilenames()
     
     def getSeqnums(self):
+        """
+        Description of function TODO.
+
+        Returns
+        ----------
+        list[str]
+            Description of return TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.setForbiddenClasses(['ours'])
+        TODO
+        Pas obligé de d'exemple
+        """
         return self.fileManager.getSeqnums()
     
     def getDates(self):
+        """
+        Description of function TODO.
+
+        Returns
+        ----------
+        list[str]
+            Description of return TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.setForbiddenClasses(['ours'])
+        TODO
+        Pas obligé de d'exemple
+        """
         return self.fileManager.getDates()
 
     def setForbiddenClasses(self, forbiddenclasses):
+        """
+        Description of function TODO.
+
+        Parameters
+        ----------
+        forbiddenclasses : list[str]
+            Description of parameter forbiddenclasses TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.setForbiddenClasses(['ours'])
+        TODO
+        Pas obligé de d'exemple
+        """
         self.idxforbidden = [idx for idx in range(0,len(txt_classes[self.LANG]))
                              if txt_classes[self.LANG][idx] in forbiddenclasses]
         
     def merge(self, predictor):
+        """
+        Description of function TODO.
+
+        Parameters
+        ----------
+        predictor : PredictorBase
+            Description of parameter predictor TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.merge(predictor)
+        TODO
+        Pas obligé de d'exemple
+        """
         if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
             exit("You can not merge incompatible predictors (incompatible type or number of classes)")
         self.fileManager.merge(predictor.fileManager)
@@ -177,6 +352,33 @@ class PredictorBase(ABC):
     
     
 class Predictor(PredictorBase):
+    """
+    Description TODO
+
+    Parameters
+    ----------
+    filenames : list[str]
+        Description TODO
+    threshold : float
+        Description TODO
+    LANG : str
+        Description TODO
+
+    Attributes
+    ----------
+    detector : Detector
+       Description TODO
+   classifier : Classifier
+       Description TODO
+
+
+    Methods
+    -------
+    resetBatch()
+        Description TODO
+    etc...
+    pas sur que ca soit utile vu qu'on comment les fonctions TODO
+    """
     
     def __init__(self, filenames, threshold, LANG):
         super().__init__(filenames, threshold, LANG) # inherits all
@@ -184,6 +386,26 @@ class Predictor(PredictorBase):
         self.classifier = Classifier()
 
     def nextBatch(self):
+        """
+        Description of function TODO.
+
+        Returns
+        -------
+        (int, int, int, list, list[float])
+            Description of return TODO.
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+        Examples
+        --------
+        >>> Predictor.nextBatc()
+        TODO
+
+        Comment explaining the second example.
+
+        >>> Predictor.nextBatc()
+        TODO
+        """
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:
@@ -218,6 +440,33 @@ class Predictor(PredictorBase):
 
 
 class PredictorVideo(PredictorBase):
+    """
+   Description TODO
+
+   Parameters
+   ----------
+    filenames : list[str]
+        Description TODO
+    threshold : float
+        Description TODO
+    LANG : str
+        Description TODO
+
+   Attributes
+   ----------
+   detector : Detector
+       Description TODO
+   classifier : Classifier
+       Description TODO
+
+
+   Methods
+   -------
+   resetBatch()
+       Description TODO
+    etc...
+   pas sur que ca soit utile vu qu'on comment les fonctions TODO
+   """
     
     def __init__(self, filenames, threshold, LANG):
          super().__init__(filenames, threshold, LANG) # inherits all
@@ -225,11 +474,35 @@ class PredictorVideo(PredictorBase):
          self.classifier = Classifier()
 
     def resetBatch(self):
+        """
+        Description of function TODO.
+        """
         self.k1 = 0
         self.k2 = 1
         self.batch = 1
     
     def nextBatch(self):
+        """
+        Description of function TODO.
+
+        Returns
+        -------
+        (int, int, int, list, list[float])
+            Description of return TODO.
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+        Examples
+        --------
+        >>> Predictor.nextBatch()
+        TODO
+        Pas obligé de d'exemple
+
+        Comment explaining the second example.
+
+        >>> Predictor.nextBatch()
+        TODO
+        """
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:   
@@ -284,6 +557,32 @@ class PredictorVideo(PredictorBase):
 
 
 class PredictorJSON(PredictorBase):
+    """
+   Description TODO
+
+   Parameters
+   ----------
+    jsonfilename : str
+        Description TODO
+    threshold : float
+        Description TODO
+    LANG : str
+        Description TODO
+
+   Attributes
+   ----------
+   detector : DetectorJSON
+       Description TODO
+   classifier : Classifier
+       Description TODO
+
+
+   Methods
+   -------
+   resetBatch()
+       Description TODO
+   pas sur que ca soit utile vu qu'on comment les fonctions TODO
+   """
     
     def __init__(self, jsonfilename, threshold, LANG):
          self.detector = DetectorJSON(jsonfilename)
@@ -291,6 +590,28 @@ class PredictorJSON(PredictorBase):
          super().__init__(self.detector.getFilenames(), threshold, LANG) # inherits all
     
     def nextBatch(self):
+        """
+        Description of function TODO.
+
+        Returns
+        -------
+        (int, int, int, list, list[float])
+            Description of return TODO.
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.nextBatch()
+        TODO
+        Pas obligé de d'exemple
+
+        Comment explaining the second example.
+
+        >>> Predictor.nextBatch()
+        TODO
+        """
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, [],[]
         else:
@@ -319,6 +640,24 @@ class PredictorJSON(PredictorBase):
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
     def merge(self, predictor):
+        """
+        Description of function TODO.
+
+        Parameters
+        ----------
+        predictor : PredictorBase
+            Description of parameter predictor TODO.
+
+        See Also
+        --------
+            Pas obligé de mettre also : TODO.
+
+        Examples
+        --------
+        >>> Predictor.merge(predictor)
+        TODO
+        Pas obligé de d'exemple
+        """
         super().merge(predictor)
         self.detector.merge(predictor.detector)
         
