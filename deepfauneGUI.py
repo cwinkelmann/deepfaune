@@ -405,7 +405,7 @@ while True:
                    sg.Button(txt_prevpred[LANG], key='-PREVIOUS-'),
                    sg.Button(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
-        windowimg = sg.Window(basename(filenames[curridx]), layout, size=(525, 500), font = ("Arial", 14), finalize=True) 
+        windowimg = sg.Window(basename(filenames[curridx]), layout, size=(540, 500), font = ("Arial", 14), finalize=True) 
         if VIDEO:
             video = cv2.VideoCapture(filenames[curridx])
             video.set(cv2.CAP_PROP_POS_FRAMES, 1)
