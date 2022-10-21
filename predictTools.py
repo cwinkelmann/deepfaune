@@ -270,7 +270,7 @@ class PredictorVideo(PredictorBase):
                 self.prediction[self.k1,-1] = 0.
                 # voting with frames with animal/human/vehicle
                 self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionallframe[idxnonempty,:],axis=0)/len(idxnonempty)
-                # could be -log(1-x) for x in predictionallframe to exponantially favor scores close to 1.
+                #print((predictionallframe[idxnonempty,:]*100).astype(int))
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]

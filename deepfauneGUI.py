@@ -329,7 +329,7 @@ while True:
             frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
             frgbprint(" terminé", " done")
             window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())                    
+            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
             window.refresh()
         if VIDEO:
             predictedclass_base, predictedscore_base = predictor.getPredictions()
@@ -405,7 +405,7 @@ while True:
                    sg.Button(txt_prevpred[LANG], key='-PREVIOUS-'),
                    sg.Button(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
-        windowimg = sg.Window(basename(filenames[curridx]), layout, size=(525, 500), font = ("Arial", 14), finalize=True) 
+        windowimg = sg.Window(basename(filenames[curridx]), layout, size=(540, 500), font = ("Arial", 14), finalize=True) 
         if VIDEO:
             video = cv2.VideoCapture(filenames[curridx])
             video.set(cv2.CAP_PROP_POS_FRAMES, 1)
