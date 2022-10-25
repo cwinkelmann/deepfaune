@@ -32,6 +32,7 @@
 # knowledge of the CeCILL license and that you accept its terms.
 
 import PySimpleGUI as sg
+import os
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
@@ -500,6 +501,18 @@ while True:
         window['-SAVEXLSX-'].Update(disabled=savexlsxstate)
         window['-SUBFOLDERS-'].Update(disabled=subfoldersstate)
     elif event == '-SUBFOLDERS-':
+        def unique_new_filename(testdir, now, classname, basename):
+            folder = join(join(testdir, "deepfaune_"+now, classname))
+            if os.path.exists(join(folder, basename)):
+                i = 2
+                part1 = basename[:-4]
+                part2 = basename[-4:]
+                basename = f"{part1}_{i}{part2}"
+                while os.path.exists(join(folder, basename)):
+                    i += 1
+                    basename = f"{part1}_{i}{part2}"
+            return join(folder, basename)
+
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         if values["-CP-"] == True:
             confirm = sg.popup_yes_no(txt_wanttocopy[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
@@ -522,12 +535,10 @@ while True:
                 mkdir(join(testdir,"deepfaune_"+now,subfolder))
             if values["-CP-"] == True:
                 for k in range(nbfiles):
-                    shutil.copyfile(filenames[k],
-                                    join(testdir,"deepfaune_"+now,predictedclass[k],basename(filenames[k])))
+                    shutil.copyfile(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
             if values["-MV-"] == True:
                 for k in range(nbfiles):
-                    shutil.move(filenames[k],
-                                join(testdir,"deepfaune_"+now,predictedclass[k],basename(filenames[k])))
+                    shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
             window['-SUBFOLDERS-'].Update(disabled=True)
             window['-CP-'].Update(disabled=True)
             window['-MV-'].Update(disabled=True)
@@ -535,9 +546,4 @@ while True:
         window.refresh()
     else:
         window['-TABROW-'].Update(disabled=True)
-        
-window.close()  
-
-
-
-     
+window.close()
