@@ -359,18 +359,20 @@ while True:
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         csvpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.csv", default_extension='csv', initial_folder=testdir)
-        frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
-        preddf.to_csv(csvpath, index=False)
-        window['-SAVECSV-'].Update(disabled=True)
+        if type(csvpath) == str:
+            frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
+            preddf.to_csv(csvpath, index=False)
+            window['-SAVECSV-'].Update(disabled=True)
     elif event == '-SAVEXLSX-':
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         xlsxpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.xlsx", default_extension='xlsx', initial_folder=testdir)
-        frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
-        preddf.to_excel(xlsxpath, index=False)
-        window['-SAVEXLSX-'].Update(disabled=True)
+        if type(xlsxpath) == str:
+            frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
+            preddf.to_excel(xlsxpath, index=False)
+            window['-SAVEXLSX-'].Update(disabled=True)
     elif event == '-TABRESULTS-':
         rowidx = values['-TABRESULTS-']
         if len(rowidx)==0:
