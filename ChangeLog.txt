@@ -1,3 +1,9 @@
+2022-11-12  Gaspard Dussert  <gaspard.dussert@univ-lyon1.fr>
+
+	    Version 0.5.1
+	    * Bug fix : The software crashes when no folder was chosen to save the CSV/XLSX file.
+	    * Bug fix : Overwriting of files with the same name when they were copied/moved.
+
 2022-10-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.5.0
