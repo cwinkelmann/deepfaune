@@ -33,6 +33,7 @@
 
 import PySimpleGUI as sg
 import os
+
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
@@ -359,7 +360,7 @@ while True:
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         csvpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.csv", default_extension='csv', initial_folder=testdir)
-        if type(csvpath) == str:
+        if csvpath:
             frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
             preddf.to_csv(csvpath, index=False)
             window['-SAVECSV-'].Update(disabled=True)
@@ -369,7 +370,7 @@ while True:
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         xlsxpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.xlsx", default_extension='xlsx', initial_folder=testdir)
-        if type(xlsxpath) == str:
+        if xlsxpath:
             frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
             preddf.to_excel(xlsxpath, index=False)
             window['-SAVEXLSX-'].Update(disabled=True)
