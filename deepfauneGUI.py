@@ -116,6 +116,7 @@ txt_creditstab = {'fr':"A propos", 'gb':"About DeepFaune"}
 txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
 txt_predframe = {'fr':"Prédictions", 'gb':"Predictions"}
 txt_saveframe = {'fr':"Enregistrement", 'gb':"Save as"}
+txt_close  = {'fr':"Fermer", 'gb':"Close"}
 
 if VIDEO:
     txt_restrict = {'fr':["Toutes vidéos","Vidéos indéfinies","Vidéos vides","Vidéos non vides"], 'gb':["All videos","Undefined videos","Empty videos","Non empty videos"]}
@@ -405,7 +406,7 @@ while True:
                   [sg.Text('Prediction:', size=(10, 1)),
                    sg.Combo(values=list(classesempty+[txt_other[LANG]]), default_value=predictedclass[curridx], size=(15, 1), bind_return_key=True, key='-CORRECTION-'),
                    sg.Text("\tScore: "+str(predictedscore[curridx]), key='-CORRECTIONSCORE-')],
-                  [sg.Button('Close', key='-CLOSE-'),
+                  [sg.Button(txt_close[LANG], key='-CLOSE-'),
                    sg.Button(txt_prevpred[LANG], key='-PREVIOUS-'),
                    sg.Button(txt_nextpred[LANG], bind_return_key=True, key='-NEXT-'),
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
