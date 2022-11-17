@@ -1,3 +1,10 @@
+2022-11-12  Gaspard Dussert  <gaspard.dussert@univ-lyon1.fr>
+
+	    Version 0.5.1
+	    * Bug fix: The software do not crash when no folder is selected to save in a CSV/XLSX file.
+	    * Bug fix: Overwriting of files with the same name is now prevented when they are copied/moved. 
+		Filenames are now changed with an additionnal "_1,_2,..." tag if necessary.
+
 2022-10-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.5.0
@@ -44,8 +51,8 @@
 
 	    Version 0.2.1
 
-	    * Patch: threshold button is now working correctly.
-	    * Patch: autocorrect by folder is now also working when using Windows 11 and Python 3.10.
+	    * Bug fix: threshold button is now working correctly.
+	    * Bug fix: autocorrect by folder is now also working when using Windows 11 and Python 3.10.
 	    * File ordering is now optimal for vizualization: by folder, then
 	    by alphabetical order.
 

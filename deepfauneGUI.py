@@ -32,6 +32,8 @@
 # knowledge of the CeCILL license and that you accept its terms.
 
 import PySimpleGUI as sg
+import os
+
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
@@ -40,7 +42,7 @@ sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 LANG = "fr"
 DEBUG = False
 
@@ -358,18 +360,20 @@ while True:
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         csvpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.csv", default_extension='csv', initial_folder=testdir)
-        frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
-        preddf.to_csv(csvpath, index=False)
-        window['-SAVECSV-'].Update(disabled=True)
+        if csvpath:
+            frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
+            preddf.to_csv(csvpath, index=False)
+            window['-SAVECSV-'].Update(disabled=True)
     elif event == '-SAVEXLSX-':
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         xlsxpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.xlsx", default_extension='xlsx', initial_folder=testdir)
-        frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
-        preddf.to_excel(xlsxpath, index=False)
-        window['-SAVEXLSX-'].Update(disabled=True)
+        if xlsxpath:
+            frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
+            preddf.to_excel(xlsxpath, index=False)
+            window['-SAVEXLSX-'].Update(disabled=True)
     elif event == '-TABRESULTS-':
         rowidx = values['-TABRESULTS-']
         if len(rowidx)==0:
@@ -500,6 +504,18 @@ while True:
         window['-SAVEXLSX-'].Update(disabled=savexlsxstate)
         window['-SUBFOLDERS-'].Update(disabled=subfoldersstate)
     elif event == '-SUBFOLDERS-':
+        def unique_new_filename(testdir, now, classname, basename):
+            folder = join(join(testdir, "deepfaune_"+now, classname))
+            if os.path.exists(join(folder, basename)):
+                i = 2
+                part1 = basename[:-4]
+                part2 = basename[-4:]
+                basename = f"{part1}_{i}{part2}"
+                while os.path.exists(join(folder, basename)):
+                    i += 1
+                    basename = f"{part1}_{i}{part2}"
+            return join(folder, basename)
+
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         if values["-CP-"] == True:
             confirm = sg.popup_yes_no(txt_wanttocopy[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
@@ -522,12 +538,10 @@ while True:
                 mkdir(join(testdir,"deepfaune_"+now,subfolder))
             if values["-CP-"] == True:
                 for k in range(nbfiles):
-                    shutil.copyfile(filenames[k],
-                                    join(testdir,"deepfaune_"+now,predictedclass[k],basename(filenames[k])))
+                    shutil.copyfile(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
             if values["-MV-"] == True:
                 for k in range(nbfiles):
-                    shutil.move(filenames[k],
-                                join(testdir,"deepfaune_"+now,predictedclass[k],basename(filenames[k])))
+                    shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
             window['-SUBFOLDERS-'].Update(disabled=True)
             window['-CP-'].Update(disabled=True)
             window['-MV-'].Update(disabled=True)
@@ -535,9 +549,4 @@ while True:
         window.refresh()
     else:
         window['-TABROW-'].Update(disabled=True)
-        
-window.close()  
-
-
-
-     
+window.close()
