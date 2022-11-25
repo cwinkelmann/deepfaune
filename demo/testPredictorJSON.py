@@ -35,6 +35,10 @@ import sys
 import os
 import pandas as pd
 
+if (len(sys.argv)!=3):
+    print("Usage: python testPredictor.py <JSONFILENAME> <CSVFILENAME>")
+    exit()
+
 
 ## IMPORT DEEPFAUNE CLASSES
 curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -65,5 +69,5 @@ filenames = predictor.getFilenames()
 dates = predictor.getDates()
 seqnum = predictor.getSeqnums()
 preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
-preddf.to_csv("results.csv")
-print('Done, results saved in "results.csv"')
+preddf.to_csv(sys.argv[2], index=False)
+print('Done, results saved in '+sys.argv[2])

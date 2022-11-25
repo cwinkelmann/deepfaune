@@ -44,24 +44,23 @@ if (len(sys.argv)!=3):
 curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
 sys.path.append(curdir+'/../') # to add the deepfaune path
 
-from predictTools import Predictor
+from predictTools import PredictorVideo
 
 ## IMAGE FILES
 testdir = sys.argv[1]
 filenames = sorted(
-    [str(f) for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Bb][Mm][Pp]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Tt][Ii][Ff]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Gg][Ii][Ff]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Pp][Nn][Gg]')]
+    [str(f) for f in  Path(testdir).rglob('*.[Aa][Vv][Ii]')] +
+    [str(f) for f in  Path(testdir).rglob('*.[Mm][Pp]4')] +
+    [str(f) for f in  Path(testdir).rglob('*.[Mm][Pp][Ee][Gg]')] +
+    [str(f) for f in  Path(testdir).rglob('*.[Mm][Oo][Vv]')] +
+    [str(f) for f in  Path(testdir).rglob('*.[Mm]4[Vv]')]
 )
 
-## PREDICTOR OBJECT
+## PREDICTORVIDEO OBJECT
 LANG = 'gb'
 maxlag = 20
 threshold = 0.5
-predictor = Predictor(filenames, threshold, LANG)
+predictor = PredictorVideo(filenames, threshold, LANG)
 
 ## RUNNING BATCHES OF PREDICTION
 predictor.allBatch()
