@@ -268,9 +268,11 @@ class PredictorVideo(PredictorBase):
                 predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
             if len(idxnonempty): # not empty
                 self.prediction[self.k1,-1] = 0.
-                # voting with frames with animal/human/vehicle
-                self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionallframe[idxnonempty,:],axis=0)/len(idxnonempty)
-                #print((predictionallframe[idxnonempty,:]*100).astype(int))
+                # taking the most confident prediction in  frames with animal/human/vehicle
+                # print(video_path)
+                # print((predictionallframe[idxnonempty,:]*100).astype(int))
+                tidxmax = np.unravel_index(np.argmax(predictionallframe[idxnonempty,:], axis=None), predictionallframe[idxnonempty,:].shape)
+                self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
