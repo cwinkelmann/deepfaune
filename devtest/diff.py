@@ -5,10 +5,15 @@ def sshow(im):
     im.copy().resize((700,600)).show()
     
 from PIL import Image, ImageOps, ImageChops, ImageFilter
+
 im1 = Image.open(sys.argv[1])
 im2 = Image.open(sys.argv[2])
 
+im1 = Image.open("loup11.JPG")
+im2 = Image.open("loup12.JPG")
+
 import numpy as np
+
 def normalize(img):
     """
     Linear normalization
@@ -47,9 +52,34 @@ if False:
 #im1g = im1.convert("L") # ImageOps.grayscale(im1)
 #im2g = im2.convert("L") # ImageOps.grayscale(im2)
 
-#diff = ImageChops.difference(im2g, im1g)
+rgbdiff = ImageChops.difference(im2b, im1b).filter(ImageFilter.GaussianBlur(radius = 5))
+sshow(rgbdiff)
+
 diff = ImageChops.difference(im1b, im2b).convert("L")
 sshow(diff)
+
+diff = diff.point(lambda p: p > 5 and 255) # point = pixelwise action
+diff = diff.filter(ImageFilter.MaxFilter(7))
+sshow(diff)
+
+npim1masked = np.array(im1.resize((700,600)))
+npim1masked[:,:,0] = np.multiply(npim1masked[:,:,0], np.array(diff)/255)
+npim1masked[:,:,1] = np.multiply(npim1masked[:,:,1], np.array(diff)/255)
+npim1masked[:,:,2] = np.multiply(npim1masked[:,:,2], np.array(diff)/255)
+#im1masked = ImageChops.multiply(im1b, rgbdiff)
+im1masked = Image.fromarray(np.uint8(npim1masked))
+sshow(im1masked)
+
+
+
+npim2masked = np.array(im2.resize((700,600)))
+npim2masked[:,:,0] = np.multiply(npim2masked[:,:,0], np.array(diff)/255)
+npim2masked[:,:,1] = np.multiply(npim2masked[:,:,1], np.array(diff)/255)
+npim2masked[:,:,2] = np.multiply(npim2masked[:,:,2], np.array(diff)/255)
+#im2masked = ImageChops.multiply(im2b, rgbdiff)
+im2masked = Image.fromarray(np.uint8(npim2masked))
+sshow(im2masked)
+
 
 if False:
     import numpy as np
