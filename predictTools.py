@@ -236,12 +236,13 @@ class PredictorVideo(PredictorBase):
             idxanimal = []
             idxnonempty = []
             video_path = self.fileManager.getFilename(self.k1)
+            print(video_path)
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
             # print ("fps=" + str(fps))
             # print("duration=" + str(duration))
-            lag = fps # lag between two successice frames
+            lag = int(fps/3) # lag between two successive frames
             while((BATCH_SIZE-1)*lag>total_frames):
                 lag = lag-1 # reducing lag if video duration is less than BATCH_SIZE sec
             predictionallframe = np.zeros(shape=(BATCH_SIZE, self.nbclasses), dtype=np.float32)
@@ -269,8 +270,7 @@ class PredictorVideo(PredictorBase):
             if len(idxnonempty): # not empty
                 self.prediction[self.k1,-1] = 0.
                 # taking the most confident prediction in  frames with animal/human/vehicle
-                # print(video_path)
-                # print((predictionallframe[idxnonempty,:]*100).astype(int))
+                print((predictionallframe[idxnonempty,:]*100).astype(int))
                 tidxmax = np.unravel_index(np.argmax(predictionallframe[idxnonempty,:], axis=None), predictionallframe[idxnonempty,:].shape)
                 self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
             self._PredictorBase__prediction2class(batchOnly=True)
