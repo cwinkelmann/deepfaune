@@ -14,22 +14,6 @@ im2 = Image.open("loup12.JPG")
 
 import numpy as np
 
-def normalize(img):
-    """
-    Linear normalization
-    """
-    arr = np.array(img)
-    arr = arr.astype('float')
-    # Do not touch the alpha channel
-    for i in range(3):
-        minval = np.percentile(arr[...,i], 25) #arr[...,i].min()
-        maxval = np.percentile(arr[...,i], 75) #arr[...,i].max()
-        print(minval,maxval)
-        if minval != maxval:
-            arr[...,i] -= minval
-            arr[...,i] *= (255.0/(maxval-minval))
-    return Image.fromarray(arr.astype('uint8'),'RGB')
-
 RESIZE = True
 if RESIZE:
     im1b = im1.resize((700,600)).filter(ImageFilter.GaussianBlur(radius = 2))
@@ -58,10 +42,11 @@ sshow(rgbdiff)
 diff = ImageChops.difference(im1b, im2b).convert("L")
 sshow(diff)
 
-diff = diff.point(lambda p: p > 5 and 255) # point = pixelwise action
+diff = diff.point(lambda p: p > 10 and 255) # point = pixelwise action
 diff = diff.filter(ImageFilter.MaxFilter(7))
 sshow(diff)
 
+import numpy as np
 npim1masked = np.array(im1.resize((700,600)))
 npim1masked[:,:,0] = np.multiply(npim1masked[:,:,0], np.array(diff)/255)
 npim1masked[:,:,1] = np.multiply(npim1masked[:,:,1], np.array(diff)/255)
@@ -69,8 +54,7 @@ npim1masked[:,:,2] = np.multiply(npim1masked[:,:,2], np.array(diff)/255)
 #im1masked = ImageChops.multiply(im1b, rgbdiff)
 im1masked = Image.fromarray(np.uint8(npim1masked))
 sshow(im1masked)
-
-
+im1masked.save("/tmp/im1masked.jpg")
 
 npim2masked = np.array(im2.resize((700,600)))
 npim2masked[:,:,0] = np.multiply(npim2masked[:,:,0], np.array(diff)/255)
@@ -79,7 +63,7 @@ npim2masked[:,:,2] = np.multiply(npim2masked[:,:,2], np.array(diff)/255)
 #im2masked = ImageChops.multiply(im2b, rgbdiff)
 im2masked = Image.fromarray(np.uint8(npim2masked))
 sshow(im2masked)
-
+im2masked.save("/tmp/im2masked.jpg")
 
 if False:
     import numpy as np
