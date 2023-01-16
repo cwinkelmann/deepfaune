@@ -135,7 +135,8 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 ####################################################################################
 
 def draw_boxes(imagecv,box):
-    cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 2)
+    print(imagecv.shape)
+    cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
         
 ####################################################################################
 ### MAIN GUI WINDOW
