@@ -263,9 +263,9 @@ class PredictorVideo(PredictorBase):
             if len(idxnonempty): # not empty
                 self.prediction[self.k1,-1] = 0.
                 # taking the most confident prediction in frames with animal/human/vehicle
-                print((predictionallframe[idxnonempty,:]*100).astype(int))
+                #print((predictionallframe[idxnonempty,:]*100).astype(int))
                 tidxmax = np.unravel_index(np.argmax(predictionallframe[idxnonempty,:], axis=None), predictionallframe[idxnonempty,:].shape)
-                #self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
+                # self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
                 # setting average score for this prediction
                 idxmax4all = np.argmax(predictionallframe[idxnonempty,:], axis=1)
                 self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
