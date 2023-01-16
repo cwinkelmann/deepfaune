@@ -62,6 +62,7 @@ class PredictorBase(ABC):
         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.predictedclass = []
         self.predictedscore = []
+        self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
         self.threshold = threshold
         self.resetBatch()    
     
@@ -80,7 +81,7 @@ class PredictorBase(ABC):
         pass
     
     def getPredictions(self):
-        return self.predictedclass_base, self.predictedscore_base
+        return self.predictedclass_base, self.predictedscore_base, self.bestboxes
             
     def getPredictionsWithSequences(self, maxlag):
         if self.predictedclass == []:
@@ -193,7 +194,8 @@ class Predictor(PredictorBase):
                 if imagecv is None:
                     pass # Corrupted image, considered as empty
                 else:
-                    croppedimage, category = self.detector.bestBoxDetection(imagecv)
+                    croppedimage, category, box = self.detector.bestBoxDetection(imagecv)
+                    self.bestboxes[k] = box
                     if category > 0: # not empty
                         self.prediction[k,-1] = 0.
                     if category == 1: # animal
@@ -274,6 +276,7 @@ class PredictorVideo(PredictorBase):
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
+            bestboxes_batch = self.bestboxes[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2

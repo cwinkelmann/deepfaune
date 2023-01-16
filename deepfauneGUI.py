@@ -128,6 +128,14 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
         print(txt_fr, end=end)
     if LANG=="gb":
         print(txt_gb, end=end)
+
+
+####################################################################################
+### GUI UTILS
+####################################################################################
+
+def draw_boxes(imagecv,box):
+    cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 2)
         
 ####################################################################################
 ### MAIN GUI WINDOW
@@ -231,6 +239,7 @@ hasrun = False
 imgmoved  = False
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
+
 while True:
     event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
@@ -335,11 +344,11 @@ while True:
             window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
             window.refresh()
         if VIDEO:
-            predictedclass_base, predictedscore_base = predictor.getPredictions()
+            predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
             predictedclass, predictedscore = predictedclass_base, predictedscore_base
         else:
             frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-            predictedclass_base, predictedscore_base = predictor.getPredictions()
+            predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
             predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
             frgbprint(" terminé", " done")
         ########################
@@ -427,6 +436,8 @@ while True:
             if imagecv is None:
                 imagecv = np.zeros((400,500,3), np.uint8)
             else:
+                if predictedclass is not txt_empty[LANG]:
+                    draw_boxes(imagecv,bestboxes[curridx])
                 imagecv = cv2.resize(imagecv, (500,400))
         is_success, png_buffer = cv2.imencode(".png", imagecv)
         bio = BytesIO(png_buffer)
@@ -490,6 +501,8 @@ while True:
                     if imagecv is None:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
+                        if predictedclass is not txt_empty[LANG]:
+                            draw_boxes(imagecv, bestboxes[curridx])
                         imagecv = cv2.resize(imagecv, (500,400))
                 is_success, png_buffer = cv2.imencode(".png", imagecv)
                 bio = BytesIO(png_buffer)
@@ -551,3 +564,4 @@ while True:
     else:
         window['-TABROW-'].Update(disabled=True)
 window.close()
+
