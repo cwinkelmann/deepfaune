@@ -247,6 +247,7 @@ class PredictorVideo(PredictorBase):
             while((BATCH_SIZE-1)*lag>total_frames):
                 lag = lag-1 # reducing lag if video duration is less than BATCH_SIZE sec
             predictionallframe = np.zeros(shape=(BATCH_SIZE, self.nbclasses), dtype=np.float32)
+            bestboxesallframe = np.zeros(shape=(BATCH_SIZE, 4), dtype=np.float32)
             k = 0
             for kframe in range(0, BATCH_SIZE*lag, lag):
                 video.set(cv2.CAP_PROP_POS_FRAMES, kframe)
@@ -255,7 +256,8 @@ class PredictorVideo(PredictorBase):
                     pass # Corrupted or unavailable image, considered as empty
                 else:
                     imagecv = frame
-                    croppedimage, category = self.detector.bestBoxDetection(imagecv)
+                    croppedimage, category, box = self.detector.bestBoxDetection(imagecv)
+                    bestboxesallframe[k] = box
                     if category > 0: # not empty
                         idxnonempty.append(k)
                     if category == 1: # animal
@@ -276,7 +278,7 @@ class PredictorVideo(PredictorBase):
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
-            bestboxes_batch = self.bestboxes[self.k1:self.k2]
+            self.bestboxes[self.k1:self.k2] = bestboxesallframe[0]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
