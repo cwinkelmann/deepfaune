@@ -75,7 +75,7 @@ class PredictorBase(ABC):
         self.resetBatch()
         while self.k1<self.fileManager.nbFiles():
             self.nextBatch()
-        
+
     @abstractmethod
     def nextBatch(self):
         pass
@@ -210,6 +210,7 @@ class Predictor(PredictorBase):
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
+            bestboxes_batch = self.bestboxes[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2

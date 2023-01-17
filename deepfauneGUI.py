@@ -427,6 +427,11 @@ while True:
             if not ret:
                 imagecv = np.zeros((400,500,3), np.uint8)
             else:
+                print("predictedclass ",predictedclass)
+                print("predictedclass[curridx] ",predictedclass[curridx])
+                print("bestboxes[curridx] ", bestboxes[curridx])
+                if predictedclass[curridx] is not txt_empty[LANG]:
+                    draw_boxes(imagecv,bestboxes[curridx])
                 imagecv = cv2.resize(imagecv, (500,400))
         else:
             try:
@@ -436,7 +441,7 @@ while True:
             if imagecv is None:
                 imagecv = np.zeros((400,500,3), np.uint8)
             else:
-                if predictedclass is not txt_empty[LANG]:
+                if predictedclass[curridx] is not txt_empty[LANG]:
                     draw_boxes(imagecv,bestboxes[curridx])
                 imagecv = cv2.resize(imagecv, (500,400))
         is_success, png_buffer = cv2.imencode(".png", imagecv)
@@ -492,6 +497,8 @@ while True:
                     if not ret:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
+                        if predictedclass[curridx] is not txt_empty[LANG]:
+                            draw_boxes(imagecv, bestboxes[curridx])
                         imagecv = cv2.resize(imagecv, (500,400))
                 else:
                     try:
@@ -501,7 +508,7 @@ while True:
                     if imagecv is None:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
-                        if predictedclass is not txt_empty[LANG]:
+                        if predictedclass[curridx] is not txt_empty[LANG]:
                             draw_boxes(imagecv, bestboxes[curridx])
                         imagecv = cv2.resize(imagecv, (500,400))
                 is_success, png_buffer = cv2.imencode(".png", imagecv)
