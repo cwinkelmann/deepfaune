@@ -140,12 +140,17 @@ def draw_boxes(imagecv,box):
 ####################################################################################
 ### MAIN GUI WINDOW
 ####################################################################################
-# Batch size for predictor
-BATCH_SIZE_PRED = 8
+# Batch size for predictor, in number of images
+if VIDEO:
+    BATCH_SIZE_PRED = 12
+else:
+    BATCH_SIZE_PRED = 8
+# Batch size for the GUI, in number of files
 if VIDEO:
     BATCH_SIZE = 1
 else:
     BATCH_SIZE = 8
+
 prediction = [[],[]]
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 20 # seconds

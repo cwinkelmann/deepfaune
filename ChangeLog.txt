@@ -2,10 +2,11 @@
 
 	    Version 0.5.2
 	    * Improved confidence score managment for videos, leading to less videos classified as "undefined".
-	    A frame rate of 3 fps is now used, using a total of 8 frames.
+	    A frame rate of 3 fps is now used, using a total of 9 frames.
 	    * A box is now drawn on each non empty image to show which part of the image has been used for classification.
 	    For videos, the box is drawn on the most informative frame.
 	    * New default threshold to 0.8
+	    * New testdata/ content with images for a quick software trial.
 
 2022-11-12  Gaspard Dussert  <gaspard.dussert@univ-lyon1.fr>
 
