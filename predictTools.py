@@ -280,7 +280,8 @@ class PredictorVideo(PredictorBase):
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
-            self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
+            bestboxesallframe_noempty =bestboxesallframe[idxnonempty]
+            self.bestboxes[self.k1] = bestboxesallframe_noempty[self.keyframes[self.k1]]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
