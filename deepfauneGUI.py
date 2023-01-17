@@ -500,6 +500,7 @@ while True:
                     while ((BATCH_SIZE_PRED - 1) * lag > total_frames):
                         lag = lag - 1
                     cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
+                    ret, imagecv = cap.read()
                     if not ret:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
