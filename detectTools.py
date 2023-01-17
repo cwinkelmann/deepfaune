@@ -35,6 +35,7 @@
 ### LOADING YOLO
 ####################################################################################
 import cv2
+import numpy as np
 from PIL import Image
 import yolov5
 
@@ -62,14 +63,15 @@ class Detector:
         results = self.yolo(image, size=YOLO_SIZE)
         detection = results.pred[0].cpu().numpy() # first box with highest confidence
         if not len(detection):
-            return [], 0
+            return [], 0, np.zeros(4)
         category = int(detection[0, 5] + 1)
         box = detection[0, :4]  # xmin, ymin, xmax, ymax
         # rectangular version:
         # croppedimage = image.crop((box[0], box[1], box[2], box[3]))
         # square version:
-        croppedimage = cropSquare(image, box)
-        return croppedimage, category
+        # image.crop((box[0], box[1], box[2], box[3])).show()
+        croppedimage = cropSquare(image, box.copy())
+        return croppedimage, category, box
 
 ####################################################################################
 ### BEST BOX DETECTION WITH JSON

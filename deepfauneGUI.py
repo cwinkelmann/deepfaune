@@ -42,7 +42,7 @@ sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.5.1"
+VERSION = "0.5.2"
 LANG = "fr"
 DEBUG = False
 
@@ -128,16 +128,26 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
         print(txt_fr, end=end)
     if LANG=="gb":
         print(txt_gb, end=end)
+
+
+####################################################################################
+### GUI UTILS
+####################################################################################
+
+def draw_boxes(imagecv,box):
+    cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
         
 ####################################################################################
 ### MAIN GUI WINDOW
 ####################################################################################
+# Batch size for predictor
+BATCH_SIZE_PRED = 8
 if VIDEO:
     BATCH_SIZE = 1
 else:
     BATCH_SIZE = 8
 prediction = [[],[]]
-threshold = threshold_default = 0.5
+threshold = threshold_default = 0.8
 maxlag = maxlag_default = 20 # seconds
 main_tab = [
     [sg.Image(filename=r'icons/1316-white-small.png'),sg.Text("DEEPFAUNE", font=("Helvetica", 30)), sg.Image(filename=r'icons/logoINEE.png', expand_x=True)],
@@ -231,6 +241,7 @@ hasrun = False
 imgmoved  = False
 frgbprint("terminé","done")
 window['-FOLDERBROWSE-'].Update(disabled=False)
+
 while True:
     event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
@@ -313,9 +324,9 @@ while True:
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
         window.refresh()
         if VIDEO:
-            predictor = PredictorVideo(filenames, threshold, LANG)
+            predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE_PRED)
         else:
-            predictor = Predictor(filenames, threshold, LANG)
+            predictor = Predictor(filenames, threshold, LANG, BATCH_SIZE_PRED)
         predictor.setForbiddenClasses(forbiddenclasses)
         frgbprint("terminé","done")
         window.refresh()
@@ -335,11 +346,11 @@ while True:
             window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
             window.refresh()
         if VIDEO:
-            predictedclass_base, predictedscore_base = predictor.getPredictions()
+            predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
             predictedclass, predictedscore = predictedclass_base, predictedscore_base
         else:
             frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-            predictedclass_base, predictedscore_base = predictor.getPredictions()
+            predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
             predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
             frgbprint(" terminé", " done")
         ########################
@@ -412,12 +423,18 @@ while True:
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
         windowimg = sg.Window(basename(filenames[curridx]), layout, size=(540, 500), font = ("Arial", 14), finalize=True) 
         if VIDEO:
-            video = cv2.VideoCapture(filenames[curridx])
-            video.set(cv2.CAP_PROP_POS_FRAMES, 1)
-            ret,imagecv = video.read()
+            cap = cv2.VideoCapture(filenames[curridx])
+            lag = int(cap.get(5) / 3)
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            while ((BATCH_SIZE_PRED - 1) * lag > total_frames):
+                lag = lag - 1
+            cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
+            ret, imagecv = cap.read()
             if not ret:
                 imagecv = np.zeros((400,500,3), np.uint8)
             else:
+                if predictedclass[curridx] is not txt_empty[LANG]:
+                    draw_boxes(imagecv,bestboxes[curridx])
                 imagecv = cv2.resize(imagecv, (500,400))
         else:
             try:
@@ -427,6 +444,8 @@ while True:
             if imagecv is None:
                 imagecv = np.zeros((400,500,3), np.uint8)
             else:
+                if predictedclass[curridx] is not txt_empty[LANG]:
+                    draw_boxes(imagecv,bestboxes[curridx])
                 imagecv = cv2.resize(imagecv, (500,400))
         is_success, png_buffer = cv2.imencode(".png", imagecv)
         bio = BytesIO(png_buffer)
@@ -475,12 +494,18 @@ while True:
                             if curridx==len(predictedclass):
                                 curridx = 0
                 if VIDEO:
-                    video = cv2.VideoCapture(filenames[curridx])
-                    video.set(cv2.CAP_PROP_POS_FRAMES, 1)
-                    ret,imagecv = video.read()
+                    cap = cv2.VideoCapture(filenames[curridx])
+                    lag = int(cap.get(5) / 3)
+                    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                    while ((BATCH_SIZE_PRED - 1) * lag > total_frames):
+                        lag = lag - 1
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
+                    ret, imagecv = cap.read()
                     if not ret:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
+                        if predictedclass[curridx] is not txt_empty[LANG]:
+                            draw_boxes(imagecv, bestboxes[curridx])
                         imagecv = cv2.resize(imagecv, (500,400))
                 else:
                     try:
@@ -490,6 +515,8 @@ while True:
                     if imagecv is None:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
+                        if predictedclass[curridx] is not txt_empty[LANG]:
+                            draw_boxes(imagecv, bestboxes[curridx])
                         imagecv = cv2.resize(imagecv, (500,400))
                 is_success, png_buffer = cv2.imencode(".png", imagecv)
                 bio = BytesIO(png_buffer)
@@ -551,3 +578,4 @@ while True:
     else:
         window['-TABROW-'].Update(disabled=True)
 window.close()
+
