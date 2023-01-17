@@ -217,7 +217,7 @@ class PredictorVideo(PredictorBase):
     
     def __init__(self, filenames, threshold, LANG):
          super().__init__(filenames, threshold, LANG) # inherits all
-         self.keyframe = [0]*self.fileManager.nbFiles()
+         self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.classifier = Classifier()
 
@@ -266,7 +266,7 @@ class PredictorVideo(PredictorBase):
                 # print((predictionallframe[idxnonempty,:]*100).astype(int))
                 # max score in frames with animal/human/vehicle
                 tidxmax = np.unravel_index(np.argmax(predictionallframe[idxnonempty,:], axis=None), predictionallframe[idxnonempty,:].shape)
-                self.keyframe[self.k1] = tidxmax[0] 
+                self.keyframes[self.k1] = tidxmax[0] 
                 # using max score as video score
                 self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
                 # or using average score of this class when predicted as video score
@@ -282,7 +282,8 @@ class PredictorVideo(PredictorBase):
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
-
+        def getKeyFrames():
+            return sel.keyframes
 
 class PredictorJSON(PredictorBase):
     
