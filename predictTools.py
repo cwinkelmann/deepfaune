@@ -271,7 +271,7 @@ class PredictorVideo(PredictorBase):
                 # print((predictionallframe[idxnonempty,:]*100).astype(int))
                 # max score in frames with animal/human/vehicle
                 tidxmax = np.unravel_index(np.argmax(predictionallframe[idxnonempty,:], axis=None), predictionallframe[idxnonempty,:].shape)
-                self.keyframes[self.k1] = tidxmax[0]
+                self.keyframes[self.k1] = idxnonempty[tidxmax[0]]
                 # using max score as video score
                 self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
                 # or using average score of this class when predicted as video score
@@ -280,8 +280,7 @@ class PredictorVideo(PredictorBase):
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
-            bestboxesallframe_noempty =bestboxesallframe[idxnonempty]
-            self.bestboxes[self.k1] = bestboxesallframe_noempty[self.keyframes[self.k1]]
+            self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
