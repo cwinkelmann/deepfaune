@@ -140,6 +140,8 @@ def draw_boxes(imagecv,box):
 ####################################################################################
 ### MAIN GUI WINDOW
 ####################################################################################
+# Batch size for predictor
+BATCH_SIZE_PRED = 8
 if VIDEO:
     BATCH_SIZE = 1
 else:
@@ -322,9 +324,9 @@ while True:
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
         window.refresh()
         if VIDEO:
-            predictor = PredictorVideo(filenames, threshold, LANG)
+            predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE_PRED)
         else:
-            predictor = Predictor(filenames, threshold, LANG)
+            predictor = Predictor(filenames, threshold, LANG, BATCH_SIZE_PRED)
         predictor.setForbiddenClasses(forbiddenclasses)
         frgbprint("terminé","done")
         window.refresh()
@@ -421,15 +423,16 @@ while True:
                    sg.Combo(values=txt_restrict[LANG], default_value=txt_restrict[LANG][0], size=(15, 1), bind_return_key=True, key="-RESTRICT-")]]
         windowimg = sg.Window(basename(filenames[curridx]), layout, size=(540, 500), font = ("Arial", 14), finalize=True) 
         if VIDEO:
-            video = cv2.VideoCapture(filenames[curridx])
-            video.set(cv2.CAP_PROP_POS_FRAMES, 1)
-            ret,imagecv = video.read()
+            cap = cv2.VideoCapture(filenames[curridx])
+            lag = int(cap.get(5) / 3)
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            while ((BATCH_SIZE_PRED - 1) * lag > total_frames):
+                lag = lag - 1
+            cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
+            ret, imagecv = cap.read()
             if not ret:
                 imagecv = np.zeros((400,500,3), np.uint8)
             else:
-                print("predictedclass ",predictedclass)
-                print("predictedclass[curridx] ",predictedclass[curridx])
-                print("bestboxes[curridx] ", bestboxes[curridx])
                 if predictedclass[curridx] is not txt_empty[LANG]:
                     draw_boxes(imagecv,bestboxes[curridx])
                 imagecv = cv2.resize(imagecv, (500,400))
@@ -491,9 +494,12 @@ while True:
                             if curridx==len(predictedclass):
                                 curridx = 0
                 if VIDEO:
-                    video = cv2.VideoCapture(filenames[curridx])
-                    video.set(cv2.CAP_PROP_POS_FRAMES, 1)
-                    ret,imagecv = video.read()
+                    cap = cv2.VideoCapture(filenames[curridx])
+                    lag = int(cap.get(5) / 3)
+                    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                    while ((BATCH_SIZE_PRED - 1) * lag > total_frames):
+                        lag = lag - 1
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
                     if not ret:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
