@@ -42,7 +42,7 @@ sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.5.1"
+VERSION = "0.5.2"
 LANG = "fr"
 DEBUG = False
 
@@ -145,7 +145,7 @@ if VIDEO:
 else:
     BATCH_SIZE = 8
 prediction = [[],[]]
-threshold = threshold_default = 0.5
+threshold = threshold_default = 0.8
 maxlag = maxlag_default = 20 # seconds
 main_tab = [
     [sg.Image(filename=r'icons/1316-white-small.png'),sg.Text("DEEPFAUNE", font=("Helvetica", 30)), sg.Image(filename=r'icons/logoINEE.png', expand_x=True)],

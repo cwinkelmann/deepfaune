@@ -140,10 +140,6 @@ class PredictorBase(ABC):
             idxmax = np.argmax(pred)
             if(max(pred)>=self.threshold):
                 self.predictedclass_base[k] = txt_classesempty_lang[idxmax]
-            #idxmax = np.argmax(pred)
-            #if not idxmax in self.idxforbidden:
-            #    if(max(pred)>=self.threshold):
-            #        self.predictedclass_base[k] = txt_classesempty_lang[idxmax]
             self.predictedscore_base[k] = int(max(pred)*100)/100.
                 
     def __majorityVotingInSequence(self, df_prediction):
@@ -224,6 +220,7 @@ class PredictorVideo(PredictorBase):
     
     def __init__(self, filenames, threshold, LANG):
          super().__init__(filenames, threshold, LANG) # inherits all
+         self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.classifier = Classifier()
 
@@ -242,9 +239,7 @@ class PredictorVideo(PredictorBase):
             video = cv2.VideoCapture(video_path)
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
-            # print ("fps=" + str(fps))
-            # print("duration=" + str(duration))
-            lag = fps # lag between two successice frames
+            lag = int(fps/3) # lag between two successive frames
             while((BATCH_SIZE-1)*lag>total_frames):
                 lag = lag-1 # reducing lag if video duration is less than BATCH_SIZE sec
             predictionallframe = np.zeros(shape=(BATCH_SIZE, self.nbclasses), dtype=np.float32)
@@ -273,9 +268,15 @@ class PredictorVideo(PredictorBase):
                 predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
             if len(idxnonempty): # not empty
                 self.prediction[self.k1,-1] = 0.
-                # voting with frames with animal/human/vehicle
-                self.prediction[self.k1,0:self.nbclasses] = np.sum(predictionallframe[idxnonempty,:],axis=0)/len(idxnonempty)
-                #print((predictionallframe[idxnonempty,:]*100).astype(int))
+                # print((predictionallframe[idxnonempty,:]*100).astype(int))
+                # max score in frames with animal/human/vehicle
+                tidxmax = np.unravel_index(np.argmax(predictionallframe[idxnonempty,:], axis=None), predictionallframe[idxnonempty,:].shape)
+                self.keyframes[self.k1] = tidxmax[0] 
+                # using max score as video score
+                self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
+                # or using average score of this class when predicted as video score
+                # idxmax4all = np.argmax(predictionallframe[idxnonempty,:], axis=1)
+                # self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
@@ -287,7 +288,8 @@ class PredictorVideo(PredictorBase):
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
         
-
+        def getKeyFrames():
+            return sel.keyframes
 
 class PredictorJSON(PredictorBase):
     

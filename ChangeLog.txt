@@ -1,9 +1,16 @@
+2023-01-13  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+
+	    Version 0.5.2
+	    * Improved confidence score managment for videos, leading to less videos classified as "undefined".
+	    A frame rate of 3 fps is now used, using a total of 8 frames.
+	    * New default threshold to 0.8
+
 2022-11-12  Gaspard Dussert  <gaspard.dussert@univ-lyon1.fr>
 
 	    Version 0.5.1
 	    * Bug fix: The software do not crash when no folder is selected to save in a CSV/XLSX file.
-	    * Bug fix: Overwriting of files with the same name is now prevented when they are copied/moved. 
-		Filenames are now changed with an additionnal "_1,_2,..." tag if necessary.
+	    * Bug fix: Overwriting of files with the same name is now prevented when they are copied/moved.
+	    Filenames are now changed with an additionnal "_1,_2,..." tag if necessary.
 
 2022-10-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
