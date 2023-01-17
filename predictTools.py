@@ -217,6 +217,7 @@ class PredictorVideo(PredictorBase):
     
     def __init__(self, filenames, threshold, LANG):
          super().__init__(filenames, threshold, LANG) # inherits all
+         self.keyframe = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.classifier = Classifier()
 
@@ -262,13 +263,15 @@ class PredictorVideo(PredictorBase):
                 predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
             if len(idxnonempty): # not empty
                 self.prediction[self.k1,-1] = 0.
-                # taking the most confident prediction in frames with animal/human/vehicle
-                #print((predictionallframe[idxnonempty,:]*100).astype(int))
+                # print((predictionallframe[idxnonempty,:]*100).astype(int))
+                # max score in frames with animal/human/vehicle
                 tidxmax = np.unravel_index(np.argmax(predictionallframe[idxnonempty,:], axis=None), predictionallframe[idxnonempty,:].shape)
-                # self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
-                # setting average score for this prediction
-                idxmax4all = np.argmax(predictionallframe[idxnonempty,:], axis=1)
-                self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
+                self.keyframe[self.k1] = tidxmax[0] 
+                # using max score as video score
+                self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
+                # or using average score of this class when predicted as video score
+                # idxmax4all = np.argmax(predictionallframe[idxnonempty,:], axis=1)
+                # self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
             self._PredictorBase__prediction2class(batchOnly=True)
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
