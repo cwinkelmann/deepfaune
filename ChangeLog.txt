@@ -50,7 +50,6 @@
 2022-05-16  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.3.0
-
 	    * Now relying on openCV.
 	    * Detection improved using openCV : 2x faster, less false negative.
 	    Model weights are in 'deepfaune-yolov4.weights' file instead of 'checkpoints' folder.
@@ -60,7 +59,6 @@
 2022-03-28  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.2.1
-
 	    * Bug fix: threshold button is now working correctly.
 	    * Bug fix: autocorrect by folder is now also working when using Windows 11 and Python 3.10.
 	    * File ordering is now optimal for vizualization: by folder, then
@@ -69,7 +67,6 @@
 2022-03-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.2
-
 	    * New categories 'cat','lynx' and 'marmot' (in french 'chat', 'lynx' and 'marmotte').
 	    * The autocorrection with exif now operates by sudirectories,
 	    to prevent considering sequences of images that are from different camera traps.
@@ -79,7 +76,6 @@
 2022-02-14  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Pre-release version O.1
-
 	    * Includes categories 'badger','ibex','red deer','chamois','cat','roe deer','dog','squirrel',
 	    'human','lagomorph', 'wolf','lynx','marmot','micromammal','mouflon','sheep','mustelide',
 	    'bird','fox','wild boar', 'cow','vehicle' (in french 'blaireau', 'bouquetin', 'cerf',
