@@ -26,7 +26,8 @@ duration= int(total_frames / fps)
 print ("fps=" + str(fps))
 print("duration=" + str(duration))
   
-for frame_nb in range(0, BATCH_SIZE*fps, fps):
+#for frame_nb in range(0,4):#range(0, BATCH_SIZE*fps, fps):
+for frame_nb in range(0, BATCH_SIZE*int(fps/3), int(fps/3)):
     #get frame corresponding to frame_nb
     video.set(cv2.CAP_PROP_POS_FRAMES, frame_nb)
     #read frame
