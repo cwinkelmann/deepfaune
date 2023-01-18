@@ -39,7 +39,7 @@ for d in a.datas:
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 splash = Splash(
-    'splashscreen.png',
+    'icons/splashscreen.png',
     binaries=a.binaries,
     datas=a.datas,
     text_pos=None,
