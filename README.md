@@ -94,14 +94,17 @@ For any question, bug or feedback, feel free to send an email to [Vincent Miele]
 
 
 ---
-# LICENCE
+# LICENSE
 ---
 
-`Deepfaune` sofware is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html).
+All of the source code to this product is available under the [CeCILL](http://www.cecill.info), compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html).
 
-`Deepfaune` model parameters are released under the [CC BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0/) (Attribution-NonCommercial-ShareAlike 4.0 International).
+All the model parameters (PyTorch weights in '.pt' files) are available under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Public License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-Commercial use of any element of `deepfaune` (code or model weights) is forbidden.
+Commercial use of any element of `DeepFaune` (code or model parameters) is forbidden.
+
+Know your rights.
+
 
 ---
 # REFERENCES
@@ -118,13 +121,13 @@ Commercial use of any element of `deepfaune` (code or model weights) is forbidde
 
 ---
 
-> How can I learn more about machine learning?
+> How can I learn more about machine learning for ecology?
 
-You can watch these [series of 3 french videos](https://imaginecology.sciencesconf.org) (video 1 is the easiest).
+You can dig into [this paper list](https://ecostat.gitlab.io/imaginecology/papers.html).
 
 > Is the `deepfaune` software free?
 
-Yes, it is a free software. Commercial use is forbidden, according to the [CeCILL LICENCE](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/LICENCE.txt). But, if you appreciate our work, please cite our work and/or contribute by sharing with us your annotated images.
+Yes, it is a free software, ut commercial use is forbidden (see LICENSE section). If you appreciate our work, please cite our work and/or contribute by sharing with us your annotated images.
 
 > Can I have access to the images used in the DeepFaune project?
 
@@ -134,7 +137,7 @@ No. We do not share the images of our partners.
 
 It would be great!! You can contact us to see how you can send us your images (we have different solutions). We will store them in a secure server with private access to the members of the deepfaune project.
  
-> Who is developing this DeepFaune project ?
+> Who is developing this DeepFaune project?
 
 A team in CNRS-INEE leaded by Simon Chamaillé-Jammes (CEFE) and Vincent Miele (LBBE). Please have a look at our website [https://www.deepfaune.cnrs.fr/](https://www.deepfaune.cnrs.fr/).
 
