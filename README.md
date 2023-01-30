@@ -64,7 +64,8 @@ On Linux or Windows **with PyPi (pip)**:
 - OpenCV: `pip install opencv-python`
 - PIL: `pip install pillow`
 - (optional, for Excel users only) openpyxl: `pip install openpyxl`
-- (for some users, it may be necessary to install `python3-tk` as well, when you have a message `no module tkinter`)
+
+For some users, it may be necessary to install `python-tk` or `python3-tk` as well, when you have a message `no module tkinter`...
 
 On Windows with **[Anaconda Individual Edition](https://www.anaconda.com/products/individual)** (WARNING: during installation of Anaconda, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE).
 
