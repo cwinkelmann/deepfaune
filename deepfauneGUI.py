@@ -178,7 +178,7 @@ select_tab = [
 ]
 results_tab = [
     [sg.Frame(txt_predframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
-        [sg.Table(values=[['' for k in range(BATCH_SIZE)],[0. for k in range(BATCH_SIZE)]],
+        [sg.Table(values=[[],[]],
                   headings=['filename','prediction','score'], justification = "c", 
                   vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
                   enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
