@@ -42,7 +42,7 @@ sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.5.2"
+VERSION = "0.5.3"
 LANG = "fr"
 DEBUG = False
 
@@ -146,12 +146,8 @@ if VIDEO:
 else:
     BATCH_SIZE_PRED = 8
 # Batch size for the GUI, in number of files
-if VIDEO:
-    BATCH_SIZE = 1
-else:
-    BATCH_SIZE = 8
+BATCH_SIZE = 8
 
-prediction = [[],[]]
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 20 # seconds
 main_tab = [
@@ -182,7 +178,8 @@ select_tab = [
 ]
 results_tab = [
     [sg.Frame(txt_predframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
-        [sg.Table(values=prediction, headings=['filename','prediction','score'], justification = "c", 
+        [sg.Table(values=[['' for k in range(BATCH_SIZE)],[0. for k in range(BATCH_SIZE)]],
+                  headings=['filename','prediction','score'], justification = "c", 
                   vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
                   enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                   key='-TABRESULTS-')],  
@@ -261,6 +258,7 @@ while True:
         window['-SUBFOLDERS-'].Update(disabled=True)
         window['-CP-'].Update(disabled=True)
         window['-MV-'].Update(disabled=True)
+        window['-PROGBAR-'].update_bar(0)
         testdir = values['-FOLDER-']
         if testdir != "":
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
@@ -289,7 +287,7 @@ while True:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles>0:
                 predictedclass = ['' for k in range(nbfiles)] 
-                predictedscore = ['' for k in range(nbfiles)] 
+                predictedscore = [0. for k in range(nbfiles)] 
                 window['-RUN-'].Update(disabled=False)
                 window['-THRESHOLD-'].Update(disabled=False)
                 if not VIDEO:
@@ -341,15 +339,33 @@ while True:
             sg.cprint('Running', c='white on green', end='')
         sg.cprint('')
         window.refresh()
-        batch = 1
-        while True:
-            batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
-            if not len(predictedclass_batch): break
-            frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
-            frgbprint(" terminé", " done")
-            window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-            window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
-            window.refresh()
+        if VIDEO:
+            predictedclass_batch = ['' for k in range(BATCH_SIZE)]
+            predictedscore_batch = [0. for k in range(BATCH_SIZE)]
+            while True:
+                batch, _, _, predictedclass_video, predictedscore_video = predictor.nextBatch()
+                if not len(predictedclass_video): break
+                predictedclass_batch[(batch-1)%BATCH_SIZE] = predictedclass_video[0]
+                predictedscore_batch[(batch-1)%BATCH_SIZE] = predictedscore_video[0]
+                frgbprint("Traitement de le vidéo "+str(batch)+"...", "Processing video "+str(batch)+"...", end="")
+                frgbprint(" terminé", " done")
+                window['-PROGBAR-'].update_bar(batch/nbfiles)
+                k1 = int((batch-1)/BATCH_SIZE)*BATCH_SIZE
+                k2 = min((int((batch-1)/BATCH_SIZE)+1)*BATCH_SIZE,nbfiles)
+                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch[0:(k2-k1)], predictedscore_batch[0:(k2-k1)]].tolist())
+                window.refresh()
+                if batch%BATCH_SIZE==0:
+                    predictedclass_batch = ['' for k in range(BATCH_SIZE)]
+                    predictedscore_batch = [0. for k in range(BATCH_SIZE)]
+        else:
+            while True:
+                batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
+                if not len(predictedclass_batch): break
+                frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
+                frgbprint(" terminé", " done")
+                window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
+                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
+                window.refresh()
         if VIDEO:
             predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
             predictedclass, predictedscore = predictedclass_base, predictedscore_base
