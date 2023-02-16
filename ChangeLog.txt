@@ -1,4 +1,4 @@
-2023-02-03  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2023-02-16  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.5.3 (under development)
 	    * New multiline view in results table for videos.
