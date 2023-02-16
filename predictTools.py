@@ -186,7 +186,10 @@ class Predictor(PredictorBase):
         else:
             idxanimal = []
             for k in range(self.k1,self.k2):
-                imagecv = cv2.imread(self.fileManager.getFilename(k))
+                try:
+                    imagecv = cv2.imread(self.fileManager.getFilename(k))
+                except:
+                    imagecv = None
                 if imagecv is None:
                     pass # Corrupted image, considered as empty
                 else:
