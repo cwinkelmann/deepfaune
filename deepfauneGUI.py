@@ -179,7 +179,7 @@ select_tab = [
 results_tab = [
     [sg.Frame(txt_predframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
         [sg.Table(values=[[],[]],
-                  headings=['filename','prediction','score'], justification = "c", 
+                  headings=['filename','prediction','score'], justification = "l", 
                   vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
                   enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                   key='-TABRESULTS-')],  
@@ -259,6 +259,7 @@ while True:
         window['-CP-'].Update(disabled=True)
         window['-MV-'].Update(disabled=True)
         window['-PROGBAR-'].update_bar(0)
+        hasrun = False
         testdir = values['-FOLDER-']
         if testdir != "":
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
@@ -455,7 +456,8 @@ while True:
                 imagecv = np.zeros((400,500,3), np.uint8)
             else:
                 if predictedclass[curridx] is not txt_empty[LANG]:
-                    draw_boxes(imagecv,bestboxes[curridx])
+                    if hasrun:
+                        draw_boxes(imagecv,bestboxes[curridx])
                 imagecv = cv2.resize(imagecv, (500,400))
         else:
             try:
@@ -466,7 +468,8 @@ while True:
                 imagecv = np.zeros((400,500,3), np.uint8)
             else:
                 if predictedclass[curridx] is not txt_empty[LANG]:
-                    draw_boxes(imagecv,bestboxes[curridx])
+                    if hasrun:
+                        draw_boxes(imagecv,bestboxes[curridx])
                 imagecv = cv2.resize(imagecv, (500,400))
         is_success, png_buffer = cv2.imencode(".png", imagecv)
         bio = BytesIO(png_buffer)
@@ -526,7 +529,8 @@ while True:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
                         if predictedclass[curridx] is not txt_empty[LANG]:
-                            draw_boxes(imagecv, bestboxes[curridx])
+                            if hasrun:
+                                draw_boxes(imagecv, bestboxes[curridx])
                         imagecv = cv2.resize(imagecv, (500,400))
                 else:
                     try:
@@ -537,7 +541,8 @@ while True:
                         imagecv = np.zeros((400,500,3), np.uint8)
                     else:
                         if predictedclass[curridx] is not txt_empty[LANG]:
-                            draw_boxes(imagecv, bestboxes[curridx])
+                            if hasrun:
+                                draw_boxes(imagecv, bestboxes[curridx])
                         imagecv = cv2.resize(imagecv, (500,400))
                 is_success, png_buffer = cv2.imencode(".png", imagecv)
                 bio = BytesIO(png_buffer)
