@@ -37,6 +37,8 @@ import os
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
+os.environ["PYTORCH_JIT"] = "0"
+
 
             
 ####################################################################################

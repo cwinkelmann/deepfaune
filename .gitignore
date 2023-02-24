@@ -5,3 +5,6 @@ efficientnet_b3_22_produc3.pt
 *.pt
 __pycache__
 testdata/sequence
+dist
+build
+deepfauneGUI.spec
