@@ -41,7 +41,7 @@ from ultralytics import YOLO
 
 
 YOLO_SIZE = 640
-model = 'modelZoo/deepfaune-yolov8small_100.pt'
+model = 'deepfaune-yolov8small_100.pt'
 
 ####################################################################################
 ### BEST BOX DETECTION 
