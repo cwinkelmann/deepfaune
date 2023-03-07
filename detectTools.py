@@ -62,7 +62,7 @@ class Detector:
         image = Image.fromarray(cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB))
         results = self.yolo(image, verbose=False)
         detection = results[0].numpy().boxes
-        if not len(detection.cls):
+        if not len(detection.cls) or detection.conf[0] < threshold:
             return [], 0, np.zeros(4)
         category = detection.cls[0] + 1
         box = detection.xyxy[0]  # xmin, ymin, xmax, ymax

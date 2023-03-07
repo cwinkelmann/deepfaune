@@ -38,9 +38,11 @@ import os
 sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 os.environ["PYTORCH_JIT"] = "0"
+import torch
+if torch.cuda.is_available():
+    # Désactiver tous les GPU
+    torch.cuda.set_device(torch.device('cpu'))
 
-
-            
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
