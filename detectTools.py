@@ -41,7 +41,7 @@ from ultralytics import YOLO
 
 
 YOLO_SIZE = 640
-model = 'deepfaune-yolov8small_100.pt'
+model = 'deepfaune-yolov8s.pt'
 
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -66,10 +66,6 @@ class Detector:
             return [], 0, np.zeros(4)
         category = detection.cls[0] + 1
         box = detection.xyxy[0]  # xmin, ymin, xmax, ymax
-        # rectangular version:
-        # croppedimage = image.crop((box[0], box[1], box[2], box[3]))
-        # square version:
-        # image.crop((box[0], box[1], box[2], box[3])).show()
         croppedimage = cropSquare(image, box.copy())
         return croppedimage, category, box
 

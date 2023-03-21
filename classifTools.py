@@ -39,16 +39,17 @@ from torch import tensor
 import torch.nn as nn
 from torchvision.transforms import InterpolationMode, transforms
 
-CROP_SIZE = 288
-BACKBONE = "efficientnetv2_rw_s"
-weight_path = "deepfaune-efficientnetv2s.pt"
+CROP_SIZE = 224
+BACKBONE = "convnext_base_in22k"
+weight_path = "deepfaune-convnextbasein22k.pt"
 
 txt_animalclasses = {
-    'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevreuil", "chien", "ecureuil", "equide", "lagomorphe",
-           "loup", "lynx", "marmotte", "micromammifere", "mouflon", "mouton", "mustelide", "oiseau", "ours", "renard",
-           "sanglier", "vache"],
-    'gb': ["badger", "ibex", "red deer", "chamois", "cat", "roe deer", "dog", "squirrel", "equide", "lagomorph", "wolf",
-           "lynx", "marmot", "micromammal", "mouflon", "sheep", "mustelide", "bird", "bear", "fox", "wild boar", "cow"]
+    'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "ecureuil", "equide", "genette",
+           "herisson", "lagomorphe", "loup", "lynx", "marmotte", "micromammifere", "mouflon",
+           "mouton", "mustelide", "oiseau", "ours", "ragondin", "renard", "sanglier", "vache"],
+    'gb': ["badger", "ibex", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "squirrel", "equide", "genette",
+           "hedgehog", "lagomorph", "wolf", "lynx", "marmot", "micromammal", "mouflon",
+           "sheep", "mustelide", "bird", "bear", "beaver", "fox", "wild boar", "cow"]
 }
 
 
