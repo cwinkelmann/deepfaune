@@ -57,7 +57,7 @@ On Linux or Windows **with PyPi (pip)**:
 
 - Python 3.x (and `pip` which might be called `pip3` on your system)
 - PyTorch: `pip install torch torchvision`
-- yolov5: `pip install yolov5`
+- Yolov8: `pip install ultralytics`
 - Timm: `pip install timm`
 - Pandas: `pip install pandas`
 - Numpy: `pip install numpy`
