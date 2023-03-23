@@ -10,7 +10,7 @@
 
 2023-02-16  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
-	    Version 0.5.3 (under development)
+	    Version 0.5.3
 	    * New multiline view in results table for videos.
 	    * Bug fix: progress bar is reinitialized when loading a new folder.
 	    * Bug fix: correct handling of empty/null images.
