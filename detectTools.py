@@ -37,39 +37,35 @@
 import cv2
 import numpy as np
 from PIL import Image
-import yolov5
+from ultralytics import YOLO
+
 
 YOLO_SIZE = 640
-model = 'deepfaune-yolov5.pt'
+model = 'deepfaune-yolov8s.pt'
 
 ####################################################################################
 ### BEST BOX DETECTION 
 ####################################################################################
 class Detector:
     def __init__(self):
-        self.yolo = yolov5.load(model)
+        self.yolo = YOLO(model)
     """
     :param imagecv: openCV image in BGR
     :param threshold : above threshold, keep the best box given
     :return: cropped image, possibly None
     :rtype: PIL image
     """
-    def bestBoxDetection(self, imagecv, threshold=0.5):
+    def bestBoxDetection(self, imagecv, threshold=0.6):
         '''
         in/out as numpy int array (0-255) in BGR
         '''
-        self.yolo.conf = threshold
         image = Image.fromarray(cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB))
-        results = self.yolo(image, size=YOLO_SIZE)
-        detection = results.pred[0].cpu().numpy() # first box with highest confidence
-        if not len(detection):
+        results = self.yolo(image, verbose=False)
+        detection = results[0].numpy().boxes
+        if not len(detection.cls) or detection.conf[0] < threshold:
             return [], 0, np.zeros(4)
-        category = int(detection[0, 5] + 1)
-        box = detection[0, :4]  # xmin, ymin, xmax, ymax
-        # rectangular version:
-        # croppedimage = image.crop((box[0], box[1], box[2], box[3]))
-        # square version:
-        # image.crop((box[0], box[1], box[2], box[3])).show()
+        category = detection.cls[0] + 1
+        box = detection.xyxy[0]  # xmin, ymin, xmax, ymax
         croppedimage = cropSquare(image, box.copy())
         return croppedimage, category, box
 
