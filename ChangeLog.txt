@@ -1,3 +1,13 @@
+2023-03-23  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+
+	    Version 0.6.0
+	    * New categories 'genet', 'goat', 'hedgehog' and 'nutria' (in french 'genette', 'chevre', 'herisson' and 'ragondin').
+	    * Moving to convNext_base_in22k architecture for classification, with improved performance.
+	    Model weights are now in 'deepfaune-convnextbasein22k.pt' (large file)
+	    * Moving to yolov8s architecture for detection, with improved performance.
+	    Model weights are now in 'deepfaune-yolov8s.pt'
+	    
+
 2023-02-16  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 0.5.3 (under development)
@@ -26,7 +36,7 @@
 
 	    Version 0.5.0
 	    * New categories 'bear' and 'equide' (in french 'ours' and 'equide').
-	    Moving from TensorFlow to PyTorch for classification.
+	    * Moving from TensorFlow to PyTorch for classification.
 	    Model weights are now in 'deepfaune-efficientnetB3.pt' file.
 	    * Detection is now x3 faster.
 	    Moving from yolov4 to yolov5m6 for detection.
