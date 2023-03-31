@@ -10,9 +10,9 @@
 # NEWS
 ---
 
-Release v0.5 is available. 
+Release v0.6 is available. 
 
-Supported categories/species :  BADGER, IBEX, RED DEER, CHAMOIS/ISARD, CAT, ROE DEER, DOG, SQUIRREL, LAGOMORPH, WOLF, LYNX, MARMOT, MICROMAMMAL, MOUFLON, SHEEP, MUSTELIDE, BIRD, FOX, WILD BOAR, COW, EQUIDE, BEAR, HUMAN/VEHICLE, EMPTY
+Supported categories/species : BADGER, BEAR, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, REDDEER, ROEDEER, SHEEP, SQUIRREL, WILDBOAR, WOLF + HUMAN, VEHICULE + EMPTY 
 
 ---
 # INSTALL
@@ -45,11 +45,9 @@ The model parameters are protected by the [CC BY-NC-SA 4.0 license](https://crea
 
 Download the model parameters *inside the deepfaune folder* where you can find `deepfauneGUI.py`:
 
-- Animal detector parameters: for version >=0.5 [deepfaune-yolov5.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
- (for version 0.3/0.4 [deepfaune-yolov4.weights](https://pbil.univ-lyon1.fr/software/download/deepfaune/))
+- Animal detector parameters: for version 0.6.x [deepfaune-yolov8s.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v0.6/)
 
-- Classifier parameters: [deepfaune-efficientnetv2s.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
-(for version 0.3/0.4 [efficientnet_22classesOnlycroppedImgAugB3.hdf5](https://pbil.univ-lyon1.fr/software/download/deepfaune/)
+- Classifier parameters: for version 0.6.x [deepfaune-convnextbasein22k.pt.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v0.6/)
 
 ### 3. Install the dependencies
 
@@ -57,7 +55,7 @@ On Linux or Windows **with PyPi (pip)**:
 
 - Python 3.x (and `pip` which might be called `pip3` on your system)
 - PyTorch: `pip install torch torchvision`
-- yolov5: `pip install yolov5`
+- Yolov8: `pip install ultralytics`
 - Timm: `pip install timm`
 - Pandas: `pip install pandas`
 - Numpy: `pip install numpy`
