@@ -187,7 +187,8 @@ class Predictor(PredictorBase):
             idxanimal = []
             for k in range(self.k1,self.k2):
                 try:
-                    imagecv = cv2.imread(self.fileManager.getFilename(k))
+                    imagecv = cv2.imdecode(np.fromfile(self.fileManager.getFilename(k), dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+                    # imagecv = cv2.imread(self.fileManager.getFilename(k))
                 except:
                     imagecv = None
                 if imagecv is None:

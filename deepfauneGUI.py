@@ -136,6 +136,10 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 
 def draw_boxes(imagecv,box):
     cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
+
+def safe_imread(image_path):
+    image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+    return image
         
 ####################################################################################
 ### MAIN GUI WINDOW
@@ -461,7 +465,7 @@ while True:
                 imagecv = cv2.resize(imagecv, (500,400))
         else:
             try:
-                imagecv = cv2.imread(filenames[curridx])
+                imagecv = safe_imread(filenames[curridx])
             except:
                 imagecv = None
             if imagecv is None:
@@ -534,7 +538,7 @@ while True:
                         imagecv = cv2.resize(imagecv, (500,400))
                 else:
                     try:
-                        imagecv = cv2.imread(filenames[curridx])
+                        imagecv = safe_imread(filenames[curridx])
                     except:
                         imagecv = None
                     if imagecv is None:
