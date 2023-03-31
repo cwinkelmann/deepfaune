@@ -147,23 +147,14 @@ if VIDEO:
 else:
     BATCH_SIZE_PRED = 8
 # Batch size for the GUI, in number of files
-BATCH_SIZE = 8
+BATCH_SIZE = 18
 
+# Default parameters
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 20 # seconds
-main_tab = [
-    [sg.Image(filename=r'icons/1316-white-small.png'),sg.Text("DEEPFAUNE", font=("Helvetica", 30)), sg.Image(filename=r'icons/logoINEE.png', expand_x=True)],
-    [sg.Text(txt_imagefolder[LANG]), sg.In(expand_x=True, enable_events=True, key='-FOLDER-'), sg.FolderBrowse(txt_browse[LANG], key='-FOLDERBROWSE-')],
-    [sg.Frame(txt_paramframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
-        [sg.Text(txt_confidence[LANG]+'\t', expand_x=True), sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
-        [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True), sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')]
-    ])],
-    [sg.Frame('Execution', font='Any 13', expand_x=True, expand_y=True, layout=[
-        [sg.Multiline(size=(40, 3), default_text=txt_import[LANG], write_only=True, expand_x=True, key="-ML-", reroute_stdout=True, echo_stdout_stderr=True, reroute_cprint=True)],
-        [sg.Text(txt_progressbar[LANG]), sg.ProgressBar(1, orientation='h', border_width=4, expand_x=True, key='-PROGBAR-',bar_color=['Blue','White'], style='vista')]
-    ])],
-    [sg.Button(txt_run[LANG], expand_x=True, key='-RUN-')]
-]
+curridx = 0
+
+# Default selected classes
 listCB = []
 lineCB = []
 sorted_txt_classes_lang = sorted(txt_classes[LANG])
@@ -176,41 +167,19 @@ if lineCB:
     listCB = listCB+[lineCB]
 select_frame = sg.Frame(txt_selectclasses[LANG], listCB, font='Any 13', expand_x=True, expand_y=True)
 
-select_tab = [
-    #[sg.Frame('', listCB, font='Any 13', expand_x=True, expand_y=True)]
-]
-results_tab = [
-    [sg.Frame(txt_predframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
-        [sg.Table(values=[[],[]],
-                  headings=['filename','prediction','score'], justification = "l", 
-                  vertical_scroll_only=False, auto_size_columns=False, col_widths=[33, 17, 8], num_rows=BATCH_SIZE, 
-                  enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
-                  key='-TABRESULTS-')],  
-        [sg.Button(txt_showall[LANG], key='-ALLTABROW-'),sg.Button(txt_showselected[LANG], key='-TABROW-')],
-    ])],   
-    [sg.Frame(txt_saveframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
-        [sg.Button(txt_save[LANG]+'CSV', key='-SAVECSV-'), sg.Button(txt_save[LANG]+'XSLX', key='-SAVEXLSX-')],
-        [sg.Button(txt_createsubfolders[LANG], key='-SUBFOLDERS-'), sg.Radio(txt_copy[LANG], 1, key='-CP-', default=True),sg.Radio(txt_move[LANG], 1, key='-MV-')]
-    ])]
-]
-credits_tab = [
+# Credits
+credits_layout = [
     [sg.Text("DeepFaune - version "+VERSION)],
     [sg.Text("Copyright CNRS - Licence CeCILL")],
     [sg.Text("https://www.deepfaune.cnrs.fr", font=('Any 13', 14, 'underline'), enable_events=True, key='-URL-')]
 ]
 
-layout = [[sg.TabGroup(
-    [[sg.Tab(txt_maintab[LANG], main_tab),
-      sg.Tab(txt_selectclasses[LANG], select_tab, expand_x=True),
-      sg.Tab(txt_resultstab[LANG], results_tab, expand_x=True),
-      sg.Tab(txt_credits[LANG], credits_tab, expand_x=True)]],
-    expand_x=True, expand_y=True)]]
-
+# Main window
 txt_import = {'fr':"Importer des médias", 'gb':"Import medias"}
 menu_def = [['&File', ['&'+txt_import[LANG], '&Export results',['as csv', 'as xslx'],  '&Create subfolders', ['copy images', 'move images'],'E&xit']],
             ['&Edit', ['Edit Me', 'Special', 'Preferences',['Language', 'Data type'] , 'Undo']],
-            ['&Help', ['&'+txt_credits[LANG]]], ]
-BATCH_SIZE=18
+            ['&Help', ['&Version'], ['&'+txt_credits[LANG]]], ]
+
 layoutexpe = [
     [sg.MenubarCustom(menu_def, pad=(0,0), k='-CUST MENUBAR-', bar_background_color='black', bar_text_color='white')],
     [
@@ -221,12 +190,12 @@ layoutexpe = [
                           vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], num_rows=32, 
                           enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                           key='-TAB-')],
-                [sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_empty[LANG]], default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-")]
+                [sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-")]
             ]),
             sg.Column([ 
             [
              sg.Frame('',
-                    [[sg.Image(filename=r'icons/1316-white-small.png',key="-IMAGE-", size=(800, 700))]]
+                    [[sg.Image(filename=r'icons/1316-white-small.png',key="-IMAGE-", size=(933, 700))]]
                      )
              ],
                 [sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
@@ -246,24 +215,9 @@ layoutexpe = [
 ]
 
 
-curridx = 0
 BORDER_COLOR = '#C7D5E0'
 windowexpe = sg.Window("DeepFaune - CNRS",layoutexpe, margins=(0,0), font = ("Arial", 14), resizable=True).Finalize()#, background_color=BORDER_COLOR, no_titlebar=True, grab_anywhere=True).Finalize()
-
-
-window = sg.Window("DeepFaune GUI",layout, font = ("Arial", 14), resizable=True).Finalize()
-window['-FOLDERBROWSE-'].Update(disabled=True)
-window['-RUN-'].Update(disabled=True)
-window['-THRESHOLD-'].Update(disabled=True)
-window['-LAG-'].Update(disabled=True)
-window['-SAVECSV-'].Update(disabled=True)
-window['-SAVEXLSX-'].Update(disabled=True)
-window['-TABROW-'].Update(disabled=True)
-window['-ALLTABROW-'].Update(disabled=True)
-window['-SUBFOLDERS-'].Update(disabled=True)
-window['-CP-'].Update(disabled=True)
-window['-MV-'].Update(disabled=True)
-window.read(timeout=0) # trick to make the button disabled at first
+windowexpe.read(timeout=0) # trick to make the button disabled at first
 
 
 ####################################################################################
@@ -289,7 +243,6 @@ rowidx = [-1]
 hasrun = False
 imgmoved  = False
 frgbprint("terminé","done")
-window['-FOLDERBROWSE-'].Update(disabled=False)
 
 while True:
     event, values = windowexpe.read(timeout=10)
@@ -300,12 +253,7 @@ while True:
         webbrowser.open("https://www.deepfaune.cnrs.fr")
         continue
     elif event == txt_import[LANG]:
-        window['-SAVECSV-'].Update(disabled=True)
-        window['-SAVEXLSX-'].Update(disabled=True)
-        window['-SUBFOLDERS-'].Update(disabled=True)
-        window['-CP-'].Update(disabled=True)
-        window['-MV-'].Update(disabled=True)
-        window['-PROGBAR-'].update_bar(0)
+        windowexpe['-PROGBAR-'].update_bar(0)
         hasrun = False
         testdir = sg.popup_get_folder(txt_browse[LANG], no_window=True)
         if testdir != "":
@@ -335,19 +283,10 @@ while True:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles>0:
                 predictedclass = ['' for k in range(nbfiles)] 
-                predictedscore = [0. for k in range(nbfiles)] 
-                window['-RUN-'].Update(disabled=False)
-                window['-THRESHOLD-'].Update(disabled=False)
-                if not VIDEO:
-                    window['-LAG-'].Update(disabled=False)
-                window['-ALLTABROW-'].Update(disabled=False)
-                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames],
-                                                                   predictedclass, predictedscore].tolist())
+                predictedscore = [0. for k in range(nbfiles)]
+                bestboxes = np.zeros(shape=(nbfiles, 4), dtype=np.float32)
             else:
                 sg.popup_error('Incorrect image folder - no image found', keep_on_top=True)
-                window['-RUN-'].Update(disabled=True)
-                window['-TABROW-'].Update(disabled=True)
-                window['-ALLTABROW-'].Update(disabled=True)
         windowexpe.Element('-TAB-').Update(values=[basename(f) for f in filenames])
     elif event == '-CONFIG-':
         layoutconfig = [
@@ -379,78 +318,56 @@ while True:
             frgbprint("Classes non selectionnées : ", "Unselected classes: ", end="")
             print(forbiddenclasses)
         windowconfig.close()
-        window['-RUN-'].Update(disabled=True)
-        window['-FOLDERBROWSE-'].Update(disabled=True)
-        window['-TABROW-'].Update(disabled=True)
-        window['-ALLTABROW-'].Update(disabled=True)
-        window['-THRESHOLD-'].Update(disabled=True)
-        window['-LAG-'].Update(disabled=True)
         ########################
         # Predictions using CNNs
         ########################
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
-        window.refresh()
+        windowexpe.refresh()
         if VIDEO:
             predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE_PRED)
         else:
             predictor = Predictor(filenames, threshold, LANG, BATCH_SIZE_PRED)
         predictor.setForbiddenClasses(forbiddenclasses)
         frgbprint("terminé","done")
-        window.refresh()
         if LANG=="fr":
             sg.cprint('Calcul en cours', c='white on green', end='')
         if LANG=="gb":
             sg.cprint('Running', c='white on green', end='')
-        sg.cprint('')
-        window.refresh()
-        if VIDEO:
-            predictedclass_batch = ['' for k in range(BATCH_SIZE)]
-            predictedscore_batch = [0. for k in range(BATCH_SIZE)]
-            while True:
-                batch, _, _, predictedclass_video, predictedscore_video = predictor.nextBatch()
-                if not len(predictedclass_video): break
-                predictedclass_batch[(batch-1)%BATCH_SIZE] = predictedclass_video[0]
-                predictedscore_batch[(batch-1)%BATCH_SIZE] = predictedscore_video[0]
-                frgbprint("Traitement de le vidéo "+str(batch)+"...", "Processing video "+str(batch)+"...", end="")
-                frgbprint(" terminé", " done")
-                window['-PROGBAR-'].update_bar(batch/nbfiles)
-                k1 = int((batch-1)/BATCH_SIZE)*BATCH_SIZE
-                k2 = min((int((batch-1)/BATCH_SIZE)+1)*BATCH_SIZE,nbfiles)
-                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch[0:(k2-k1)], predictedscore_batch[0:(k2-k1)]].tolist())
-                window.refresh()
-                if batch%BATCH_SIZE==0:
-                    predictedclass_batch = ['' for k in range(BATCH_SIZE)]
-                    predictedscore_batch = [0. for k in range(BATCH_SIZE)]
-        else:
-            while True:
-                batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
-                if not len(predictedclass_batch): break
-                frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
-                frgbprint(" terminé", " done")
-                window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-                window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames[k1:k2]], predictedclass_batch, predictedscore_batch].tolist())
-                window.refresh()
-        if VIDEO:
-            predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
-            predictedclass, predictedscore = predictedclass_base, predictedscore_base
-        else:
-            frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-            predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
-            predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
-            frgbprint(" terminé", " done")
-        ########################
-        ########################
-        # Update and next actions
-        window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames], predictedclass, predictedscore].tolist())
-        window['-RUN-'].Update(disabled=True)
-        window['-FOLDERBROWSE-'].Update(disabled=False)
-        window['-SUBFOLDERS-'].Update(disabled=False)
-        window['-CP-'].Update(disabled=False)
-        window['-MV-'].Update(disabled=False)
-        window['-SAVECSV-'].Update(disabled=False)
-        if pkgutil.find_loader("openpyxl") is not None:
-            window['-SAVEXLSX-'].Update(disabled=False)
-        window['-ALLTABROW-'].Update(disabled=False)
+        sg.cprint('')        
+        def runPredictor(predictor, predictedclass, predictedscore, bestboxes, windowexpe):
+            if isinstance(predictor, PredictorVideo):
+                BATCH_SIZE = 8
+                predictedclass_batch = ['' for k in range(BATCH_SIZE)]
+                predictedscore_batch = [0. for k in range(BATCH_SIZE)]
+                while True:
+                    batch, _, _, predictedclass_video, predictedscore_video = predictor.nextBatch()
+                    if not len(predictedclass_video): break
+                    predictedclass_batch[(batch-1)%BATCH_SIZE] = predictedclass_video[0]
+                    predictedscore_batch[(batch-1)%BATCH_SIZE] = predictedscore_video[0]
+                    frgbprint("Traitement de le vidéo "+str(batch)+"...", "Processing video "+str(batch)+"...", end="")
+                    frgbprint(" terminé", " done")
+                    windowexpe['-PROGBAR-'].update_bar(batch/nbfiles)
+                    k1 = int((batch-1)/BATCH_SIZE)*BATCH_SIZE
+                    k2 = min((int((batch-1)/BATCH_SIZE)+1)*BATCH_SIZE,nbfiles)
+                    windowexpe.refresh()
+                    if batch%BATCH_SIZE==0:
+                        predictedclass_batch = ['' for k in range(BATCH_SIZE)]
+                        predictedscore_batch = [0. for k in range(BATCH_SIZE)]
+                predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
+                predictedclass, predictedscore = predictedclass_base, predictedscore_base
+            else:
+                while True:
+                    batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
+                    if not len(predictedclass_batch): break
+                    frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
+                    frgbprint(" terminé", " done")
+                    windowexpe['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
+                frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
+                predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
+                predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
+
+        runPredictor(predictor, predictedclass, predictedscore, bestboxes, windowexpe)
+        frgbprint(" terminé", " done")
     elif event == '-SAVECSV-':
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
@@ -460,7 +377,6 @@ while True:
         if csvpath:
             frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
             preddf.to_csv(csvpath, index=False)
-            window['-SAVECSV-'].Update(disabled=True)
     elif event == '-SAVEXLSX-':
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
@@ -470,31 +386,20 @@ while True:
         if xlsxpath:
             frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
             preddf.to_excel(xlsxpath, index=False)
-            window['-SAVEXLSX-'].Update(disabled=True)
     elif event == '-TAB-' or  event == '-PREVIOUS-' or event == '-NEXT-' :
         if event == '-TAB-':
             rowidx = values['-TAB-'][0]
             curridx = rowidx
-        if event == '-NEXT-':
-            curridx = curridx+1
-            if curridx==len(predictedclass):
-                curridx = 0
-        if event == '-PREVIOUS-':
-            curridx = curridx-1
-            if curridx==-1:
-                curridx = len(predictedclass)-1
-        window['-TABROW-'].Update(disabled=True)
-        window['-ALLTABROW-'].Update(disabled=True)
-        folderbrowsestate = window['-FOLDERBROWSE-'].Disabled
-        window['-FOLDERBROWSE-'].Update(disabled=True)
-        runstate = window['-RUN-'].Disabled
-        window['-RUN-'].Update(disabled=True)
-        savecsvstate = window['-SAVECSV-'].Disabled
-        window['-SAVECSV-'].Update(disabled=True)
-        savexlsxstate = window['-SAVEXLSX-'].Disabled
-        window['-SAVEXLSX-'].Update(disabled=True)
-        subfoldersstate = window['-SUBFOLDERS-'].Disabled
-        window['-SUBFOLDERS-'].Update(disabled=True)
+        else:
+            if event == '-NEXT-':
+                curridx = curridx+1
+                if curridx==len(predictedclass):
+                    curridx = 0
+            if event == '-PREVIOUS-':
+                curridx = curridx-1
+                if curridx==-1:
+                    curridx = len(predictedclass)-1
+            windowexpe['-TAB-'].update(select_rows=[curridx])
         if not imgmoved: 
             if VIDEO:
                 cap = cv2.VideoCapture(filenames[curridx])
@@ -505,109 +410,27 @@ while True:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
                 ret, imagecv = cap.read()
                 if not ret:
-                    imagecv = np.zeros((700,800,3), np.uint8)
+                    imagecv = np.zeros((700,933,3), np.uint8)
                 else:
                     if predictedclass[curridx] is not txt_empty[LANG]:
                         if hasrun:
                             draw_boxes(imagecv,bestboxes[curridx])
-                    imagecv = cv2.resize(imagecv, (800,700))
+                    imagecv = cv2.resize(imagecv, (933,700))
             else:
                 try:
                     imagecv = cv2.imread(filenames[curridx])
                 except:
                     imagecv = None
                 if imagecv is None:
-                    imagecv = np.zeros((700,800,3), np.uint8)
+                    imagecv = np.zeros((700,933,3), np.uint8)
                 else:
                     if predictedclass[curridx] is not txt_empty[LANG]:
                         if hasrun:
                             draw_boxes(imagecv,bestboxes[curridx])
-                    imagecv = cv2.resize(imagecv, (800,700))
+                    imagecv = cv2.resize(imagecv, (933,700))
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)
             windowexpe["-IMAGE-"].update(data=bio.getvalue())
-        ### CORRECTING PREDICTION
-        while False:
-            eventimg, valuesimg = windowimg.read(timeout=10)
-            if valuesimg != None: # any change in the Combo list is saved
-                if predictedclass[curridx] != valuesimg['-CORRECTION-']:
-                    predictedclass[curridx] = valuesimg['-CORRECTION-']
-                    predictedscore[curridx] = 1.0
-                    windowimg.Element('-CORRECTIONSCORE-').Update("\tScore: 1.0")
-                    window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in filenames],predictedclass,predictedscore].tolist())
-                    window['-TABROW-'].Update(disabled=True)
-                    if hasrun: savecsvstate = False
-                    if pkgutil.find_loader("openpyxl") is not None:
-                        if hasrun: savexlsxstate = False
-            if eventimg in (sg.WIN_CLOSED, '-CLOSE-'):
-                break
-            elif eventimg == '-PREVIOUS-' or eventimg == '-NEXT-': # button will save and show next image, return_key as well
-                #window.Element('-TABRESULTS-').Update(values=np.c_[[basename(f) for f in df_filename["filename"]],predictedclass,predictedscore].tolist())
-                #window['-TABROW-'].Update(disabled=True)
-                curridxinit = curridx
-                if eventimg == '-PREVIOUS-':
-                    curridx = curridx-1
-                    if curridx==-1:
-                        curridx = len(predictedclass)-1
-                    if valuesimg['-RESTRICT-']!=txt_restrict[LANG][0]: # search for the previous image with condition, if it exists
-                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][1]: txt_target  = [txt_undefined[LANG]]
-                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][2]: txt_target  = [txt_empty[LANG]]
-                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][3]: txt_target  = txt_classes[LANG]
-                        while (not predictedclass[curridx] in txt_target) and curridx!=curridxinit:
-                            curridx = curridx-1
-                            if curridx==-1:
-                                curridx = len(predictedclass)-1
-                else: # eventimg == '-NEXT-'
-                    curridx = curridx+1
-                    if curridx==len(predictedclass):
-                        curridx = 0
-                    if valuesimg['-RESTRICT-']!=txt_restrict[LANG][0]: # search for the next image with condition, if it exists
-                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][1]: txt_target  = [txt_undefined[LANG]]
-                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][2]: txt_target  = [txt_empty[LANG]]
-                        if valuesimg['-RESTRICT-']==txt_restrict[LANG][3]: txt_target  = txt_classes[LANG]
-                        while (not predictedclass[curridx] in txt_target) and curridx!=curridxinit:
-                            curridx = curridx+1
-                            if curridx==len(predictedclass):
-                                curridx = 0
-                if VIDEO:
-                    cap = cv2.VideoCapture(filenames[curridx])
-                    lag = int(cap.get(5) / 3)
-                    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                    while ((BATCH_SIZE_PRED - 1) * lag > total_frames):
-                        lag = lag - 1
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
-                    ret, imagecv = cap.read()
-                    if not ret:
-                        imagecv = np.zeros((400,500,3), np.uint8)
-                    else:
-                        if predictedclass[curridx] is not txt_empty[LANG]:
-                            if hasrun:
-                                draw_boxes(imagecv, bestboxes[curridx])
-                        imagecv = cv2.resize(imagecv, (500,400))
-                else:
-                    try:
-                        imagecv = cv2.imread(filenames[curridx])
-                    except:
-                        imagecv = None
-                    if imagecv is None:
-                        imagecv = np.zeros((400,500,3), np.uint8)
-                    else:
-                        if predictedclass[curridx] is not txt_empty[LANG]:
-                            if hasrun:
-                                draw_boxes(imagecv, bestboxes[curridx])
-                        imagecv = cv2.resize(imagecv, (500,400))
-                is_success, png_buffer = cv2.imencode(".png", imagecv)
-                bio = BytesIO(png_buffer)
-                windowimg["-IMAGE-"].update(data=bio.getvalue())
-                windowimg.TKroot.title(basename(filenames[curridx]))
-                windowimg["-CORRECTION-"].Update(predictedclass[curridx])
-                windowimg["-CORRECTIONSCORE-"].Update("\tScore: "+str(predictedscore[curridx]))
-        window['-ALLTABROW-'].Update(disabled=False)
-        window['-FOLDERBROWSE-'].Update(disabled=folderbrowsestate)
-        window['-RUN-'].Update(disabled=runstate)
-        window['-SAVECSV-'].Update(disabled=savecsvstate)
-        window['-SAVEXLSX-'].Update(disabled=savexlsxstate)
-        window['-SUBFOLDERS-'].Update(disabled=subfoldersstate)
     elif event == '-SUBFOLDERS-':
         def unique_new_filename(testdir, now, classname, basename):
             folder = join(join(testdir, "deepfaune_"+now, classname))
@@ -630,11 +453,6 @@ while True:
             confirm = sg.popup_yes_no(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
             if confirm == 'Yes':
                 frgbprint("Déplacement vers "+join(testdir,"deepfaune_"+now), "Moving to "+join(testdir,"deepfaune_"+now))
-                window['-ALLTABROW-'].Update(disabled=True)
-                window['-SUBFOLDERS-'].Update(disabled=True)
-                window['-SUBFOLDERS-'].Update(disabled=True)
-                window['-CP-'].Update(disabled=True)
-                window['-MV-'].Update(disabled=True)
                 imgmoved = True
         if confirm == 'Yes':
             import shutil
@@ -647,12 +465,7 @@ while True:
             if values["-MV-"] == True:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
-            window['-SUBFOLDERS-'].Update(disabled=True)
-            window['-CP-'].Update(disabled=True)
-            window['-MV-'].Update(disabled=True)
     elif event == sg.TIMEOUT_KEY:
-        window.refresh()
-    else:
-        window['-TABROW-'].Update(disabled=True)
-window.close()
+        windowexpe.refresh()
+windowexpe.close()
 
