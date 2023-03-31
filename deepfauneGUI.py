@@ -33,6 +33,7 @@
 
 import PySimpleGUI as sg
 import os
+import threading
 
 ### SETTINGS
 sg.ChangeLookAndFeel('Reddit')
@@ -328,15 +329,9 @@ while True:
         else:
             predictor = Predictor(filenames, threshold, LANG, BATCH_SIZE_PRED)
         predictor.setForbiddenClasses(forbiddenclasses)
-        frgbprint("terminé","done")
-        if LANG=="fr":
-            sg.cprint('Calcul en cours', c='white on green', end='')
-        if LANG=="gb":
-            sg.cprint('Running', c='white on green', end='')
-        sg.cprint('')        
-        def runPredictor(predictor, predictedclass, predictedscore, bestboxes, windowexpe):
-            if isinstance(predictor, PredictorVideo):
-                BATCH_SIZE = 8
+        def runPredictor():
+            global predictedclass, predictedscore, bestboxes, windowexpe, nbfiles, BATCH_SIZE, VIDEO
+            if VIDEO:
                 predictedclass_batch = ['' for k in range(BATCH_SIZE)]
                 predictedscore_batch = [0. for k in range(BATCH_SIZE)]
                 while True:
@@ -344,8 +339,6 @@ while True:
                     if not len(predictedclass_video): break
                     predictedclass_batch[(batch-1)%BATCH_SIZE] = predictedclass_video[0]
                     predictedscore_batch[(batch-1)%BATCH_SIZE] = predictedscore_video[0]
-                    frgbprint("Traitement de le vidéo "+str(batch)+"...", "Processing video "+str(batch)+"...", end="")
-                    frgbprint(" terminé", " done")
                     windowexpe['-PROGBAR-'].update_bar(batch/nbfiles)
                     k1 = int((batch-1)/BATCH_SIZE)*BATCH_SIZE
                     k2 = min((int((batch-1)/BATCH_SIZE)+1)*BATCH_SIZE,nbfiles)
@@ -359,14 +352,15 @@ while True:
                 while True:
                     batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
                     if not len(predictedclass_batch): break
-                    frgbprint("Traitement du batch d'images "+str(batch)+"...", "Processing batch of images "+str(batch)+"...", end="")
-                    frgbprint(" terminé", " done")
                     windowexpe['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
                 frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
                 predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
                 predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
 
-        runPredictor(predictor, predictedclass, predictedscore, bestboxes, windowexpe)
+        thread = threading.Thread(target=runPredictor)
+        thread.setDaemon(True)
+        thread.start()        
+        print(predictedclass, predictedscore, bestboxes)
         frgbprint(" terminé", " done")
     elif event == '-SAVECSV-':
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
