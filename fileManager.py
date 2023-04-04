@@ -75,7 +75,20 @@ class FileManager:
 
     def __findDates(self):
         self.dates = [getDateFromExif(file) for file in self.filenames]
-    
+
+    def reorderBySeqnum(self):
+        idx = 0
+        seqnum = np.array(self.seqnum)
+        for num in range(1, max(seqnum)+1):
+            idx4num = np.nonzero(seqnum==num)[0]
+            self.order[idx:(idx+len(idx4num))] = idx4num
+            idx = idx+len(idx4num)
+        self.filenames = [self.filenames[k] for k in self.order]
+        self.seqnum = [self.seqnum[k] for k in self.order]
+        self.dates = [self.dates[k] for k in self.order]
+        self.order = [k for k in range(0,len(self.filenames))]
+        
+        
     def findSequences(self, maxlag):
         currdir = op.dirname(self.filenames[self.order[0]])
         currseqnum = 1

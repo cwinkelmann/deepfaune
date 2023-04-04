@@ -61,16 +61,21 @@ filenames = sorted(
 LANG = 'gb'
 maxlag = 20
 threshold = 0.5
-predictor = Predictor(filenames, threshold, LANG)
+predictor = Predictor(filenames, threshold, maxlag, LANG)
 
 ## RUNNING BATCHES OF PREDICTION
+while True:
+    batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
+    if not len(predictedclass_batch): break
+    print("Traitement du batch d'images "+str(batch)+"\n")
+
 predictor.allBatch()
 
 ## GETTING THE RESULTS
 ## without using the sequences
-predictedclass_base, predictedscore_base = predictor.getPredictions()
+predictedclass_base, predictedscore_base, best_boxes = predictor.getPredictions()
 ## or using the sequences
-predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
+predictedclass, predictedscore, best_boxes = predictor.getPredictionsWithSequences(maxlag)
 
 ## OUTPUT
 dates = predictor.getDates()
