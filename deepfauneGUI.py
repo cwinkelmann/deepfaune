@@ -153,7 +153,7 @@ BATCH_SIZE = 18
 # Default parameters
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 20 # seconds
-curridx = 0
+curridx = -1
 
 # Default selected classes
 listCB = []
@@ -199,11 +199,14 @@ layoutexpe = [
                     [[sg.Image(filename=r'icons/1316-white-small.png',key="-IMAGE-", size=(933, 700))]]
                      )
              ],
-                [sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
-                 sg.Button("Edit", expand_x=False, key='-EDIT-'),
-                 sg.RealtimeButton(sg.SYMBOL_RIGHT, key='-NEXT-'),
-                 sg.Text("Status: non traité", key="-STATUS-")],
-                
+                [
+                    sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
+                    sg.RealtimeButton(sg.SYMBOL_RIGHT, key='-NEXT-'),
+                    #sg.Button("Edit", expand_x=False, key='-EDIT-')
+                    sg.Text('Prediction:', size=(10, 1)),
+                    sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
+                    sg.Text("\tScore: 0.0", key='-SCORE-'),
+                ],                
             ])]
         ])]
     ],
@@ -310,7 +313,6 @@ while True:
                 break
         threshold = float(valuesconfig['-THRESHOLD-'])
         maxlag = float(valuesconfig['-LAG-'])
-        hasrun = True
         forbiddenclasses = []
         for label in sorted_txt_classes_lang:
             if not valuesconfig[label]:
@@ -327,7 +329,9 @@ while True:
         if VIDEO:
             predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE_PRED)
         else:
-            predictor = Predictor(filenames, threshold, LANG, BATCH_SIZE_PRED)
+            predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE_PRED)
+            filenames = predictor.getFilenames()
+            windowexpe.Element('-TAB-').Update(values=[basename(f) for f in filenames])
         predictor.setForbiddenClasses(forbiddenclasses)
         def runPredictor():
             global predictedclass, predictedscore, bestboxes, windowexpe, nbfiles, BATCH_SIZE, VIDEO
@@ -353,14 +357,13 @@ while True:
                     batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
                     if not len(predictedclass_batch): break
                     windowexpe['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-                frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-                predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
-                predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
-
+                #frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
+                predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions() 
+                predictedclass, predictedscore, _ = predictor.getPredictionsWithSequences()
         thread = threading.Thread(target=runPredictor)
         thread.setDaemon(True)
-        thread.start()        
-        print(predictedclass, predictedscore, bestboxes)
+        thread.start() 
+        hasrun = True       
         frgbprint(" terminé", " done")
     elif event == '-SAVECSV-':
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
@@ -380,19 +383,19 @@ while True:
         if xlsxpath:
             frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
             preddf.to_excel(xlsxpath, index=False)
-    elif event == '-TAB-' or  event == '-PREVIOUS-' or event == '-NEXT-' :
+    elif (event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-' :
         if event == '-TAB-':
             rowidx = values['-TAB-'][0]
             curridx = rowidx
         else:
             if event == '-NEXT-':
                 curridx = curridx+1
-                if curridx==len(predictedclass):
+                if curridx==len(filenames):
                     curridx = 0
             if event == '-PREVIOUS-':
                 curridx = curridx-1
                 if curridx==-1:
-                    curridx = len(predictedclass)-1
+                    curridx = len(filenames)-1
             windowexpe['-TAB-'].update(select_rows=[curridx])
         if not imgmoved: 
             if VIDEO:
@@ -418,9 +421,13 @@ while True:
                 if imagecv is None:
                     imagecv = np.zeros((700,933,3), np.uint8)
                 else:
-                    if predictedclass[curridx] is not txt_empty[LANG]:
-                        if hasrun:
-                            draw_boxes(imagecv,bestboxes[curridx])
+                    if hasrun:
+                        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx = predictor.getPredictionsWithSequences(curridx)
+                        if predictedclass_curridx is not txt_empty[LANG]:
+                            if hasrun:
+                                draw_boxes(imagecv,bestboxes[curridx])
+                            windowexpe['-PREDICTION-'].update(value=predictedclass_curridx)
+                            windowexpe['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
                     imagecv = cv2.resize(imagecv, (933,700))
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)

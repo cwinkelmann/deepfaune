@@ -62,7 +62,7 @@ class PredictorBase(ABC):
         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.predictedclass = [""]*self.fileManager.nbFiles()
         self.predictedscore = [0]*self.fileManager.nbFiles()
-        print("CA A CHANGE ICI, c plus []")
+        print("CA A CHANGE ICI, c plus [], a modifier dans le MERGE")
         self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
         self.threshold = threshold
         self.resetBatch()    
@@ -81,13 +81,17 @@ class PredictorBase(ABC):
     def nextBatch(self):
         pass
     
-    def getPredictions(self):
-        return self.predictedclass_base, self.predictedscore_base, self.bestboxes
+    def getPredictions(self, i=None):
+        if i is not None:
+            return self.predictedclass_base[i], self.predictedscore_base[i], self.bestboxes[i,]
+        else:            
+            return self.predictedclass_base, self.predictedscore_base, self.bestboxes
             
-    def getPredictionsWithSequences(self, maxlag):
-        if self.predictedclass == []:
-            self.correctPredictionsWithSequence()
-        return self.predictedclass, self.predictedscore, self.bestboxes
+    def getPredictionsWithSequences(self, i=None):
+        if i is not None:
+            return self.predictedclass[i], self.predictedscore[i], self.bestboxes[i,]
+        else:            
+            return self.predictedclass, self.predictedscore, self.bestboxes
     
     def getFilenames(self):
         return self.fileManager.getFilenames()
@@ -178,7 +182,7 @@ class PredictorBase(ABC):
             for k in idx4num:
                 self.predictedclass[k] = majorityclass
                 self.predictedscore[k] = meanscore
-                print("BIZARRE")
+        return k1seq, k2seq
                 
     def correctPredictionsWithSequence(self):
         self.k1 = 0 # batch start
@@ -225,12 +229,14 @@ class Predictor(PredictorBase):
             predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
             predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             bestboxes_batch = self.bestboxes[self.k1:self.k2]
-            self.correctPredictionsWithSequenceBatch()
             k1_batch = self.k1
             k2_batch = self.k2
+            k1seq_batch, k2seq_batch = self.correctPredictionsWithSequenceBatch()
+            # switching to next batch
             self.k1 = self.k2
             self.k2 = min(self.k1+self.BATCH_SIZE,self.fileManager.nbFiles())
-            self.batch = self.batch+1  
+            self.batch = self.batch+1
+            # returning batch results
             return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
                 
 
