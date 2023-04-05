@@ -35,7 +35,9 @@ import PySimpleGUI as sg
 import os
 import threading
 
+####################################################################################
 ### SETTINGS
+####################################################################################
 sg.ChangeLookAndFeel('Reddit')
 sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 os.environ["PYTORCH_JIT"] = "0"
@@ -45,7 +47,6 @@ os.environ["PYTORCH_JIT"] = "0"
 ####################################################################################
 VERSION = "0.6.0"
 LANG = "fr"
-DEBUG = False
 
 ####################################################################################
 ### GUI OPTIONS
@@ -80,11 +81,8 @@ windowoptions.close()
 ####################################################################################
 from predictTools import txt_undefined, txt_empty, txt_classes
 txt_other =  {'fr':"autre", 'gb':"other"}
-if VIDEO:
-    txt_imagefolder = {'fr':"Dossier de vidéos", 'gb':"Video folder"}
-else:
-    txt_imagefolder = {'fr':"Dossier d'images", 'gb':"Image folder"}
 txt_browse = {'fr':"Choisir", 'gb':"Select"}
+txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect folder - no media found"}
 txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
 txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
 txt_progressbar = {'fr':"Barre d'état", 'gb':"Progress bar"}
@@ -94,19 +92,9 @@ txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders
 txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
 txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
 txt_import = {'fr':"Import des modules externes... ", 'gb':"Importing external modules... "}
-if VIDEO:
-    txt_showall = {'fr':"Afficher les vidéos", 'gb':"Show all vidéos"}
-    txt_showselected = {'fr':"Afficher la vidéo sélectionnée", 'gb':"Show selected video"}
-else:
-    txt_showall = {'fr':"Afficher les images", 'gb':"Show all images"}
-    txt_showselected = {'fr':"Afficher l'image sélectionnée", 'gb':"Show selected image"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
-if VIDEO:
-    txt_wanttocopy = {'fr':"Voulez-vous copier les vidéos vers des sous-dossiers de ", 'gb':"Do you want to copy videos in subfolders of "}
-    txt_wanttomove = {'fr':"Voulez-vous déplacer les vidéos vers des sous-dossiers de ", 'gb':"Do you want to move videos in subfolders of "}
-else:
-    txt_wanttocopy = {'fr':"Voulez-vous copier les images vers des sous-dossiers de ", 'gb':"Do you want to copy images in subfolders of "}
-    txt_wanttomove = {'fr':"Voulez-vous déplacer les images vers des sous-dossiers de ", 'gb':"Do you want to move images in subfolders of "}
+txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of "}
+txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of "}
 txt_savepred = {'fr':"Enregistrer", 'gb':"Save"}
 txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
 txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
@@ -115,15 +103,9 @@ txt_resultstab = {'fr':"Résultats", 'gb':"Results"}
 txt_selectclasses = {'fr':"Sélection des classes", 'gb':"Classes selection"}
 txt_credits = {'fr':"A propos", 'gb':"About DeepFaune"}
 txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
-txt_predframe = {'fr':"Prédictions", 'gb':"Predictions"}
-txt_saveframe = {'fr':"Enregistrement", 'gb':"Save as"}
 txt_close  = {'fr':"Fermer", 'gb':"Close"}
 txt_all = {'fr':"Toutes", 'gb':"All"}
-
-if VIDEO:
-    txt_restrict = {'fr':["Toutes vidéos","Vidéos indéfinies","Vidéos vides","Vidéos non vides"], 'gb':["All videos","Undefined videos","Empty videos","Non empty videos"]}
-else:
-    txt_restrict = {'fr':["Toutes images","Images indéfinies","Images vides","Images non vides"], 'gb':["All images","Undefined images","Empty images","Non empty images"]}
+txt_import = {'fr':"Importer des médias", 'gb':"Import medias"}
 
 def frgbprint(txt_fr, txt_gb, end='\n'):
     if LANG=="fr":
@@ -135,7 +117,6 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 ####################################################################################
 ### GUI UTILS
 ####################################################################################
-
 def draw_boxes(imagecv,box):
     cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
         
@@ -144,16 +125,13 @@ def draw_boxes(imagecv,box):
 ####################################################################################
 # Batch size for predictor, in number of images
 if VIDEO:
-    BATCH_SIZE_PRED = 12
+    BATCH_SIZE = 12
 else:
-    BATCH_SIZE_PRED = 8
-# Batch size for the GUI, in number of files
-BATCH_SIZE = 18
+    BATCH_SIZE = 8
 
 # Default parameters
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 20 # seconds
-curridx = -1
 
 # Default selected classes
 listCB = []
@@ -176,52 +154,48 @@ credits_layout = [
 ]
 
 # Main window
-txt_import = {'fr':"Importer des médias", 'gb':"Import medias"}
 menu_def = [['&File', ['&'+txt_import[LANG], '&Export results',['as csv', 'as xslx'],  '&Create subfolders', ['copy images', 'move images'],'E&xit']],
             ['&Edit', ['Edit Me', 'Special', 'Preferences',['Language', 'Data type'] , 'Undo']],
             ['&Help', ['&Version'], ['&'+txt_credits[LANG]]], ]
 
-layoutexpe = [
+layout = [
     [sg.MenubarCustom(menu_def, pad=(0,0), k='-CUST MENUBAR-', bar_background_color='black', bar_text_color='white')],
     [
         [sg.Frame('',[
-            [sg.Column([
-                [sg.Table(values=[],
-                          headings=['filename'], justification = "l", 
-                          vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], num_rows=32, 
-                          enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
-                          key='-TAB-')],
-                [sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-")]
-            ]),
-            sg.Column([ 
             [
-             sg.Frame('',
-                    [[sg.Image(filename=r'icons/1316-white-small.png',key="-IMAGE-", size=(933, 700))]]
-                     )
-             ],
-                [
-                    sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
-                    sg.RealtimeButton(sg.SYMBOL_RIGHT, key='-NEXT-'),
-                    #sg.Button("Edit", expand_x=False, key='-EDIT-')
-                    sg.Text('Prediction:', size=(10, 1)),
-                    sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
-                    sg.Text("\tScore: 0.0", key='-SCORE-'),
-                ],                
-            ])]
+                sg.Column([
+                    [sg.Table(values=[],
+                              headings=['filename'], justification = "l", 
+                              vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], num_rows=32, 
+                              enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
+                              key='-TAB-')],
+                    [sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]],
+                              default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-"),
+                     sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
+                     sg.RealtimeButton(sg.SYMBOL_RIGHT, key='-NEXT-')]
+                ]),
+                sg.Column([ 
+                    [sg.Frame('',
+                              [[sg.Image(filename=r'icons/1316-white-small.png', key='-IMAGE-', size=(933, 700))]]
+                              )
+                     ],
+                    [sg.Text('Prediction:', size=(10, 1)),
+                     sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
+                     sg.Text("\tScore: 0.0", key='-SCORE-')],                
+                ])
+            ]
         ])]
     ],
     [
-        sg.Frame('',
-                 [[sg.Button("Configure & Run", expand_x=False, key='-CONFIG-'),
-                   sg.ProgressBar(1, orientation='h', border_width=4, expand_x=True, key='-PROGBAR-',bar_color=['Blue','White'], style='vista')],
-                  ], expand_x=True)
+        sg.Frame('',[
+            [sg.Button("Configure & Run", expand_x=False, key='-CONFIG-'),
+             sg.ProgressBar(1, orientation='h', border_width=4, expand_x=True, key='-PROGBAR-',bar_color=['Blue','White'], style='vista')],
+        ], expand_x=True)
     ]
 ]
 
-
-BORDER_COLOR = '#C7D5E0'
-windowexpe = sg.Window("DeepFaune - CNRS",layoutexpe, margins=(0,0), font = ("Arial", 14), resizable=True).Finalize()#, background_color=BORDER_COLOR, no_titlebar=True, grab_anywhere=True).Finalize()
-windowexpe.read(timeout=0) # trick to make the button disabled at first
+window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0), font = ("Arial", 14), resizable=True).Finalize()
+window.read(timeout=0)
 
 
 ####################################################################################
@@ -242,14 +216,14 @@ if VIDEO:
 else:
     from predictTools import Predictor
 
+curridx = -1
 testdir = ""
-rowidx = [-1]
 hasrun = False
 imgmoved  = False
 frgbprint("terminé","done")
 
 while True:
-    event, values = windowexpe.read(timeout=10)
+    event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event == txt_credits[LANG]:
@@ -257,7 +231,8 @@ while True:
         webbrowser.open("https://www.deepfaune.cnrs.fr")
         continue
     elif event == txt_import[LANG]:
-        windowexpe['-PROGBAR-'].update_bar(0)
+        window['-PROGBAR-'].update_bar(0)
+        window['-IMAGE-'].update(filename=r'icons/1316-white-small.png', size=(933, 700))
         hasrun = False
         testdir = sg.popup_get_folder(txt_browse[LANG], no_window=True)
         if testdir != "":
@@ -285,14 +260,11 @@ while True:
                 frgbprint("Nombre de vidéos : "+str(nbfiles), "Number of videos: "+str(nbfiles))
             else:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
-            if nbfiles>0:
-                predictedclass = ['' for k in range(nbfiles)] 
-                predictedscore = [0. for k in range(nbfiles)]
-                bestboxes = np.zeros(shape=(nbfiles, 4), dtype=np.float32)
-            else:
-                sg.popup_error('Incorrect image folder - no image found', keep_on_top=True)
-        windowexpe.Element('-TAB-').Update(values=[basename(f) for f in filenames])
+            if nbfiles==0:
+                sg.popup_error(txt_incorrect[LANG], keep_on_top=True)
+        window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
     elif event == '-CONFIG-':
+        import copy
         layoutconfig = [
             #[sg.Text('', size=(10, 1))],
             [select_frame],
@@ -303,7 +275,7 @@ while True:
             ])],
             [sg.Button("Run", expand_x=False, key='-RUN-')]
         ]
-        windowconfig = sg.Window("Config & run XXXX", layoutconfig, size=(540, 500), font = ("Arial", 14), finalize=True)
+        windowconfig = sg.Window("Configure & run XXXX", copy.deepcopy(layoutconfig), size=(540, 500), font = ("Arial", 14), finalize=True)
         while True:
             eventconfig, valuesconfig = windowconfig.read(timeout=10)
             if eventconfig == '-RUN-':
@@ -325,64 +297,51 @@ while True:
         # Predictions using CNNs
         ########################
         frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
-        windowexpe.refresh()
+        window.refresh()
         if VIDEO:
-            predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE_PRED)
+            predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
         else:
-            predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE_PRED)
+            predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE)
             filenames = predictor.getFilenames()
-            windowexpe.Element('-TAB-').Update(values=[basename(f) for f in filenames])
+            window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
         predictor.setForbiddenClasses(forbiddenclasses)
         def runPredictor():
-            global predictedclass, predictedscore, bestboxes, windowexpe, nbfiles, BATCH_SIZE, VIDEO
+            global window, nbfiles, BATCH_SIZE, VIDEO
             if VIDEO:
-                predictedclass_batch = ['' for k in range(BATCH_SIZE)]
-                predictedscore_batch = [0. for k in range(BATCH_SIZE)]
                 while True:
                     batch, _, _, predictedclass_video, predictedscore_video = predictor.nextBatch()
                     if not len(predictedclass_video): break
-                    predictedclass_batch[(batch-1)%BATCH_SIZE] = predictedclass_video[0]
-                    predictedscore_batch[(batch-1)%BATCH_SIZE] = predictedscore_video[0]
-                    windowexpe['-PROGBAR-'].update_bar(batch/nbfiles)
-                    k1 = int((batch-1)/BATCH_SIZE)*BATCH_SIZE
-                    k2 = min((int((batch-1)/BATCH_SIZE)+1)*BATCH_SIZE,nbfiles)
-                    windowexpe.refresh()
-                    if batch%BATCH_SIZE==0:
-                        predictedclass_batch = ['' for k in range(BATCH_SIZE)]
-                        predictedscore_batch = [0. for k in range(BATCH_SIZE)]
-                predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
-                predictedclass, predictedscore = predictedclass_base, predictedscore_base
+                    window['-PROGBAR-'].update_bar(batch/nbfiles)
+                    window.refresh()
             else:
                 while True:
                     batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
                     if not len(predictedclass_batch): break
-                    windowexpe['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-                #frgbprint("Autocorrection en utilisant les séquences...", "Autocorrecting using sequences...", end="")
-                predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions() 
-                predictedclass, predictedscore, _ = predictor.getPredictionsWithSequences()
+                    window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
         thread = threading.Thread(target=runPredictor)
         thread.setDaemon(True)
         thread.start() 
         hasrun = True       
         frgbprint(" terminé", " done")
-    elif event == '-SAVECSV-':
+    elif event == '-SAVECSV-' or event == '-SAVEXLSX-':
+        predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
+        if VIDEO:
+            predictedclass, predictedscore = predictedclass_base, predictedscore_base
+        else:
+            predictedclass, predictedscore, _ = predictor.getPredictionsWithSequences()
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
-        csvpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.csv", default_extension='csv', initial_folder=testdir)
-        if csvpath:
-            frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
-            preddf.to_csv(csvpath, index=False)
-    elif event == '-SAVEXLSX-':
-        preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
-                                'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                'prediction':predictedclass, 'score':predictedscore})
-        preddf.sort_values(['seqnum','filename'], inplace=True)
-        xlsxpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.xlsx", default_extension='xlsx', initial_folder=testdir)
-        if xlsxpath:
-            frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
-            preddf.to_excel(xlsxpath, index=False)
+        if event == '-SAVECSV-':
+            csvpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.csv", default_extension='csv', initial_folder=testdir)
+            if csvpath:
+                frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
+                preddf.to_csv(csvpath, index=False)
+            xlsxpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.xlsx", default_extension='xlsx', initial_folder=testdir)
+            if xlsxpath:
+                frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
+                preddf.to_excel(xlsxpath, index=False)
     elif (event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-' :
         if event == '-TAB-':
             rowidx = values['-TAB-'][0]
@@ -396,42 +355,43 @@ while True:
                 curridx = curridx-1
                 if curridx==-1:
                     curridx = len(filenames)-1
-            windowexpe['-TAB-'].update(select_rows=[curridx])
+            window['-TAB-'].update(select_rows=[curridx])
+            window['-TAB-'].Widget.see(curridx+1)
         if not imgmoved: 
             if VIDEO:
                 cap = cv2.VideoCapture(filenames[curridx])
                 lag = int(cap.get(5) / 3)
                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                while ((BATCH_SIZE_PRED - 1) * lag > total_frames):
+                while ((BATCH_SIZE - 1) * lag > total_frames):
                     lag = lag - 1
-                cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
+                if hasrun:                    
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
+                else:
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 ret, imagecv = cap.read()
                 if not ret:
-                    imagecv = np.zeros((700,933,3), np.uint8)
-                else:
-                    if predictedclass[curridx] is not txt_empty[LANG]:
-                        if hasrun:
-                            draw_boxes(imagecv,bestboxes[curridx])
-                    imagecv = cv2.resize(imagecv, (933,700))
+                    imagecv = None
             else:
                 try:
                     imagecv = cv2.imread(filenames[curridx])
                 except:
                     imagecv = None
-                if imagecv is None:
-                    imagecv = np.zeros((700,933,3), np.uint8)
-                else:
-                    if hasrun:
+            if imagecv is None:
+                imagecv = np.zeros((700,933,3), np.uint8)
+            else:
+                if hasrun:                    
+                    if VIDEO:
+                        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx = predictor.getPredictions(curridx)
+                    else:
                         predictedclass_curridx, predictedscore_curridx, predictedbox_curridx = predictor.getPredictionsWithSequences(curridx)
-                        if predictedclass_curridx is not txt_empty[LANG]:
-                            if hasrun:
-                                draw_boxes(imagecv,bestboxes[curridx])
-                            windowexpe['-PREDICTION-'].update(value=predictedclass_curridx)
-                            windowexpe['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
-                    imagecv = cv2.resize(imagecv, (933,700))
+                    if predictedclass_curridx is not txt_empty[LANG]:
+                        draw_boxes(imagecv,predictedbox_curridx)
+                    window['-PREDICTION-'].update(value=predictedclass_curridx)
+                    window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
+            imagecv = cv2.resize(imagecv, (933,700))
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)
-            windowexpe["-IMAGE-"].update(data=bio.getvalue())
+            window['-IMAGE-'].update(data=bio.getvalue())
     elif event == '-SUBFOLDERS-':
         def unique_new_filename(testdir, now, classname, basename):
             folder = join(join(testdir, "deepfaune_"+now, classname))
@@ -457,8 +417,12 @@ while True:
                 imgmoved = True
         if confirm == 'Yes':
             import shutil
+            if VIDEO:
+                predictedclass, predictedscore, _ = predictor.getPredictionsWithSequences()
+            else:
+                predictedclass, predictedscore, _ = predictor.getPredictionsWithSequences()
             mkdir(join(testdir,"deepfaune_"+now))
-            for subfolder in  set(predictedclass):
+            for subfolder in set(predictedclass):
                 mkdir(join(testdir,"deepfaune_"+now,subfolder))
             if values["-CP-"] == True:
                 for k in range(nbfiles):
@@ -467,6 +431,6 @@ while True:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
     elif event == sg.TIMEOUT_KEY:
-        windowexpe.refresh()
-windowexpe.close()
+        window.refresh()
+window.close()
 

@@ -165,13 +165,19 @@ class PredictorBase(ABC):
     
     def correctPredictionsWithSequenceBatch(self):
         seqnum = self.fileManager.getSeqnums()
-        k1seq = self.k1 # first untreated sequence in batch
+        k1seq = self.k1 # first sequence in batch
+        k2seq = self.k2 ## last sequence in batch
+        print(self.k1,self.k2)
+        print(k1seq,k2seq)
         while (k1seq-1)>=0 and seqnum[(k1seq-1)]==seqnum[self.k1]:
+            # previous batch contains images of the first sequence present in the current batch
             k1seq = k1seq-1
-        k2seq = self.k2 ## last untreated sequence in batch
         if k2seq<len(seqnum):
-            while seqnum[(k2seq-1)]==seqnum[self.k2-1]:
-                k2seq = k2seq-1
+            if seqnum[k2seq]==seqnum[(k2seq-1)]:
+                # next batch contains images of the last sequence present in the current batch
+                while seqnum[(k2seq-1)]==seqnum[self.k2-1]:
+                    k2seq = k2seq-1
+        print(k1seq,k2seq)
         subseqnum = np.array(self.fileManager.getSeqnums()[k1seq:k2seq])
         print("Treating ",subseqnum)
         for num in range(min(subseqnum), max(subseqnum)+1):
