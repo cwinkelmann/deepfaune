@@ -22,6 +22,8 @@ filenames = sorted(
 
 fileManager  = FileManager(filenames)
 fileManager.findSequences(maxlag)
+fileManager.reorderBySeqnum()
+
 seqnum = fileManager.getSeqnums()
 dates = fileManager.getDates()
 
