@@ -41,7 +41,6 @@ from detectTools import Detector, DetectorJSON
 from classifTools import txt_animalclasses, CROP_SIZE, Classifier
 from fileManager import FileManager
 
-txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 txt_empty = {'fr':"vide", 'gb':"empty"}
 txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
                'gb': txt_animalclasses['gb']+["human","vehicle"]}
@@ -58,11 +57,10 @@ class PredictorBase(ABC):
         self.idxforbidden = [] # idx of forbidden classes
         self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,-1] = 1. # by default, predicted as empty
-        self.predictedclass_base = [txt_undefined[LANG]]*self.fileManager.nbFiles()
+        self.predictedclass_base = [""]*self.fileManager.nbFiles()
         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.predictedclass = [""]*self.fileManager.nbFiles()
         self.predictedscore = [0.]*self.fileManager.nbFiles()
-        print("CA A CHANGE ICI, c plus [], a modifier dans le MERGE")
         self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
         self.count = [0]*self.fileManager.nbFiles()
         self.threshold = threshold
@@ -265,7 +263,7 @@ class PredictorVideo(PredictorBase):
     
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
-            return self.batch, self.k1, self.k2, [],[]
+            return self.batch, self.k1
         else:   
             idxanimal = []
             idxnonempty = []

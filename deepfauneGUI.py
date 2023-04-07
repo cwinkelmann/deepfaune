@@ -79,7 +79,8 @@ windowoptions.close()
 ####################################################################################
 ### GUI TEXT
 ####################################################################################
-from predictTools import txt_undefined, txt_empty, txt_classes
+from predictTools import txt_empty, txt_classes
+txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 txt_other =  {'fr':"autre", 'gb':"other"}
 txt_browse = {'fr':"Choisir", 'gb':"Select"}
 txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect folder - no media found"}
