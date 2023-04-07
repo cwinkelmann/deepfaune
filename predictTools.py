@@ -61,9 +61,10 @@ class PredictorBase(ABC):
         self.predictedclass_base = [txt_undefined[LANG]]*self.fileManager.nbFiles()
         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.predictedclass = [""]*self.fileManager.nbFiles()
-        self.predictedscore = [0]*self.fileManager.nbFiles()
+        self.predictedscore = [0.]*self.fileManager.nbFiles()
         print("CA A CHANGE ICI, c plus [], a modifier dans le MERGE")
         self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
+        self.count = [0]*self.fileManager.nbFiles()
         self.threshold = threshold
         self.resetBatch()    
     
@@ -83,15 +84,18 @@ class PredictorBase(ABC):
     
     def getPredictions(self, i=None):
         if i is not None:
-            return self.predictedclass_base[i], self.predictedscore_base[i], self.bestboxes[i,]
+            return self.predictedclass_base[i], self.predictedscore_base[i], self.bestboxes[i,], self.count[i]
         else:            
-            return self.predictedclass_base, self.predictedscore_base, self.bestboxes
+            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
             
     def getPredictionsWithSequences(self, i=None):
         if i is not None:
-            return self.predictedclass[i], self.predictedscore[i], self.bestboxes[i,]
+            if self.predictedclass[i]=="": # correction not yet done
+                return self.predictedclass[i], self.predictedscore[i], None, 0
+            else:
+                return self.predictedclass[i], self.predictedscore[i], self.bestboxes[i,], self.count[i]
         else:            
-            return self.predictedclass, self.predictedscore, self.bestboxes
+            return self.predictedclass, self.predictedscore, self.bestboxes, self.count
     
     def getFilenames(self):
         return self.fileManager.getFilenames()
@@ -207,7 +211,7 @@ class Predictor(PredictorBase):
 
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
-            return self.batch, self.k1, self.k2, [],[]
+            return self.batch, self.k1, self.k2
         else:
             idxanimal = []
             for k in range(self.k1,self.k2):
@@ -218,8 +222,9 @@ class Predictor(PredictorBase):
                 if imagecv is None:
                     pass # Corrupted image, considered as empty
                 else:
-                    croppedimage, category, box = self.detector.bestBoxDetection(imagecv)
+                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv)
                     self.bestboxes[k] = box
+                    self.count[k] = count
                     if category > 0: # not empty
                         self.prediction[k,-1] = 0.
                     if category == 1: # animal
@@ -232,8 +237,6 @@ class Predictor(PredictorBase):
             if len(idxanimal): # predicting species in images with animal 
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
             self._PredictorBase__prediction2class(batchOnly=True)
-            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
-            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             bestboxes_batch = self.bestboxes[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
@@ -243,7 +246,7 @@ class Predictor(PredictorBase):
             self.k2 = min(self.k1+self.BATCH_SIZE,self.fileManager.nbFiles())
             self.batch = self.batch+1
             # returning batch results
-            return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
+            return self.batch-1, k1_batch, k2_batch
                 
 
 
@@ -283,7 +286,7 @@ class PredictorVideo(PredictorBase):
                     pass # Corrupted or unavailable image, considered as empty
                 else:
                     imagecv = frame
-                    croppedimage, category, box = self.detector.bestBoxDetection(imagecv)
+                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv)
                     bestboxesallframe[k] = box
                     if category > 0: # not empty
                         idxnonempty.append(k)
@@ -309,15 +312,13 @@ class PredictorVideo(PredictorBase):
                 # idxmax4all = np.argmax(predictionallframe[idxnonempty,:], axis=1)
                 # self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
             self._PredictorBase__prediction2class(batchOnly=True)
-            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
-            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
             self.k2 = min(self.k1+1,self.fileManager.nbFiles())
             self.batch = self.batch+1  
-            return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
+            return self.batch-1, k1_batch, k2_batch
         
     def getKeyFrames(self, index):
         return self.keyframes[index]
@@ -348,14 +349,12 @@ class PredictorJSON(PredictorBase):
             if len(idxanimal):
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
             self._PredictorBase__prediction2class(batchOnly=True)
-            predictedclass_batch = self.predictedclass_base[self.k1:self.k2]
-            predictedscore_batch = self.predictedscore_base[self.k1:self.k2]
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
             self.k2 = min(self.k1+self.BATCH_SIZE,self.fileManager.nbFiles())
             self.batch = self.batch+1  
-            return self.batch-1, k1_batch, k2_batch, predictedclass_batch, predictedscore_batch
+            return self.batch-1, k1_batch, k2_batch
         
     def merge(self, predictor):
         super().merge(predictor)

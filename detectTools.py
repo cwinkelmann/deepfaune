@@ -63,11 +63,12 @@ class Detector:
         results = self.yolo(image, verbose=False)
         detection = results[0].numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
-            return [], 0, np.zeros(4)
+            return [], 0, np.zeros(4), 0
         category = detection.cls[0] + 1
+        count = sum(detection.conf>threshold)
         box = detection.xyxy[0]  # xmin, ymin, xmax, ymax
         croppedimage = cropSquare(image, box.copy())
-        return croppedimage, category, box
+        return croppedimage, category, box, count
 
 ####################################################################################
 ### BEST BOX DETECTION WITH JSON

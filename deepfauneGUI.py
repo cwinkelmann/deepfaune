@@ -105,6 +105,7 @@ txt_credits = {'fr':"A propos", 'gb':"About DeepFaune"}
 txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
 txt_close  = {'fr':"Fermer", 'gb':"Close"}
 txt_all = {'fr':"Toutes", 'gb':"All"}
+txt_count = {'fr':"Comptage", 'gb':"Count"}
 txt_import = {'fr':"Importer des médias", 'gb':"Import medias"}
 
 def frgbprint(txt_fr, txt_gb, end='\n'):
@@ -117,9 +118,10 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 ####################################################################################
 ### GUI UTILS
 ####################################################################################
-def draw_boxes(imagecv,box):
-    cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
-        
+def draw_boxes(imagecv, box=None):
+    if box is not None:
+        cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
+    
 ####################################################################################
 ### MAIN GUI WINDOW
 ####################################################################################
@@ -181,7 +183,7 @@ layout = [
                      ],
                     [sg.Text('Prediction:', size=(10, 1)),
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
-                     sg.Text("\tScore: 0.0", key='-SCORE-')],                
+                     sg.Text("\tScore: 0.0", key='-SCORE-'), sg.Text("\t"+txt_count[LANG]+": 0", key='-COUNT-')]
                 ])
             ]
         ])]
@@ -309,14 +311,14 @@ while True:
             global window, nbfiles, BATCH_SIZE, VIDEO
             if VIDEO:
                 while True:
-                    batch, _, _, predictedclass_video, predictedscore_video = predictor.nextBatch()
-                    if not len(predictedclass_video): break
+                    batch, k1, k2 = predictor.nextBatch()
+                    if k1==nbfiles: break
                     window['-PROGBAR-'].update_bar(batch/nbfiles)
                     window.refresh()
             else:
                 while True:
-                    batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
-                    if not len(predictedclass_batch): break
+                    batch, k1, k2 = predictor.nextBatch()
+                    if k1==nbfiles: break
                     window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
         thread = threading.Thread(target=runPredictor)
         thread.setDaemon(True)
@@ -324,14 +326,15 @@ while True:
         hasrun = True       
         frgbprint(" terminé", " done")
     elif event == '-SAVECSV-' or event == '-SAVEXLSX-':
-        predictedclass_base, predictedscore_base, bestboxes = predictor.getPredictions()
+        predictedclass_base, predictedscore_base, _, count = predictor.getPredictions()
         if VIDEO:
             predictedclass, predictedscore = predictedclass_base, predictedscore_base
         else:
-            predictedclass, predictedscore, _ = predictor.getPredictionsWithSequences()
+            predictedclass, predictedscore, _, count = predictor.getPredictionsWithSequences()
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                'prediction':predictedclass, 'score':predictedscore})
+                                'prediction':predictedclass, 'score':predictedscore,
+                                'count':count})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         if event == '-SAVECSV-':
             csvpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.csv", default_extension='csv', initial_folder=testdir)
@@ -381,13 +384,14 @@ while True:
             else:
                 if hasrun:                    
                     if VIDEO:
-                        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx = predictor.getPredictions(curridx)
+                        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
                     else:
-                        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx = predictor.getPredictionsWithSequences(curridx)
+                        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictionsWithSequences(curridx)
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
                     window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
+                    window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
             imagecv = cv2.resize(imagecv, (933,700))
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)
@@ -418,9 +422,9 @@ while True:
         if confirm == 'Yes':
             import shutil
             if VIDEO:
-                predictedclass, predictedscore, _ = predictor.getPredictionsWithSequences()
+                predictedclass, predictedscore, _, _ = predictor.getPredictionsWithSequences()
             else:
-                predictedclass, predictedscore, _ = predictor.getPredictionsWithSequences()
+                predictedclass, predictedscore, _, _ = predictor.getPredictionsWithSequences()
             mkdir(join(testdir,"deepfaune_"+now))
             for subfolder in set(predictedclass):
                 mkdir(join(testdir,"deepfaune_"+now,subfolder))
