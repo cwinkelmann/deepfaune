@@ -79,8 +79,7 @@ windowoptions.close()
 ####################################################################################
 ### GUI TEXT
 ####################################################################################
-from predictTools import txt_empty, txt_classes
-txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
+from predictTools import txt_undefined, txt_empty, txt_classes
 txt_other =  {'fr':"autre", 'gb':"other"}
 txt_browse = {'fr':"Choisir", 'gb':"Select"}
 txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect folder - no media found"}
@@ -327,11 +326,11 @@ while True:
         hasrun = True       
         frgbprint(" terminé", " done")
     elif event == '-SAVECSV-' or event == '-SAVEXLSX-':
-        predictedclass_base, predictedscore_base, _, count = predictor.getPredictions()
+        predictedclass, predictedscore, _, count = predictor.getPredictions()
         if VIDEO:
-            predictedclass, predictedscore = predictedclass_base, predictedscore_base
+            predictedclass_base, predictedscore_base, _, count = predictor.getPredictionsBase()
         else:
-            predictedclass, predictedscore, _, count = predictor.getPredictionsWithSequences()
+            predictedclass, predictedscore = predictedclass_base, predictedscore_base
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore,
@@ -383,11 +382,8 @@ while True:
             if imagecv is None:
                 imagecv = np.zeros((700,933,3), np.uint8)
             else:
-                if hasrun:                    
-                    if VIDEO:
-                        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-                    else:
-                        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictionsWithSequences(curridx)
+                if hasrun:
+                    predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
@@ -422,10 +418,7 @@ while True:
                 imgmoved = True
         if confirm == 'Yes':
             import shutil
-            if VIDEO:
-                predictedclass, predictedscore, _, _ = predictor.getPredictionsWithSequences()
-            else:
-                predictedclass, predictedscore, _, _ = predictor.getPredictionsWithSequences()
+            predictedclass, predictedscore, _, _ = predictor.getPredictions()
             mkdir(join(testdir,"deepfaune_"+now))
             for subfolder in set(predictedclass):
                 mkdir(join(testdir,"deepfaune_"+now,subfolder))

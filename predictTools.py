@@ -41,9 +41,10 @@ from detectTools import Detector, DetectorJSON
 from classifTools import txt_animalclasses, CROP_SIZE, Classifier
 from fileManager import FileManager
 
-txt_empty = {'fr':"vide", 'gb':"empty"}
 txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
                'gb': txt_animalclasses['gb']+["human","vehicle"]}
+txt_empty = {'fr':"vide", 'gb':"empty"}
+txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
 
 class PredictorBase(ABC):
     def __init__(self, filenames, threshold, LANG, BATCH_SIZE=8):
@@ -57,8 +58,6 @@ class PredictorBase(ABC):
         self.idxforbidden = [] # idx of forbidden classes
         self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
         self.prediction[:,-1] = 1. # by default, predicted as empty
-        self.predictedclass_base = [""]*self.fileManager.nbFiles()
-        self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.predictedclass = [""]*self.fileManager.nbFiles()
         self.predictedscore = [0.]*self.fileManager.nbFiles()
         self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
@@ -79,14 +78,8 @@ class PredictorBase(ABC):
     @abstractmethod
     def nextBatch(self):
         pass
-    
-    def getPredictions(self, i=None):
-        if i is not None:
-            return self.predictedclass_base[i], self.predictedscore_base[i], self.bestboxes[i,], self.count[i]
-        else:            
-            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
             
-    def getPredictionsWithSequences(self, i=None):
+    def getPredictions(self, i=None):
         if i is not None:
             if self.predictedclass[i]=="": # correction not yet done
                 return self.predictedclass[i], self.predictedscore[i], None, 0
@@ -129,26 +122,19 @@ class PredictorBase(ABC):
              self.predictedscore = []
         else:            
             self.predictedscore += predictor.predictedscore
-        self.resetBatch()
-        
-    def __prediction2class(self, batchOnly=True):
-        if batchOnly:
-            k1 = self.k1
-            k2 = self.k2
-        else:
-            k1 = 0
-            k2 = self.fileManager.nbFiles()
+        self.resetBatch()        
+      
+    def __score2class(self, pred):
         txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
-        for k in range(k1,k2):
-            pred = self.prediction[k,]
-            if len(self.idxforbidden):
-                pred[self.idxforbidden] = 0.
-                pred = pred/np.sum(pred)
-            idxmax = np.argmax(pred)
-            if(max(pred)>=self.threshold):
-                self.predictedclass_base[k] = txt_classesempty_lang[idxmax]
-            self.predictedscore_base[k] = int(max(pred)*100)/100.
-    
+        if len(self.idxforbidden):
+            pred[idxforbidden] = 0.
+            pred = pred/np.sum(pred)
+        idxmax = np.argmax(pred)
+        if max(pred)>self.threshold:
+            return txt_classesempty_lang[idxmax], int(max(pred)*100)/100.
+        else:
+            return txt_undefined[LANG], int(max(pred)*100)/100.            
+
     def __majorityVotingInSequence(self, df_prediction):
         print("df:",df_prediction)
         txt_empty_lang = txt_empty[self.LANG]
@@ -177,7 +163,7 @@ class PredictorBase(ABC):
         if k2seq<len(seqnum):
             if seqnum[k2seq]==seqnum[(k2seq-1)]:
                 # next batch contains images of the last sequence present in the current batch
-                while seqnum[(k2seq-1)]==seqnum[self.k2-1]:
+                while seqnum[(k2seq-1)]==seqnum[self.k2-1] and (k2seq-1>0):
                     k2seq = k2seq-1
         print(k1seq,k2seq)
         subseqnum = np.array(self.fileManager.getSeqnums()[k1seq:k2seq])
@@ -202,6 +188,8 @@ class Predictor(PredictorBase):
     
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
         super().__init__(filenames, threshold, LANG, BATCH_SIZE) # inherits all
+        self.predictedclass_base = [""]*self.fileManager.nbFiles()
+        self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.detector = Detector()
         self.classifier = Classifier()
         self.fileManager.findSequences(maxlag)
@@ -233,9 +221,9 @@ class Predictor(PredictorBase):
                     if category == 3: # vehicle
                         self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal): # predicting species in images with animal 
-                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
-            self._PredictorBase__prediction2class(batchOnly=True)
-            bestboxes_batch = self.bestboxes[self.k1:self.k2]
+                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])            
+            for k in range(self.k1,self.k2):
+                self.predictedclass_base[k], self.predictedscore_base[k] = self._PredictorBase__score2class(self.prediction[k,])
             k1_batch = self.k1
             k2_batch = self.k2
             k1seq_batch, k2seq_batch = self.correctPredictionsWithSequenceBatch()
@@ -245,9 +233,13 @@ class Predictor(PredictorBase):
             self.batch = self.batch+1
             # returning batch results
             return self.batch-1, k1_batch, k2_batch
-                
-
-
+                    
+    def getPredictionsBase(self, k=None):
+        if i is not None:
+            return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
+        else:            
+            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
+        
 class PredictorVideo(PredictorBase):
 
     def __init__(self, filenames, threshold, LANG, BATCH_SIZE=8):
@@ -309,7 +301,7 @@ class PredictorVideo(PredictorBase):
                 # or using average score of this class when predicted as video score
                 # idxmax4all = np.argmax(predictionallframe[idxnonempty,:], axis=1)
                 # self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
-            self._PredictorBase__prediction2class(batchOnly=True)
+            self.predictedclass_base[self.k1], self.predictedscore_base[self.k1] = self._PredictorBase__score2class(self.prediction[self.k1,])
             self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
             k1_batch = self.k1
             k2_batch = self.k2
@@ -345,8 +337,11 @@ class PredictorJSON(PredictorBase):
                 if category == 3: # vehicle
                      self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal):
-                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])
-            self._PredictorBase__prediction2class(batchOnly=True)
+                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])            
+            for k in range(self.k1,self.k2):
+                self.predictedclass_base[k], self.predictedscore_base[k] = self._PredictorBase__score2class(self.prediction[k,])
+            k1seq_batch, k2seq_batch = self.correctPredictionsWithSequenceBatch()
+            # switching to next batch
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
