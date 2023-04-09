@@ -133,7 +133,7 @@ class PredictorBase(ABC):
         if max(pred)>self.threshold:
             return txt_classesempty_lang[idxmax], int(max(pred)*100)/100.
         else:
-            return txt_undefined[LANG], int(max(pred)*100)/100.            
+            return txt_undefined[self.LANG], int(max(pred)*100)/100.            
 
     def __majorityVotingInSequence(self, df_prediction):
         print("df:",df_prediction)
