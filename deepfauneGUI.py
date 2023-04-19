@@ -133,13 +133,13 @@ listCB = []
 lineCB = []
 sorted_txt_classes_lang = sorted(txt_classes[LANG])
 for k in range(0,len(sorted_txt_classes_lang)):
-    lineCB = lineCB+[sg.CB(sorted_txt_classes_lang[k], key=sorted_txt_classes_lang[k], size=(12,1), default=True)]
+    lineCB = lineCB+[sg.CB(sorted_txt_classes_lang[k], key=sorted_txt_classes_lang[k], size=(12,1), default=True, background_color=background_color, text_color=text_color)]
     if k%3==2:
         listCB = listCB+[lineCB]
         lineCB = []
 if lineCB:
     listCB = listCB+[lineCB]
-select_frame = sg.Frame(txt_selectclasses[LANG], listCB, font='Any 13', expand_x=True, expand_y=True)
+select_frame = sg.Frame(txt_selectclasses[LANG], listCB, font=FONT_NORMAL, expand_x=True, expand_y=True, background_color=background_color)
 
 # Credits
 credits_layout = [
@@ -166,6 +166,7 @@ layout = [
                               headings=['filename'], justification = "l", 
                               vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], num_rows=24, 
                               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
+                              background_color=background_color, text_color=text_color,
                               key='-TAB-')],
                     [
                         sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color,
@@ -284,14 +285,23 @@ while True:
         layoutconfig = [
             #[sg.Text('', size=(10, 1))],
             [select_frame],
-            [sg.Frame(txt_paramframe[LANG], font='Any 13', expand_x=True, expand_y=True, layout=[
-                [sg.Text(txt_confidence[LANG]+'\t', expand_x=True),
-                 sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True, key='-THRESHOLD-')],
-                [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True), sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-')]
-            ])],
-            [sg.Button("Run", expand_x=False, key='-RUN-')]
+            [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, layout=[
+                [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
+                 sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True,
+                         background_color=background_color, text_color=text_color, key='-THRESHOLD-')],
+                [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
+                 sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
+            ], background_color=background_color)],
+            [
+                #sg.Button("Run", expand_x=False, key='-RUN-')
+                StyledButton("Run", accent_color, background_color, button_width=5+len("Run"), key='-RUN-')
+            ]
         ]
-        windowconfig = sg.Window("Configure & run XXXX", copy.deepcopy(layoutconfig), size=(540, 500), font = ("Arial", 14), finalize=True)
+        windowconfig = sg.Window("Configure & run XXXX", copy.deepcopy(layoutconfig), size=(540, 500), background_color=background_color, finalize=True)
+        with suppress(TclError):
+            windowconfig.TKroot.tk.call('source', SUN_VALLEY_TCL)
+            windowconfig.TKroot.tk.call('set_theme', 'dark')
+
         while True:
             eventconfig, valuesconfig = windowconfig.read(timeout=10)
             if eventconfig == '-RUN-':
