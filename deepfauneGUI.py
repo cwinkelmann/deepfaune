@@ -168,7 +168,7 @@ layout = [
                               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                               key='-TAB-')],
                     [
-                        sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]],
+                        sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color,
                                  default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-"),
                         # sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
                         # sg.RealtimeButton(sg.SYMBOL_RIGHT, key='-NEXT-')
@@ -181,9 +181,11 @@ layout = [
                               [[sg.Image(filename=r'icons/1316-black-large.png', key='-IMAGE-', size=(933, 700), background_color=background_color)]]
                               , background_color=background_color)
                      ],
-                    [sg.Text('Prediction:', size=(10, 1)),
-                     sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
-                     sg.Text("\tScore: 0.0", key='-SCORE-'), sg.Text("\t"+txt_count[LANG]+": 0", key='-COUNT-')]
+                    [sg.Text('Prediction:', background_color=background_color, text_color=text_color, size=(10, 1)),
+                     sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="",
+                              background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
+                     sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
+                     sg.Text("\t"+txt_count[LANG]+": 0", background_color=background_color, text_color=text_color, key='-COUNT-')]
                 ], background_color=background_color)
             ]
         ], background_color=background_color)]
