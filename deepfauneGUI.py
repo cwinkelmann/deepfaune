@@ -38,8 +38,8 @@ import threading
 ####################################################################################
 ### SETTINGS
 ####################################################################################
-sg.ChangeLookAndFeel('Reddit')
-sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
+#sg.ChangeLookAndFeel('Reddit')
+#sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
 os.environ["PYTORCH_JIT"] = "0"
 
 ####################################################################################
@@ -53,28 +53,21 @@ LANG = "fr"
 ####################################################################################
 LANG = 'fr'
 VIDEO = False
-windowoptions = sg.Window("DeepFaune GUI options",layout=[
-    [[sg.Text("Language / langue")],
-     [sg.Combo(values=list(["français","english"]), default_value="français", size=(20, 1), bind_return_key=True, key='-LANG-')],
-     [sg.Text("Data type / type de données")],     
-     [sg.Combo(values=list(["image","video"]), default_value="image", size=(20, 1), bind_return_key=True, key='-DATATYPE-')],
-     [sg.Button("OK", key='-OK-')]]
-], font = ("Arial", 14)).Finalize()
-while True:
-    event, values = windowoptions.read(timeout=10)
-    if event in (sg.WIN_CLOSED, 'Exit'):
-        break
-    elif event == '-OK-':
-        if values["-LANG-"] == "français":
-            LANG = 'fr'
-        else:
-            LANG = 'gb'
-        if values["-DATATYPE-"] == "video":
-            VIDEO = True
-        else:
-            VIDEO = False
-        break
-windowoptions.close()
+
+
+
+
+
+from b64_images import *
+from components import Checkbox, IconButton, StyledButton, QRCode
+
+
+from meta import *
+settings: dict = {'theme': DEFAULT_THEME.copy()}
+accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
+
+
+
 
 ####################################################################################
 ### GUI TEXT
@@ -161,43 +154,62 @@ menu_def = [['&File', ['&'+txt_import[LANG], '&Export results',['as csv', 'as xs
             ['&Help', ['&Version'], ['&'+txt_credits[LANG]]], ]
 
 layout = [
-    [sg.MenubarCustom(menu_def, pad=(0,0), k='-CUST MENUBAR-', bar_background_color='black', bar_text_color='white')],
+    [sg.MenubarCustom(menu_def, pad=(0,0), font=FONT_NORMAL, bar_font=FONT_NORMAL,
+                      background_color=background_color, text_color=text_color,
+                      bar_background_color=background_color, bar_text_color=text_color,
+                      key='-CUST MENUBAR-')],
     [
         [sg.Frame('',[
             [
                 sg.Column([
                     [sg.Table(values=[],
                               headings=['filename'], justification = "l", 
-                              vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], num_rows=32, 
+                              vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], num_rows=24, 
                               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                               key='-TAB-')],
-                    [sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]],
-                              default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-"),
-                     sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
-                     sg.RealtimeButton(sg.SYMBOL_RIGHT, key='-NEXT-')]
-                ]),
+                    [
+                        sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]],
+                                 default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-"),
+                        # sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
+                        # sg.RealtimeButton(sg.SYMBOL_RIGHT, key='-NEXT-')
+                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous track'),
+                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next track')
+                     ]
+                ], background_color=background_color),
                 sg.Column([ 
                     [sg.Frame('',
-                              [[sg.Image(filename=r'icons/1316-white-small.png', key='-IMAGE-', size=(933, 700))]]
-                              )
+                              [[sg.Image(filename=r'icons/1316-black-large.png', key='-IMAGE-', size=(933, 700), background_color=background_color)]]
+                              , background_color=background_color)
                      ],
                     [sg.Text('Prediction:', size=(10, 1)),
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", key='-SCORE-'), sg.Text("\t"+txt_count[LANG]+": 0", key='-COUNT-')]
-                ])
+                ], background_color=background_color)
             ]
-        ])]
+        ], background_color=background_color)]
     ],
     [
         sg.Frame('',[
-            [sg.Button("Configure & Run", expand_x=False, key='-CONFIG-'),
-             sg.ProgressBar(1, orientation='h', border_width=4, expand_x=True, key='-PROGBAR-',bar_color=['Blue','White'], style='vista')],
-        ], expand_x=True)
+            [
+                #sg.Button("Configure & Run", expand_x=False, key='-CONFIG-'),
+                StyledButton("Configure & Run", accent_color, background_color, key='-CONFIG-', button_width=5+len("Configure & Run"), pad=(5, (7, 5))),
+                sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color)
+            ],
+        ], expand_x=True, background_color=background_color)
     ]
 ]
 
-window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0), font = ("Arial", 14), resizable=True).Finalize()
+window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0), font = FONT_MED, resizable=True, background_color=background_color).Finalize()
 window.read(timeout=0)
+
+from tkinter import TclError
+from contextlib import suppress
+with suppress(TclError):
+    window.TKroot.tk.call('source', SUN_VALLEY_TCL)
+    window.TKroot.tk.call('set_theme', 'dark')
+
+settings: dict = {'theme': DEFAULT_THEME.copy()}
+accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
 
 
 ####################################################################################
