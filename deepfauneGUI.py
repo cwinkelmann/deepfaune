@@ -173,7 +173,7 @@ layout = [
                 sg.Column([
                     [sg.Table(values=[],
                               headings=['filename'], justification = "l", 
-                              vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], num_rows=24, 
+                              vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], expand_y=True,#num_rows=24, 
                               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                               background_color=background_color, text_color=text_color,
                               key='-TAB-')],
@@ -183,7 +183,7 @@ layout = [
                         sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous track'),
                         sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next track')
                      ]
-                ], background_color=background_color),
+                ], background_color=background_color, expand_y=True),
                 sg.Column([ 
                     [sg.Frame('',
                               [[sg.Image(filename=r'icons/1316-black-large.png', key='-IMAGE-', size=(933, 700), background_color=background_color)]]
@@ -196,7 +196,7 @@ layout = [
                      sg.Text("\t"+txt_count[LANG]+": 0", background_color=background_color, text_color=text_color, key='-COUNT-')]
                 ], background_color=background_color)
             ]
-        ], background_color=background_color)]
+        ], background_color=background_color, expand_y=True)]
     ],
     [
         sg.Frame('',[
