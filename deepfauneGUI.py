@@ -32,42 +32,35 @@
 # knowledge of the CeCILL license and that you accept its terms.
 
 import PySimpleGUI as sg
-import os
 import threading
+import os
+os.environ["PYTORCH_JIT"] = "0"
 
 ####################################################################################
-### SETTINGS
+### THEME SETTINGS
 ####################################################################################
 #sg.ChangeLookAndFeel('Reddit')
 #sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
-os.environ["PYTORCH_JIT"] = "0"
+
+from b64_images import *
+from components import StyledButton
+from meta import *
+settings: dict = {'theme': DEFAULT_THEME.copy()}
+accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
 
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
 VERSION = "0.6.0"
 LANG = "fr"
-
-####################################################################################
-### GUI OPTIONS
-####################################################################################
 LANG = 'fr'
 VIDEO = False
-
-
-
-
-
-from b64_images import *
-from components import Checkbox, IconButton, StyledButton, QRCode
-
-
-from meta import *
-settings: dict = {'theme': DEFAULT_THEME.copy()}
-accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
-
-
-
+if VIDEO:
+    BATCH_SIZE = 12 # Batch size for predictor, in number of images
+else:
+    BATCH_SIZE = 8
+threshold = threshold_default = 0.8
+maxlag = maxlag_default = 20 # seconds
 
 ####################################################################################
 ### GUI TEXT
@@ -114,20 +107,23 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
 def draw_boxes(imagecv, box=None):
     if box is not None:
         cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
-    
+
+import tkinter
+from tkinter import filedialog
+def dialog_get_dir(title):
+    _root = tkinter.Tk()
+    _root.tk.call('source', SUN_VALLEY_TCL)
+    _root.tk.call('set_theme', 'light')
+    _root.withdraw()
+    selectdir = filedialog.askdirectory(title=title, parent=_root)
+    if len(selectdir) == 0:
+        selectdir = None
+    _root.destroy()
+    return selectdir
+
 ####################################################################################
 ### MAIN GUI WINDOW
 ####################################################################################
-# Batch size for predictor, in number of images
-if VIDEO:
-    BATCH_SIZE = 12
-else:
-    BATCH_SIZE = 8
-
-# Default parameters
-threshold = threshold_default = 0.8
-maxlag = maxlag_default = 20 # seconds
-
 # Default selected classes
 listCB = []
 lineCB = []
@@ -151,13 +147,15 @@ credits_layout = [
 # Main window
 menu_def = [['&File', ['&'+txt_import[LANG], '&Export results',['as csv', 'as xslx'],  '&Create subfolders', ['copy images', 'move images'],'E&xit']],
             ['&Edit', ['Edit Me', 'Special', 'Preferences',['Language', 'Data type'] , 'Undo']],
-            ['&Help', ['&Version'], ['&'+txt_credits[LANG]]], ]
+            ['&Help', ['&Version'], ['&'+txt_credits[LANG]]] ]
 
 layout = [
-    [sg.MenubarCustom(menu_def, pad=(0,0), font=FONT_NORMAL, bar_font=FONT_NORMAL,
+    [
+        sg.MenubarCustom(menu_def, pad=(0,0), font=FONT_NORMAL, bar_font=FONT_NORMAL,
                       background_color=background_color, text_color=text_color,
                       bar_background_color=background_color, bar_text_color=text_color,
-                      key='-CUST MENUBAR-')],
+                      key='-CUST MENUBAR-')
+    ],
     [
         [sg.Frame('',[
             [
@@ -209,12 +207,11 @@ from tkinter import TclError
 from contextlib import suppress
 with suppress(TclError):
     window.TKroot.tk.call('source', SUN_VALLEY_TCL)
-    window.TKroot.tk.call('set_theme', 'dark')
+window.TKroot.tk.call('set_theme', 'dark')
 
-settings: dict = {'theme': DEFAULT_THEME.copy()}
-accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
-
-
+window['-CONFIG-'].Update(disabled=True)
+window['-PREVIOUS-'].Update(disabled=True)
+window['-NEXT-'].Update(disabled=True)
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
@@ -234,7 +231,7 @@ else:
     from predictTools import Predictor
 
 curridx = -1
-testdir = ""
+testdir = None
 hasrun = False
 imgmoved  = False
 frgbprint("terminé","done")
@@ -251,8 +248,8 @@ while True:
         window['-PROGBAR-'].update_bar(0)
         window['-IMAGE-'].update(filename=r'icons/1316-white-small.png', size=(933, 700))
         hasrun = False
-        testdir = sg.popup_get_folder(txt_browse[LANG], no_window=True)
-        if testdir != "":
+        testdir = dialog_get_dir(txt_browse[LANG]) #sg.popup_get_folder(txt_browse[LANG], background_color=background_color, no_window=True)
+        if testdir != None:
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
             if VIDEO:
@@ -279,7 +276,16 @@ while True:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
                 sg.popup_error(txt_incorrect[LANG], keep_on_top=True)
-        window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
+                window['-CONFIG-'].Update(disabled=True)
+                window['-PREVIOUS-'].Update(disabled=True)
+                window['-NEXT-'].Update(disabled=True)
+            else:
+                window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
+                window['-CONFIG-'].Update(disabled=False)
+                window['-PREVIOUS-'].Update(disabled=False)
+                window['-NEXT-'].Update(disabled=False)
+                curridx = 0
+                window['-TAB-'].update(select_rows=[curridx])
     elif event == '-CONFIG-':
         import copy
         layoutconfig = [
@@ -297,58 +303,62 @@ while True:
                 StyledButton("Run", accent_color, background_color, button_width=5+len("Run"), key='-RUN-')
             ]
         ]
-        windowconfig = sg.Window("Configure & run XXXX", copy.deepcopy(layoutconfig), size=(540, 500), background_color=background_color, finalize=True)
+        windowconfig = sg.Window("Configure & run XXXX", copy.deepcopy(layoutconfig),  margins=(0, 0),
+                                 background_color=background_color, finalize=True)
         with suppress(TclError):
             windowconfig.TKroot.tk.call('source', SUN_VALLEY_TCL)
-            windowconfig.TKroot.tk.call('set_theme', 'dark')
-
+        windowconfig.TKroot.tk.call('set_theme', 'dark')
+        configabort = False
         while True:
             eventconfig, valuesconfig = windowconfig.read(timeout=10)
             if eventconfig == '-RUN-':
                 break
             elif eventconfig in (sg.WIN_CLOSED, 'Exit'):
-                print("XXXXXXX PAS PRIS EN COMPTE XXXXX")
+                configabort = True
                 break
-        threshold = float(valuesconfig['-THRESHOLD-'])
-        maxlag = float(valuesconfig['-LAG-'])
-        forbiddenclasses = []
-        for label in sorted_txt_classes_lang:
-            if not valuesconfig[label]:
-                forbiddenclasses += [label]
-        if len(forbiddenclasses):
-            frgbprint("Classes non selectionnées : ", "Unselected classes: ", end="")
-            print(forbiddenclasses)
         windowconfig.close()
-        ########################
-        # Predictions using CNNs
-        ########################
-        frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
-        window.refresh()
-        if VIDEO:
-            predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
-        else:
-            predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE)
-            filenames = predictor.getFilenames()
-            window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
-        predictor.setForbiddenClasses(forbiddenclasses)
-        def runPredictor():
-            global window, nbfiles, BATCH_SIZE, VIDEO
+        if not configabort:
+            threshold = float(valuesconfig['-THRESHOLD-'])
+            maxlag = float(valuesconfig['-LAG-'])
+            forbiddenclasses = []
+            for label in sorted_txt_classes_lang:
+                if not valuesconfig[label]:
+                    forbiddenclasses += [label]
+            if len(forbiddenclasses):
+                frgbprint("Classes non selectionnées : ", "Unselected classes: ", end="")
+                print(forbiddenclasses)
+            ########################
+            # Predictions using CNNs
+            ########################
+            window['-CONFIG-'].Update(disabled=True)
+            frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
+            window.refresh()
             if VIDEO:
-                while True:
-                    batch, k1, k2 = predictor.nextBatch()
-                    if k1==nbfiles: break
-                    window['-PROGBAR-'].update_bar(batch/nbfiles)
-                    window.refresh()
+                predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
             else:
-                while True:
-                    batch, k1, k2 = predictor.nextBatch()
-                    if k1==nbfiles: break
-                    window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
-        thread = threading.Thread(target=runPredictor)
-        thread.setDaemon(True)
-        thread.start() 
-        hasrun = True       
-        frgbprint(" terminé", " done")
+                predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE)
+                filenames = predictor.getFilenames()
+                window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
+            predictor.setForbiddenClasses(forbiddenclasses)
+            def runPredictor():
+                global window, nbfiles, BATCH_SIZE, VIDEO
+                if VIDEO:
+                    while True:
+                        batch, k1, k2 = predictor.nextBatch()
+                        if k1==nbfiles: break
+                        window['-PROGBAR-'].update_bar(batch/nbfiles)
+                        window.refresh()
+                else:
+                    while True:
+                        batch, k1, k2 = predictor.nextBatch()
+                        if k1==nbfiles: break
+                        window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
+            thread = threading.Thread(target=runPredictor)
+            thread.setDaemon(True)
+            thread.start() 
+            hasrun = True       
+            frgbprint(" terminé", " done")
+            window['-CONFIG-'].Update(disabled=False)
     elif event == '-SAVECSV-' or event == '-SAVEXLSX-':
         predictedclass, predictedscore, _, count = predictor.getPredictions()
         if VIDEO:
