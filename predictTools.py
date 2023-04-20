@@ -157,6 +157,8 @@ class PredictorBase(ABC):
         k2seq = self.k2 ## last sequence in batch
         print(self.k1,self.k2)
         print(k1seq,k2seq)
+        subseqnum = np.array(self.fileManager.getSeqnums()[k1seq:k2seq])
+        print("Treating? ",subseqnum)
         while (k1seq-1)>=0 and seqnum[(k1seq-1)]==seqnum[self.k1]:
             # previous batch contains images of the first sequence present in the current batch
             k1seq = k1seq-1
@@ -168,14 +170,15 @@ class PredictorBase(ABC):
         print(k1seq,k2seq)
         subseqnum = np.array(self.fileManager.getSeqnums()[k1seq:k2seq])
         print("Treating ",subseqnum)
-        for num in range(min(subseqnum), max(subseqnum)+1):
-            idx4num = k1seq + np.nonzero(subseqnum==num)[0]
-            df_prediction = pd.DataFrame({'prediction':[self.predictedclass_base[k] for k in idx4num],
-                                          'score':[self.predictedscore_base[k] for k in idx4num]})
-            majorityclass, meanscore = self.__majorityVotingInSequence(df_prediction)
-            for k in idx4num:
-                self.predictedclass[k] = majorityclass
-                self.predictedscore[k] = meanscore
+        if len(subseqnum)>0:
+            for num in range(min(subseqnum), max(subseqnum)+1):
+                idx4num = k1seq + np.nonzero(subseqnum==num)[0]
+                df_prediction = pd.DataFrame({'prediction':[self.predictedclass_base[k] for k in idx4num],
+                                              'score':[self.predictedscore_base[k] for k in idx4num]})
+                majorityclass, meanscore = self.__majorityVotingInSequence(df_prediction)
+                for k in idx4num:
+                    self.predictedclass[k] = majorityclass
+                    self.predictedscore[k] = meanscore
         return k1seq, k2seq
                 
     def correctPredictionsWithSequence(self):

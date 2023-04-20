@@ -169,8 +169,6 @@ layout = [
                     [
                         sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color,
                                  default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-"),
-                        # sg.RealtimeButton(sg.SYMBOL_LEFT, key='-PREVIOUS-'),
-                        # sg.RealtimeButton(sg.SYMBOL_RIGHT, key='-NEXT-')
                         sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous track'),
                         sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next track')
                      ]
@@ -192,7 +190,6 @@ layout = [
     [
         sg.Frame('',[
             [
-                #sg.Button("Configure & Run", expand_x=False, key='-CONFIG-'),
                 StyledButton("Configure & Run", accent_color, background_color, key='-CONFIG-', button_width=5+len("Configure & Run"), pad=(5, (7, 5))),
                 sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color)
             ],
@@ -210,8 +207,8 @@ with suppress(TclError):
 window.TKroot.tk.call('set_theme', 'dark')
 
 window['-CONFIG-'].Update(disabled=True)
-window['-PREVIOUS-'].Update(disabled=True)
-window['-NEXT-'].Update(disabled=True)
+#window['-PREVIOUS-'].Update(disabled=True)
+#window['-NEXT-'].Update(disabled=True)
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
@@ -277,19 +274,18 @@ while True:
             if nbfiles==0:
                 sg.popup_error(txt_incorrect[LANG], keep_on_top=True)
                 window['-CONFIG-'].Update(disabled=True)
-                window['-PREVIOUS-'].Update(disabled=True)
-                window['-NEXT-'].Update(disabled=True)
+                #window['-PREVIOUS-'].Update(disabled=True)
+                #window['-NEXT-'].Update(disabled=True)
             else:
                 window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
                 window['-CONFIG-'].Update(disabled=False)
-                window['-PREVIOUS-'].Update(disabled=False)
-                window['-NEXT-'].Update(disabled=False)
+                #window['-PREVIOUS-'].Update(disabled=False)
+                #window['-NEXT-'].Update(disabled=False)
                 curridx = 0
                 window['-TAB-'].update(select_rows=[curridx])
     elif event == '-CONFIG-':
         import copy
         layoutconfig = [
-            #[sg.Text('', size=(10, 1))],
             [select_frame],
             [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, layout=[
                 [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
@@ -299,7 +295,6 @@ while True:
                  sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
             ], background_color=background_color)],
             [
-                #sg.Button("Run", expand_x=False, key='-RUN-')
                 StyledButton("Run", accent_color, background_color, button_width=5+len("Run"), key='-RUN-')
             ]
         ]
@@ -379,7 +374,7 @@ while True:
             if xlsxpath:
                 frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
                 preddf.to_excel(xlsxpath, index=False)
-    elif (event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-' :
+    elif (testdir is not None) and ((event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-'):
         if event == '-TAB-':
             rowidx = values['-TAB-'][0]
             curridx = rowidx

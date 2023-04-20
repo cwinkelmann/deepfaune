@@ -23,23 +23,3 @@ def StyledButton(button_text, fill, text_color, font=None, tooltip=None, key=Non
     return Sg.Button(button_text=button_text, image_data=btn_img, button_color=(text_color, text_color),
                      tooltip=tooltip, key=key, pad=pad, enable_events=False, size=(button_width, 1),
                      bind_return_key=bind_return_key, font=font, visible=visible, border_width=0)
-
-
-def IconButton(image_data, key, tooltip, bg):
-    return Sg.Button(image_data=image_data, key=key, tooltip=tooltip, enable_events=True, button_color=(bg, bg))
-
-
-def Checkbox(name, key, settings, on_right=False, tooltip=None):
-    bg = settings['theme']['background']
-    size = (23, 5) if on_right else (23, 5)
-    checkbox = {'background_color': bg, 'font': FONT_NORMAL, 'enable_events': True, 'pad': ((0, 5), (5, 5))}
-    return Sg.Checkbox(name, default=settings[key], key=key, tooltip=tooltip, size=size, **checkbox)
-
-
-def QRCode(text_to_encode):
-    try:
-        qr_code = pyqrcode.create(text_to_encode)
-        return qr_code.png_as_base64_str(scale=3, module_color=(255, 255, 255, 255), background=(18, 18, 18, 255))
-    except OSError:
-        # Failed?
-        return None
