@@ -93,6 +93,7 @@ txt_close  = {'fr':"Fermer", 'gb':"Close"}
 txt_all = {'fr':"Toutes", 'gb':"All"}
 txt_count = {'fr':"Comptage", 'gb':"Count"}
 txt_import = {'fr':"Importer des médias", 'gb':"Import medias"}
+txt_error = {'fr':"Erreur", 'gb':"Error"}
 
 def frgbprint(txt_fr, txt_gb, end='\n'):
     if LANG=="fr":
@@ -120,6 +121,16 @@ def dialog_get_dir(title):
         selectdir = None
     _root.destroy()
     return selectdir
+
+from tkinter import messagebox
+def dialog_error(message):
+    _root = tkinter.Tk()
+    _root.tk.call('source', SUN_VALLEY_TCL)
+    _root.tk.call('set_theme', 'light')
+    _root.withdraw()
+    messagebox.showerror(title=txt_error[LANG], message=message)
+    _root.destroy()
+    
 
 ####################################################################################
 ### MAIN GUI WINDOW
@@ -272,7 +283,7 @@ while True:
             else:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
-                sg.popup_error(txt_incorrect[LANG], keep_on_top=True)
+                dialog_error(txt_incorrect[LANG]) #sg.popup_error(txt_incorrect[LANG], keep_on_top=True)
                 window['-CONFIG-'].Update(disabled=True)
                 #window['-PREVIOUS-'].Update(disabled=True)
                 #window['-NEXT-'].Update(disabled=True)
