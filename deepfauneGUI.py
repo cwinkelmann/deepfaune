@@ -71,29 +71,18 @@ txt_browse = {'fr':"Choisir", 'gb':"Select"}
 txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect folder - no media found"}
 txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
 txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
-txt_progressbar = {'fr':"Barre d'état", 'gb':"Progress bar"}
-txt_run = {'fr':"Lancer", 'gb':"Run"}
-txt_save = {'fr':"Enregistrer en ", 'gb':"Save in "}
-txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders"}
-txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
-txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
 txt_import = {'fr':"Import des modules externes... ", 'gb':"Importing external modules... "}
-txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
-txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of "}
-txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of "}
-txt_savepred = {'fr':"Enregistrer", 'gb':"Save"}
 txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
 txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
-txt_maintab = {'fr':"Accueil", 'gb':"Home"}
-txt_resultstab = {'fr':"Résultats", 'gb':"Results"}
-txt_selectclasses = {'fr':"Sélection des classes", 'gb':"Classes selection"}
-txt_credits = {'fr':"A propos", 'gb':"About DeepFaune"}
 txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
+txt_selectclasses = {'fr':"Sélection des classes", 'gb':"Classes selection"}
 txt_close  = {'fr':"Fermer", 'gb':"Close"}
 txt_all = {'fr':"Toutes", 'gb':"All"}
 txt_count = {'fr':"Comptage", 'gb':"Count"}
-txt_import = {'fr':"Importer des médias", 'gb':"Import medias"}
 txt_error = {'fr':"Erreur", 'gb':"Error"}
+txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
+txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of "}
+txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of "}
 
 def frgbprint(txt_fr, txt_gb, end='\n'):
     if LANG=="fr":
@@ -121,6 +110,17 @@ def dialog_get_dir(title):
         selectdir = None
     _root.destroy()
     return selectdir
+
+def dialog_get_file(title, initialdir, initialfile, defaultextension):
+    _root = tkinter.Tk()
+    _root.tk.call('source', SUN_VALLEY_TCL)
+    _root.tk.call('set_theme', 'light')
+    _root.withdraw()
+    selectfile = filedialog.askopenfilename(initialdir=initialdir, initialfile=initialfile, defaultextension=defaultextension, parent=_root)
+    if len(selectfile) == 0:
+        selectfile = None
+    _root.destroy()
+    return selectfile
 
 from tkinter import messagebox
 def dialog_error(message):
@@ -156,9 +156,32 @@ credits_layout = [
 ]
 
 # Main window
-menu_def = [['&File', ['&'+txt_import[LANG], '&Export results',['as csv', 'as xslx'],  '&Create subfolders', ['copy images', 'move images'],'E&xit']],
-            ['&Edit', ['Edit Me', 'Special', 'Preferences',['Language', 'Data type'] , 'Undo']],
-            ['&Help', ['&Version'], ['&'+txt_credits[LANG]]] ]
+txt_file = {'fr':"Fichier", 'gb':"File"}
+txt_pref = {'fr':"Préférences", 'gb':"Preferences"}
+txt_help = {'fr':"Aide", 'gb':"Help"}
+txt_import = {'fr':"Importer des médias", 'gb':"Import medias"}
+txt_export = {'fr':"Exporter les résultats", 'gb':"Export results"}
+txt_ascsv = {'fr':"au format csv", 'gb':"as csv"}
+txt_asxlsx = {'fr':"au format xlsx", 'gb':"as xlsx"}
+txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders"}
+txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
+txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
+txt_language = {'fr':"Langue", 'gb':"Language"}
+txt_credits = {'fr':"A propos", 'gb':"About DeepFaune"}
+menu_def = [
+    ['&'+txt_file[LANG], [
+        '&'+txt_import[LANG],
+        '&'+txt_export[LANG],[txt_ascsv[LANG],txt_asxlsx[LANG]],
+        '&'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
+    ]],
+    ['&'+txt_pref[LANG], [
+        txt_language[LANG], ['fr', 'gb']
+    ]],
+    ['&'+txt_help[LANG], [
+        '&Version',
+        '&'+txt_credits[LANG]
+    ]]
+]
 
 layout = [
     [
@@ -254,7 +277,7 @@ while True:
         continue
     elif event == txt_import[LANG]:
         window['-PROGBAR-'].update_bar(0)
-        window['-IMAGE-'].update(filename=r'icons/1316-white-small.png', size=(933, 700))
+        window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
         hasrun = False
         testdir = dialog_get_dir(txt_browse[LANG]) #sg.popup_get_folder(txt_browse[LANG], background_color=background_color, no_window=True)
         if testdir != None:
@@ -365,23 +388,24 @@ while True:
             hasrun = True       
             frgbprint(" terminé", " done")
             window['-CONFIG-'].Update(disabled=False)
-    elif event == '-SAVECSV-' or event == '-SAVEXLSX-':
+    elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
         predictedclass, predictedscore, _, count = predictor.getPredictions()
         if VIDEO:
-            predictedclass_base, predictedscore_base, _, count = predictor.getPredictionsBase()
+            predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
-            predictedclass, predictedscore = predictedclass_base, predictedscore_base
+            predictedclass_base, predictedscore_base, _, count = predictor.getPredictionsBase()
         preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                 'prediction':predictedclass, 'score':predictedscore,
                                 'count':count})
         preddf.sort_values(['seqnum','filename'], inplace=True)
-        if event == '-SAVECSV-':
-            csvpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.csv", default_extension='csv', initial_folder=testdir)
+        if event == txt_ascsv[LANG]:
+            csvpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.csv", defaultextension=".csv")
             if csvpath:
                 frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
                 preddf.to_csv(csvpath, index=False)
-            xlsxpath = sg.popup_get_file(txt_savepredictions[LANG], no_window=True, save_as=True, default_path="deepfaune.xlsx", default_extension='xlsx', initial_folder=testdir)
+        if event == txt_asxlsx[LANG]:
+            xlsxpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.xlsx", defaultextension=".xlsx")
             if xlsxpath:
                 frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
                 preddf.to_excel(xlsxpath, index=False)

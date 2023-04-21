@@ -79,12 +79,12 @@ class PredictorBase(ABC):
     def nextBatch(self):
         pass
             
-    def getPredictions(self, i=None):
-        if i is not None:
-            if self.predictedclass[i]=="": # correction not yet done
-                return self.predictedclass[i], self.predictedscore[i], None, 0
+    def getPredictions(self, k=None):
+        if k is not None:
+            if self.predictedclass[k]=="": # correction not yet done
+                return self.predictedclass[k], self.predictedscore[k], None, 0
             else:
-                return self.predictedclass[i], self.predictedscore[i], self.bestboxes[i,], self.count[i]
+                return self.predictedclass[k], self.predictedscore[k], self.bestboxes[k,], self.count[k]
         else:            
             return self.predictedclass, self.predictedscore, self.bestboxes, self.count
     
@@ -238,7 +238,7 @@ class Predictor(PredictorBase):
             return self.batch-1, k1_batch, k2_batch
                     
     def getPredictionsBase(self, k=None):
-        if i is not None:
+        if k is not None:
             return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
         else:            
             return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
