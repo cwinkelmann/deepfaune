@@ -33,26 +33,14 @@
 
 import PySimpleGUI as sg
 import threading
+import io
 import os
 os.environ["PYTORCH_JIT"] = "0"
-
-####################################################################################
-### THEME SETTINGS
-####################################################################################
-#sg.ChangeLookAndFeel('Reddit')
-#sg.LOOK_AND_FEEL_TABLE["Reddit"]["BORDER"]=0
-
-from b64_images import *
-from components import StyledButton
-from meta import *
-settings: dict = {'theme': DEFAULT_THEME.copy()}
-accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
 
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
 VERSION = "0.6.0"
-LANG = "fr"
 LANG = 'fr'
 VIDEO = False
 if VIDEO:
@@ -71,6 +59,8 @@ txt_browse = {'fr':"Choisir", 'gb':"Select"}
 txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect folder - no media found"}
 txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
 txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
+txt_configrun = {'fr':"Configurer et lancer", 'gb':"Configure & Run"}
+txt_configrun = {'fr':"Lancer", 'gb':"Run"}
 txt_import = {'fr':"Import des modules externes... ", 'gb':"Importing external modules... "}
 txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
 txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
@@ -84,16 +74,35 @@ txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'g
 txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of "}
 txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of "}
 
-def frgbprint(txt_fr, txt_gb, end='\n'):
-    if LANG=="fr":
-        print(txt_fr, end=end)
-    if LANG=="gb":
-        print(txt_gb, end=end)
+
+####################################################################################
+### THEME SETTINGS
+####################################################################################
+from b64_images import *
+
+DEFAULT_THEME = {'accent': '#00bfff', 'background': '#121212', 'text': '#d7d7d7', 'alternate_background': '#222222'}
+settings: dict = {'theme': DEFAULT_THEME.copy()}
+accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
+
+SUN_VALLEY_TCL = 'theme/sun-valley.tcl'
+FONT_NORMAL = 'Segoe UI', 11
+FONT_SMALL = 'Segoe UI', 10
+FONT_LINK = 'Segoe UI', 11, 'underline'
+FONT_TITLE = 'Segoe UI', 14
+FONT_MED = 'Segoe UI', 12
+FONT_TAB = 'Meiryo UI', 10
+LINK_COLOR = '#3ea6ff'
 
 
 ####################################################################################
 ### GUI UTILS
 ####################################################################################
+def frgbprint(txt_fr, txt_gb, end='\n'):
+    if LANG=="fr":
+        print(txt_fr, end=end)
+    if LANG=="gb":
+        print(txt_gb, end=end)
+        
 def draw_boxes(imagecv, box=None):
     if box is not None:
         cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
@@ -131,6 +140,27 @@ def dialog_error(message):
     messagebox.showerror(title=txt_error[LANG], message=message)
     _root.destroy()
     
+import base64
+from PIL import Image, ImageDraw
+def StyledButton(button_text, fill, text_color, font=None, tooltip=None, key=None, visible=True,
+              pad=None, bind_return_key=False, button_width=None):
+    multi = 4
+    btn_w = ((len(button_text) if button_width is None else button_width) * 5 + 20) * multi
+    height = 18 * multi
+    btn_img = Image.new('RGBA', (btn_w, height), (0, 0, 0, 0))
+    d = ImageDraw.Draw(btn_img)
+    x0 = y0 = 0
+    radius = 10 * multi
+    d.ellipse((x0, y0, x0 + radius * 2, height), fill=fill)
+    d.ellipse((btn_w - radius * 2 - 1, y0, btn_w - 1, height), fill=fill)
+    d.rectangle((x0 + radius, y0, btn_w - radius, height), fill=fill)
+    data = io.BytesIO()
+    btn_img.thumbnail((btn_w // 3, height // 3), resample=Image.LANCZOS)
+    btn_img.save(data, format='png', quality=100)
+    btn_img = base64.b64encode(data.getvalue())
+    return sg.Button(button_text=button_text, image_data=btn_img, button_color=(text_color, text_color),
+                     tooltip=tooltip, key=key, pad=pad, enable_events=False, size=(button_width, 1),
+                     bind_return_key=bind_return_key, font=font, visible=visible, border_width=0)
 
 ####################################################################################
 ### MAIN GUI WINDOW
@@ -195,13 +225,13 @@ layout = [
             [
                 sg.Column([
                     [sg.Table(values=[],
-                              headings=['filename'], justification = "l", 
+                              headings=['Filename'], justification = "l", 
                               vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], expand_y=True,#num_rows=24, 
                               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                               background_color=background_color, text_color=text_color,
                               key='-TAB-')],
                     [
-                        sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color,
+                        sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color, enable_events=True,
                                  default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-"),
                         sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous track'),
                         sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next track')
@@ -213,7 +243,7 @@ layout = [
                               , background_color=background_color)
                      ],
                     [sg.Text('Prediction:', background_color=background_color, text_color=text_color, size=(10, 1)),
-                     sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="",
+                     sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", enable_events=True,
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("\t"+txt_count[LANG]+": 0", background_color=background_color, text_color=text_color, key='-COUNT-')]
@@ -224,7 +254,7 @@ layout = [
     [
         sg.Frame('',[
             [
-                StyledButton("Configure & Run", accent_color, background_color, key='-CONFIG-', button_width=5+len("Configure & Run"), pad=(5, (7, 5))),
+                StyledButton(txt_configrun[LANG], accent_color, background_color, key='-CONFIG-', button_width=5+len(txt_configrun[LANG]), pad=(5, (7, 5))),
                 sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color)
             ],
         ], expand_x=True, background_color=background_color)
@@ -329,10 +359,10 @@ while True:
                  sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
             ], background_color=background_color)],
             [
-                StyledButton("Run", accent_color, background_color, button_width=5+len("Run"), key='-RUN-')
+                StyledButton(txt_run[LANG], accent_color, background_color, button_width=5+len(txt_run[LANG]), key='-RUN-')
             ]
         ]
-        windowconfig = sg.Window("Configure & run XXXX", copy.deepcopy(layoutconfig),  margins=(0, 0),
+        windowconfig = sg.Window(txt_configrun[LANG], copy.deepcopy(layoutconfig),  margins=(0, 0),
                                  background_color=background_color, finalize=True)
         with suppress(TclError):
             windowconfig.TKroot.tk.call('source', SUN_VALLEY_TCL)
@@ -385,8 +415,7 @@ while True:
             thread = threading.Thread(target=runPredictor)
             thread.setDaemon(True)
             thread.start() 
-            hasrun = True       
-            frgbprint(" terminé", " done")
+            hasrun = True
             window['-CONFIG-'].Update(disabled=False)
     elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
         predictedclass, predictedscore, _, count = predictor.getPredictions()
@@ -492,6 +521,11 @@ while True:
             if values["-MV-"] == True:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
+    elif event == '-PREDICTION-':
+        if hasrun:
+            predictor.setPrediction(curridx, values['-PREDICTION-'], 1.0)
+        window.Element('-PREDICTION-').Update(select=False)
+        window.Element('-SCORE-').Update("\tScore: 1.0")
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
 window.close()

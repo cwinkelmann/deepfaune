@@ -87,7 +87,11 @@ class PredictorBase(ABC):
                 return self.predictedclass[k], self.predictedscore[k], self.bestboxes[k,], self.count[k]
         else:            
             return self.predictedclass, self.predictedscore, self.bestboxes, self.count
-    
+
+    def setPrediction(self, k, label, score):
+        self.predictedclass[k] = label
+        self.predictedscore[k] = score
+        
     def getFilenames(self):
         return self.fileManager.getFilenames()
     
