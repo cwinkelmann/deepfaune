@@ -42,7 +42,7 @@ os.environ["PYTORCH_JIT"] = "0"
 ####################################################################################
 VERSION = "0.6.0"
 LANG = 'fr'
-VIDEO = False
+VIDEO = False 
 if VIDEO:
     BATCH_SIZE = 12 # Batch size for predictor, in number of images
 else:
@@ -452,7 +452,9 @@ while True:
             if xlsxpath:
                 frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
                 preddf.to_excel(xlsxpath, index=False)
-    elif (testdir is not None) and ((event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-'):
+    elif (testdir is not None) \
+         and ((event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-') \
+         and (len(subsetidx)>0):
         if event == '-TAB-':
             rowidx = values['-TAB-'][0]
         else:
@@ -494,6 +496,7 @@ while True:
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
+                    window['-PREDICTION-'].Update(disabled=False)
                     window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
                     window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
             imagecv = cv2.resize(imagecv, (933,700))
@@ -547,13 +550,17 @@ while True:
         else:
             predictedclass, _, _, _ = predictor.getPredictions()
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
-        if len(subsetidx):
+        if len(subsetidx)>0:
             window.Element('-TAB-').Update(values=[basename(f) for f in [filenames[k] for k in subsetidx]])
-            window['-TAB-'].update(select_rows=[curridx])
+            window['-TAB-'].update(select_rows=[0])
         else:
             dialog_error(txt_classnotfound[LANG])
             window.Element('-TAB-').Update(values=[])
             window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
+            window.Element('-PREDICTION-').Update(value="")
+            window['-PREDICTION-'].Update(disabled=True)
+            window.Element('-SCORE-').Update("\tScore: 0.0")
+            window.Element('-COUNT-').Update("\tCount: 0")
         curridx = 0
         rowidx = 0
     elif event == sg.TIMEOUT_KEY:
