@@ -131,7 +131,7 @@ class PredictorBase(ABC):
     def __score2class(self, pred):
         txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
         if len(self.idxforbidden):
-            pred[idxforbidden] = 0.
+            pred[self.idxforbidden] = 0.
             pred = pred/np.sum(pred)
         idxmax = np.argmax(pred)
         if max(pred)>self.threshold:
@@ -308,7 +308,7 @@ class PredictorVideo(PredictorBase):
                 # or using average score of this class when predicted as video score
                 # idxmax4all = np.argmax(predictionallframe[idxnonempty,:], axis=1)
                 # self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
-            self.predictedclass_base[self.k1], self.predictedscore_base[self.k1] = self._PredictorBase__score2class(self.prediction[self.k1,])
+            self.predictedclass[self.k1], self.predictedscore[self.k1] = self._PredictorBase__score2class(self.prediction[self.k1,])
             self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
             k1_batch = self.k1
             k2_batch = self.k2

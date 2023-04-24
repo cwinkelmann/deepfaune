@@ -43,10 +43,6 @@ os.environ["PYTORCH_JIT"] = "0"
 VERSION = "0.6.0"
 LANG = 'fr'
 VIDEO = False 
-if VIDEO:
-    BATCH_SIZE = 12 # Batch size for predictor, in number of images
-else:
-    BATCH_SIZE = 8
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 20 # seconds
 
@@ -61,7 +57,6 @@ txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
 txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
 txt_configrun = {'fr':"Configurer et lancer", 'gb':"Configure & Run"}
 txt_run = {'fr':"Lancer", 'gb':"Run"}
-txt_import = {'fr':"Import des modules externes... ", 'gb':"Importing external modules... "}
 txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
 txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
 txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
@@ -126,7 +121,7 @@ def dialog_get_file(title, initialdir, initialfile, defaultextension):
     _root.tk.call('source', SUN_VALLEY_TCL)
     _root.tk.call('set_theme', 'light')
     _root.withdraw()
-    selectfile = filedialog.askopenfilename(initialdir=initialdir, initialfile=initialfile, defaultextension=defaultextension, parent=_root)
+    selectfile = filedialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension=defaultextension, parent=_root)
     if len(selectfile) == 0:
         selectfile = None
     _root.destroy()
@@ -190,7 +185,9 @@ credits_layout = [
 txt_file = {'fr':"Fichier", 'gb':"File"}
 txt_pref = {'fr':"Préférences", 'gb':"Preferences"}
 txt_help = {'fr':"Aide", 'gb':"Help"}
-txt_import = {'fr':"Importer des médias", 'gb':"Import medias"}
+txt_import = {'fr':"Importer", 'gb':"Import"}
+txt_importimage = {'fr':"images", 'gb':"images"}
+txt_importvideo = {'fr':"vidéos", 'gb':"videos"}
 txt_export = {'fr':"Exporter les résultats", 'gb':"Export results"}
 txt_ascsv = {'fr':"au format csv", 'gb':"as csv"}
 txt_asxlsx = {'fr':"au format xlsx", 'gb':"as xlsx"}
@@ -201,7 +198,7 @@ txt_language = {'fr':"Langue", 'gb':"Language"}
 txt_credits = {'fr':"A propos", 'gb':"About DeepFaune"}
 menu_def = [
     ['&'+txt_file[LANG], [
-        '&'+txt_import[LANG],
+        '&'+txt_import[LANG],[txt_importimage[LANG],txt_importvideo[LANG]],
         '&'+txt_export[LANG],[txt_ascsv[LANG],txt_asxlsx[LANG]],
         '&'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
     ]],
@@ -292,11 +289,6 @@ from pathlib import Path
 import pkgutil
 import cv2
 
-if VIDEO:
-    from predictTools import PredictorVideo
-else:
-    from predictTools import Predictor
-
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
 testdir = None
@@ -312,7 +304,11 @@ while True:
         import webbrowser
         webbrowser.open("https://www.deepfaune.cnrs.fr")
         continue
-    elif event == txt_import[LANG]:
+    elif event == txt_importimage[LANG] or event == txt_importvideo[LANG]: 
+        if event == txt_importimage[LANG]:
+            VIDEO = False
+        if event == txt_importvideo[LANG]:
+            VIDEO = True
         window['-PROGBAR-'].update_bar(0)
         window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
         hasrun = False
@@ -361,14 +357,18 @@ while True:
                 window['-TAB-'].update(select_rows=[curridx])
     elif event == '-CONFIG-':
         import copy
+        if VIDEO:
+            sequencespin = []
+        else:
+            sequencespin = [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
+                            sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
         layoutconfig = [
             [select_frame],
             [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, layout=[
                 [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
                  sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True,
                          background_color=background_color, text_color=text_color, key='-THRESHOLD-')],
-                [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
-                 sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
+                sequencespin
             ], background_color=background_color)],
             [
                 StyledButton(txt_run[LANG], accent_color, background_color, button_width=5+len(txt_run[LANG]), key='-RUN-')
@@ -390,7 +390,8 @@ while True:
         windowconfig.close()
         if not configabort:
             threshold = float(valuesconfig['-THRESHOLD-'])
-            maxlag = float(valuesconfig['-LAG-'])
+            if not VIDEO:
+                maxlag = float(valuesconfig['-LAG-'])
             forbiddenclasses = []
             for label in sorted_txt_classes_lang:
                 if not valuesconfig[label]:
@@ -404,6 +405,12 @@ while True:
             window['-CONFIG-'].Update(disabled=True)
             frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
             window.refresh()
+            if VIDEO:
+                from predictTools import PredictorVideo
+                BATCH_SIZE = 12 # Batch size for predictor, in number of images
+            else:
+                from predictTools import Predictor
+                BATCH_SIZE = 8
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
             else:
@@ -474,9 +481,9 @@ while True:
                 cap = cv2.VideoCapture(filenames[curridx])
                 lag = int(cap.get(5) / 3)
                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                while ((BATCH_SIZE - 1) * lag > total_frames):
-                    lag = lag - 1
-                if hasrun:                    
+                if hasrun:           
+                    while ((BATCH_SIZE - 1) * lag > total_frames):
+                        lag = lag - 1         
                     cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
                 else:
                     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
