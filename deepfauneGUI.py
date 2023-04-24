@@ -60,14 +60,15 @@ txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect
 txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
 txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
 txt_configrun = {'fr':"Configurer et lancer", 'gb':"Configure & Run"}
-txt_configrun = {'fr':"Lancer", 'gb':"Run"}
+txt_run = {'fr':"Lancer", 'gb':"Run"}
 txt_import = {'fr':"Import des modules externes... ", 'gb':"Importing external modules... "}
 txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
 txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
 txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
 txt_selectclasses = {'fr':"Sélection des classes", 'gb':"Classes selection"}
 txt_close  = {'fr':"Fermer", 'gb':"Close"}
-txt_all = {'fr':"Toutes", 'gb':"All"}
+txt_all = {'fr':"toutes", 'gb':"all"}
+txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found for this class"}
 txt_count = {'fr':"Comptage", 'gb':"Count"}
 txt_error = {'fr':"Erreur", 'gb':"Error"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
@@ -271,8 +272,13 @@ with suppress(TclError):
 window.TKroot.tk.call('set_theme', 'dark')
 
 window['-CONFIG-'].Update(disabled=True)
+window['-PREDICTION-'].Update(disabled=True)
+window['-RESTRICT-'].Update(disabled=True)
 #window['-PREVIOUS-'].Update(disabled=True)
 #window['-NEXT-'].Update(disabled=True)
+
+
+
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
@@ -291,7 +297,8 @@ if VIDEO:
 else:
     from predictTools import Predictor
 
-curridx = -1
+curridx = -1 # current filenames index
+rowidx = -1 # current tab row index
 testdir = None
 hasrun = False
 imgmoved  = False
@@ -309,6 +316,9 @@ while True:
         window['-PROGBAR-'].update_bar(0)
         window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
         hasrun = False
+        curridx = -1
+        window['-PREDICTION-'].Update(disabled=True)
+        window['-RESTRICT-'].Update(disabled=True)
         testdir = dialog_get_dir(txt_browse[LANG]) #sg.popup_get_folder(txt_browse[LANG], background_color=background_color, no_window=True)
         if testdir != None:
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
@@ -346,6 +356,8 @@ while True:
                 #window['-PREVIOUS-'].Update(disabled=False)
                 #window['-NEXT-'].Update(disabled=False)
                 curridx = 0
+                rowidx = 0
+                subsetidx = list(range(0,len(filenames)))
                 window['-TAB-'].update(select_rows=[curridx])
     elif event == '-CONFIG-':
         import copy
@@ -416,6 +428,8 @@ while True:
             thread.setDaemon(True)
             thread.start() 
             hasrun = True
+            window['-PREDICTION-'].Update(disabled=False)
+            window['-RESTRICT-'].Update(disabled=False)
             window['-CONFIG-'].Update(disabled=False)
     elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
         predictedclass, predictedscore, _, count = predictor.getPredictions()
@@ -441,18 +455,18 @@ while True:
     elif (testdir is not None) and ((event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-'):
         if event == '-TAB-':
             rowidx = values['-TAB-'][0]
-            curridx = rowidx
         else:
             if event == '-NEXT-':
-                curridx = curridx+1
-                if curridx==len(filenames):
-                    curridx = 0
+                rowidx = rowidx+1
+                if rowidx==len(subsetidx):
+                    rowidx = 0
             if event == '-PREVIOUS-':
-                curridx = curridx-1
-                if curridx==-1:
-                    curridx = len(filenames)-1
-            window['-TAB-'].update(select_rows=[curridx])
-            window['-TAB-'].Widget.see(curridx+1)
+                rowidx = rowidx-1
+                if rowidx==-1:
+                    rowidx = len(subsetidx)-1                    
+            window['-TAB-'].update(select_rows=[rowidx])
+            window['-TAB-'].Widget.see(rowidx+1)            
+        curridx = subsetidx[rowidx]
         if not imgmoved: 
             if VIDEO:
                 cap = cv2.VideoCapture(filenames[curridx])
@@ -522,10 +536,26 @@ while True:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
     elif event == '-PREDICTION-':
+        # color activated when possible to use keyboard on this element
         if hasrun:
             predictor.setPrediction(curridx, values['-PREDICTION-'], 1.0)
         window.Element('-PREDICTION-').Update(select=False)
         window.Element('-SCORE-').Update("\tScore: 1.0")
+    elif event == '-RESTRICT-':
+        if values['-RESTRICT-'] == txt_all[LANG]:
+            subsetidx = list(range(0,len(filenames)))
+        else:
+            predictedclass, _, _, _ = predictor.getPredictions()
+            subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
+        if len(subsetidx):
+            window.Element('-TAB-').Update(values=[basename(f) for f in [filenames[k] for k in subsetidx]])
+            window['-TAB-'].update(select_rows=[curridx])
+        else:
+            dialog_error(txt_classnotfound[LANG])
+            window.Element('-TAB-').Update(values=[])
+            window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
+        curridx = 0
+        rowidx = 0
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
 window.close()
