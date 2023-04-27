@@ -40,11 +40,11 @@ os.environ["PYTORCH_JIT"] = "0"
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-VERSION = "0.6.0"
+VERSION = "1.0.0"
 LANG = 'fr'
 VIDEO = False 
 threshold = threshold_default = 0.8
-maxlag = maxlag_default = 20 # seconds
+maxlag = maxlag_default = 10 # seconds
 
 ####################################################################################
 ### GUI TEXT
@@ -186,11 +186,11 @@ txt_file = {'fr':"Fichier", 'gb':"File"}
 txt_pref = {'fr':"Préférences", 'gb':"Preferences"}
 txt_help = {'fr':"Aide", 'gb':"Help"}
 txt_import = {'fr':"Importer", 'gb':"Import"}
-txt_importimage = {'fr':"images", 'gb':"images"}
-txt_importvideo = {'fr':"vidéos", 'gb':"videos"}
+txt_importimage = {'fr':"Images", 'gb':"Images"}
+txt_importvideo = {'fr':"Vidéos", 'gb':"Videos"}
 txt_export = {'fr':"Exporter les résultats", 'gb':"Export results"}
-txt_ascsv = {'fr':"au format csv", 'gb':"as csv"}
-txt_asxlsx = {'fr':"au format xlsx", 'gb':"as xlsx"}
+txt_ascsv = {'fr':"Format CSV", 'gb':"As CSV"}
+txt_asxlsx = {'fr':"Format XSLX", 'gb':"As XSLX"}
 txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders"}
 txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
 txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
@@ -301,10 +301,16 @@ while True:
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event == txt_credits[LANG]:
+        #########################
+        ## CREDITS
+        #########################
         import webbrowser
         webbrowser.open("https://www.deepfaune.cnrs.fr")
         continue
     elif event == txt_importimage[LANG] or event == txt_importvideo[LANG]: 
+        #########################
+        ## LOADING MEDIAS
+        #########################
         if event == txt_importimage[LANG]:
             VIDEO = False
         if event == txt_importvideo[LANG]:
@@ -356,6 +362,9 @@ while True:
                 subsetidx = list(range(0,len(filenames)))
                 window['-TAB-'].update(select_rows=[curridx])
     elif event == '-CONFIG-':
+        #########################
+        ## CONFIGURE & RUN
+        #########################
         import copy
         if VIDEO:
             sequencespin = []
@@ -438,7 +447,10 @@ while True:
             window['-PREDICTION-'].Update(disabled=False)
             window['-RESTRICT-'].Update(disabled=False)
             window['-CONFIG-'].Update(disabled=False)
-    elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
+    elif (event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]) and hasrun == True:
+        #########################
+        ## EXPORTING RESULTS
+        #########################
         predictedclass, predictedscore, _, count = predictor.getPredictions()
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
@@ -462,6 +474,9 @@ while True:
     elif (testdir is not None) \
          and ((event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-') \
          and (len(subsetidx)>0):
+        #########################
+        ## BROWSING MEDIAS
+        #########################
         if event == '-TAB-':
             rowidx = values['-TAB-'][0]
         else:
@@ -472,9 +487,7 @@ while True:
             if event == '-PREVIOUS-':
                 rowidx = rowidx-1
                 if rowidx==-1:
-                    rowidx = len(subsetidx)-1                    
-            window['-TAB-'].update(select_rows=[rowidx])
-            window['-TAB-'].Widget.see(rowidx+1)            
+                    rowidx = len(subsetidx)-1           
         curridx = subsetidx[rowidx]
         if not imgmoved: 
             if VIDEO:
@@ -510,7 +523,14 @@ while True:
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)
             window['-IMAGE-'].update(data=bio.getvalue())
+        if event == '-PREVIOUS-' or event == '-NEXT-':
+            # updating position in Table
+            window['-TAB-'].update(select_rows=[rowidx])
+            window['-TAB-'].Widget.see(rowidx+1)        
     elif event == '-SUBFOLDERS-':
+        #########################
+        ## CREATING SUBFOLDERS
+        #########################
         def unique_new_filename(testdir, now, classname, basename):
             folder = join(join(testdir, "deepfaune_"+now, classname))
             if os.path.exists(join(folder, basename)):
@@ -546,12 +566,18 @@ while True:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
     elif event == '-PREDICTION-':
+        #########################
+        ## CORRECTING PREDICTION
+        #########################
         # color activated when possible to use keyboard on this element
         if hasrun:
             predictor.setPrediction(curridx, values['-PREDICTION-'], 1.0)
         window.Element('-PREDICTION-').Update(select=False)
         window.Element('-SCORE-').Update("\tScore: 1.0")
     elif event == '-RESTRICT-':
+        #########################
+        ## BROWSING RESTRICTION
+        #########################
         if values['-RESTRICT-'] == txt_all[LANG]:
             subsetidx = list(range(0,len(filenames)))
         else:
