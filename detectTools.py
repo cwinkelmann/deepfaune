@@ -40,20 +40,16 @@ YOLO_WIDTH = 1280 # image width
 model = 'deepfaune-yolov8s.pt'
 
 ####################################################################################
-def resizeaspectratio(image, width = None):
+from math import inf
+def resizeaspectratio(image, width=inf):
     (w, h) = image.size
-    if width is None:
+    if w < width:
         return image, 1.
-    else:
-        if w>=width:
-            # calculate the ratio of the width and construct the
-            # dimensions
-            ratio = width / float(w)
-            newsize = (width, int(h * ratio))
-            return image.resize(size=newsize), ratio 
-        else:
-            return image, 1.
-        
+    ratio = width / float(w)
+    new_size = (width, int(h * ratio))
+    resized_image = image.resize(new_size)
+    return resized_image, ratio
+       
 ####################################################################################
 ### BEST BOX DETECTION 
 ####################################################################################

@@ -148,7 +148,7 @@ def dialog_yesno(message):
 import base64
 from PIL import Image, ImageDraw
 from PIL.Image import Resampling
-def StyledButton(button_text, fill, text_color, font=None, tooltip=None, key=None, visible=True,
+def StyledButton(button_text, fill, text_color, background_color, font=None, tooltip=None, key=None, visible=True,
               pad=None, bind_return_key=False, button_width=None):
     multi = 4
     btn_w = ((len(button_text) if button_width is None else button_width) * 5 + 20) * multi
@@ -164,7 +164,8 @@ def StyledButton(button_text, fill, text_color, font=None, tooltip=None, key=Non
     btn_img.thumbnail((btn_w // 3, height // 3), Resampling.LANCZOS)
     btn_img.save(data, format='png', quality=100)
     btn_img = base64.b64encode(data.getvalue())
-    return sg.Button(button_text=button_text, image_data=btn_img, button_color=(text_color, text_color),
+    return sg.Button(button_text=button_text, image_data=btn_img,
+                     button_color=(text_color, background_color), mouseover_colors=(text_color, background_color),
                      tooltip=tooltip, key=key, pad=pad, enable_events=False, size=(button_width, 1),
                      bind_return_key=bind_return_key, font=font, visible=visible, border_width=0)
 
@@ -209,10 +210,10 @@ txt_credits = {'fr':"A propos", 'gb':"About DeepFaune"}
 menu_def = [
     ['&'+txt_file[LANG], [
         '&'+txt_import[LANG],[txt_importimage[LANG],txt_importvideo[LANG]],
-        '&'+txt_export[LANG],[txt_ascsv[LANG],txt_asxlsx[LANG]],
-        '&'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
+        '!'+txt_export[LANG],[txt_ascsv[LANG],txt_asxlsx[LANG]],
+        '!'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
     ]],
-    ['&'+txt_pref[LANG], [
+    ['!'+txt_pref[LANG], [
         txt_language[LANG], ['fr', 'gb']
     ]],
     ['&'+txt_help[LANG], [
@@ -223,10 +224,10 @@ menu_def = [
 
 layout = [
     [
-        sg.MenubarCustom(menu_def, pad=(0,0), font=FONT_NORMAL, bar_font=FONT_NORMAL,
+        sg.Menu(menu_def, pad=(0,0), font=FONT_NORMAL, #bar_font=FONT_NORMAL,
                       background_color=background_color, text_color=text_color,
-                      bar_background_color=background_color, bar_text_color=text_color,
-                      key='-CUST MENUBAR-')
+                      #bar_background_color=background_color, bar_text_color=text_color,
+                      key='-MENUBAR-')
     ],
     [
         [sg.Frame('',[
@@ -262,7 +263,7 @@ layout = [
     [
         sg.Frame('',[
             [
-                StyledButton(txt_configrun[LANG], accent_color, background_color, key='-CONFIG-', button_width=5+len(txt_configrun[LANG]), pad=(5, (7, 5))),
+                StyledButton(txt_configrun[LANG], accent_color, "gray", background_color, key='-CONFIG-', button_width=5+len(txt_configrun[LANG]), pad=(5, (7, 5))),
                 sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color)
             ],
         ], expand_x=True, background_color=background_color)
@@ -278,13 +279,25 @@ with suppress(TclError):
     window.TKroot.tk.call('source', SUN_VALLEY_TCL)
 window.TKroot.tk.call('set_theme', 'dark')
 
-window['-CONFIG-'].Update(disabled=True)
+
+    
 window['-PREDICTION-'].Update(disabled=True)
 window['-RESTRICT-'].Update(disabled=True)
-#window['-PREVIOUS-'].Update(disabled=True)
-#window['-NEXT-'].Update(disabled=True)
+def UpdateMenuExport(disabled):
+    if disabled == True:
+        menu_def[0][1][2] = '!'+txt_export[LANG]
+    else:
+        menu_def[0][1][2] = '&'+txt_export[LANG]
+    print("update",menu_def)
+    window['-MENUBAR-'].Update(menu_def)
 
-
+def UpdateMenuSubfolders(disabled):
+    if disabled == True:
+        menu_def[0][1][4] = '!'+txt_createsubfolders[LANG]
+    else:
+        menu_def[0][1][4] = '&'+txt_createsubfolders[LANG]
+    print("update",menu_def)
+    window['-MENUBAR-'].Update(menu_def)
 
 ####################################################################################
 ### GUI IN ACTION
@@ -302,6 +315,7 @@ import cv2
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
 testdir = None
+thread = None
 hasrun = False
 imgmoved  = False
 frgbprint("terminé","done")
@@ -331,6 +345,8 @@ while True:
         curridx = -1
         window['-PREDICTION-'].Update(disabled=True)
         window['-RESTRICT-'].Update(disabled=True)
+        UpdateMenuExport(disabled=True)
+        UpdateMenuSubfolders(disabled=True)
         testdir = dialog_get_dir(txt_browse[LANG]) #sg.popup_get_folder(txt_browse[LANG], background_color=background_color, no_window=True)
         if testdir != None:
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
@@ -359,14 +375,10 @@ while True:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
                 dialog_error(txt_incorrect[LANG]) #sg.popup_error(txt_incorrect[LANG], keep_on_top=True)
-                window['-CONFIG-'].Update(disabled=True)
-                #window['-PREVIOUS-'].Update(disabled=True)
-                #window['-NEXT-'].Update(disabled=True)
+                window['-CONFIG-'].Update(button_color=("gray", background_color))
             else:
                 window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
-                window['-CONFIG-'].Update(disabled=False)
-                #window['-PREVIOUS-'].Update(disabled=False)
-                #window['-NEXT-'].Update(disabled=False)
+                window['-CONFIG-'].Update(button_color=(background_color, background_color))
                 curridx = 0
                 rowidx = 0
                 subsetidx = list(range(0,len(filenames)))
@@ -390,7 +402,7 @@ while True:
                 sequencespin
             ], background_color=background_color)],
             [
-                StyledButton(txt_run[LANG], accent_color, background_color, button_width=5+len(txt_run[LANG]), key='-RUN-')
+                StyledButton(txt_run[LANG], accent_color, background_color, background_color, button_width=5+len(txt_run[LANG]), key='-RUN-')
             ]
         ]
         windowconfig = sg.Window(txt_configrun[LANG], copy.deepcopy(layoutconfig),  margins=(0, 0),
@@ -420,8 +432,7 @@ while True:
                 print(forbiddenclasses)
             ########################
             # Predictions using CNNs
-            ########################
-            window['-CONFIG-'].Update(disabled=True)
+            ########################            
             frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
             window.refresh()
             if VIDEO:
@@ -456,7 +467,7 @@ while True:
             hasrun = True
             window['-PREDICTION-'].Update(disabled=False)
             window['-RESTRICT-'].Update(disabled=False)
-            window['-CONFIG-'].Update(disabled=False)
+            window['-CONFIG-'].Update(button_color=("gray", background_color))
     elif (event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]) and hasrun == True:
         #########################
         ## EXPORTING RESULTS
@@ -608,5 +619,12 @@ while True:
         rowidx = 0
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
+    if thread is not None:
+        print(thread.is_alive())
+        if thread.is_alive() == False:
+            thread = None
+            UpdateMenuExport(disabled=False)
+            UpdateMenuSubfolders(disabled=False)
+            window['-CONFIG-'].Update(button_color=(background_color, background_color))
 window.close()
 
