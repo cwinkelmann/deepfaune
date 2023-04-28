@@ -136,6 +136,15 @@ def dialog_error(message):
     messagebox.showerror(title=txt_error[LANG], message=message)
     _root.destroy()
     
+def dialog_yesno(message):
+    _root = tkinter.Tk()
+    _root.tk.call('source', SUN_VALLEY_TCL)
+    _root.tk.call('set_theme', 'light')
+    _root.withdraw()
+    yesorno = messagebox.askquestion('', message, icon='warning')
+    _root.destroy()
+    return yesorno    
+    
 import base64
 from PIL import Image, ImageDraw
 from PIL.Image import Resampling
@@ -528,7 +537,7 @@ while True:
             # updating position in Table
             window['-TAB-'].update(select_rows=[rowidx])
             window['-TAB-'].Widget.see(rowidx+1)        
-    elif event == '-SUBFOLDERS-':
+    elif (event == txt_copy[LANG] or event == txt_move[LANG]) and hasrun == True:
         #########################
         ## CREATING SUBFOLDERS
         #########################
@@ -545,25 +554,25 @@ while True:
             return join(folder, basename)
 
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        if values["-CP-"] == True:
-            confirm = sg.popup_yes_no(txt_wanttocopy[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
-            if confirm == 'Yes':
+        if event == txt_copy[LANG]:
+            confirm = dialog_yesno(txt_wanttocopy[LANG]+join(testdir,"deepfaune_"+now)+"?")
+            if confirm == 'yes':
                 frgbprint("Copie vers "+join(testdir,"deepfaune_"+now), "Copying to "+join(testdir,"deepfaune_"+now))
-        if values["-MV-"] == True:
-            confirm = sg.popup_yes_no(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?", keep_on_top=True)             
-            if confirm == 'Yes':
+        if event == txt_move[LANG]:
+            confirm = dialog_yesno(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?")
+            if confirm == 'yes':
                 frgbprint("Déplacement vers "+join(testdir,"deepfaune_"+now), "Moving to "+join(testdir,"deepfaune_"+now))
                 imgmoved = True
-        if confirm == 'Yes':
+        if confirm == 'yes':
             import shutil
             predictedclass, predictedscore, _, _ = predictor.getPredictions()
             mkdir(join(testdir,"deepfaune_"+now))
             for subfolder in set(predictedclass):
                 mkdir(join(testdir,"deepfaune_"+now,subfolder))
-            if values["-CP-"] == True:
+            if txt_copy[LANG]:
                 for k in range(nbfiles):
                     shutil.copyfile(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
-            if values["-MV-"] == True:
+            if txt_move[LANG]:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
     elif event == '-PREDICTION-':
