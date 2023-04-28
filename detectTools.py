@@ -31,18 +31,29 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL license and that you accept its terms.
 
-####################################################################################
-### LOADING YOLO
-####################################################################################
 import cv2
 import numpy as np
 from PIL import Image
 from ultralytics import YOLO
 
-
-YOLO_SIZE = 640
+YOLO_WIDTH = 1280 # image width
 model = 'deepfaune-yolov8s.pt'
 
+####################################################################################
+def resizeaspectratio(image, width = None):
+    (w, h) = image.size
+    if width is None:
+        return image, 1.
+    else:
+        if w>=width:
+            # calculate the ratio of the width and construct the
+            # dimensions
+            ratio = width / float(w)
+            newsize = (width, int(h * ratio))
+            return image.resize(size=newsize), ratio 
+        else:
+            return image, 1.
+        
 ####################################################################################
 ### BEST BOX DETECTION 
 ####################################################################################
@@ -60,13 +71,14 @@ class Detector:
         in/out as numpy int array (0-255) in BGR
         '''
         image = Image.fromarray(cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB))
-        results = self.yolo(image, verbose=False)
+        imageresized, ratio = resizeaspectratio(image, YOLO_WIDTH)
+        results = self.yolo(imageresized, verbose=False)
         detection = results[0].numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
             return [], 0, np.zeros(4), 0
         category = detection.cls[0] + 1
         count = sum(detection.conf>threshold)
-        box = detection.xyxy[0]  # xmin, ymin, xmax, ymax
+        box = detection.xyxy[0] / ratio  # xmin, ymin, xmax, ymax
         croppedimage = cropSquare(image, box.copy())
         return croppedimage, category, box, count
 
