@@ -30,6 +30,7 @@
 
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL license and that you accept its terms.
+
 import cv2
 import torch
 import numpy as np
@@ -45,7 +46,6 @@ txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
                'gb': txt_animalclasses['gb']+["human","vehicle"]}
 txt_empty = {'fr':"vide", 'gb':"empty"}
 txt_undefined = {'fr':"indéfini", 'gb':"undefined"}
-WIDTH=1280 # image width
 
 
 class PredictorBase(ABC):
@@ -211,7 +211,7 @@ class Predictor(PredictorBase):
             idxanimal = []
             for k in range(self.k1,self.k2):
                 try:
-                    imagecv = resizeaspectratio(cv2.imread(self.fileManager.getFilename(k)), width=WIDTH)
+                    imagecv = cv2.imread(self.fileManager.getFilename(k))
                 except:
                     imagecv = None
                 if imagecv is None:
@@ -284,7 +284,7 @@ class PredictorVideo(PredictorBase):
                 if not ret:
                     pass # Corrupted or unavailable image, considered as empty
                 else:
-                    imagecv = resizeaspectratio(frame, width=WIDTH)
+                    imagecv = frame
                     croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv)
                     bestboxesallframe[k] = box
                     if category > 0: # not empty
@@ -361,19 +361,4 @@ class PredictorJSON(PredictorBase):
     def merge(self, predictor):
         super().merge(predictor)
         self.detector.merge(predictor.detector)
-
         
-#####################################################################
-def resizeaspectratio(imagecv, width = None, inter = cv2.INTER_AREA):
-    (h, w) = imagecv.shape[:2]
-    if width is None:
-        return imagecv
-    else:
-        if w>=width:
-            # calculate the ratio of the width and construct the
-            # dimensions
-            r = width / float(w)
-            dim = (width, int(h * r))
-            return cv2.resize(imagecv, dim)
-        else:
-            return imagecv
