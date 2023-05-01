@@ -138,7 +138,6 @@ def dialog_error(message):
     
 import base64
 from PIL import Image, ImageDraw
-from PIL.Image import Resampling
 def StyledButton(button_text, fill, text_color, font=None, tooltip=None, key=None, visible=True,
               pad=None, bind_return_key=False, button_width=None):
     multi = 4
@@ -152,7 +151,7 @@ def StyledButton(button_text, fill, text_color, font=None, tooltip=None, key=Non
     d.ellipse((btn_w - radius * 2 - 1, y0, btn_w - 1, height), fill=fill)
     d.rectangle((x0 + radius, y0, btn_w - radius, height), fill=fill)
     data = io.BytesIO()
-    btn_img.thumbnail((btn_w // 3, height // 3), Resampling.LANCZOS)
+    btn_img.thumbnail((btn_w // 3, height // 3), Image.LANCZOS)
     btn_img.save(data, format='png', quality=100)
     btn_img = base64.b64encode(data.getvalue())
     return sg.Button(button_text=button_text, image_data=btn_img, button_color=(text_color, text_color),
