@@ -69,7 +69,7 @@ txt_error = {'fr':"Erreur", 'gb':"Error"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
 txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of "}
 txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of "}
-
+txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'gb':"Loading metadata... (this may take a while)"}
 
 ####################################################################################
 ### THEME SETTINGS
@@ -126,8 +126,7 @@ def dialog_get_file(title, initialdir, initialfile, defaultextension):
         selectfile = None
     _root.destroy()
     return selectfile
-
-from tkinter import messagebox
+    
 def dialog_error(message):
     _root = tkinter.Tk()
     _root.tk.call('source', SUN_VALLEY_TCL)
@@ -136,14 +135,16 @@ def dialog_error(message):
     messagebox.showerror(title=txt_error[LANG], message=message)
     _root.destroy()
     
-def dialog_yesno(message):
-    _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
-    _root.withdraw()
-    yesorno = messagebox.askquestion('', message, icon='warning')
-    _root.destroy()
-    return yesorno    
+def popup(message):
+    layout = [[sg.Text(message, background_color=background_color, text_color=text_color)]]
+    windowpopup = sg.Window('Message', layout, no_titlebar=True, keep_on_top=True,
+                            font = FONT_MED, background_color=background_color, finalize=True)
+    from tkinter import TclError
+    from contextlib import suppress
+    with suppress(TclError):
+        windowpopup.TKroot.tk.call('source', SUN_VALLEY_TCL)
+    windowpopup.TKroot.tk.call('set_theme', 'dark')
+    return windowpopup
     
 import base64
 from PIL import Image, ImageDraw
@@ -343,7 +344,7 @@ curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
 testdir = None
 thread = None
-hasrun = False
+predictorready = False
 imgmoved  = False
 frgbprint("terminé","done")
 
@@ -366,15 +367,15 @@ while True:
             VIDEO = False
         if event == txt_importvideo[LANG]:
             VIDEO = True
+        predictorready = False
+        curridx = -1
         window['-PROGBAR-'].update_bar(0)
         window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
-        hasrun = False
-        curridx = -1
         window['-PREDICTION-'].Update(disabled=True)
         window['-RESTRICT-'].Update(disabled=True)
         UpdateMenuExport(disabled=True)
         UpdateMenuSubfolders(disabled=True)
-        testdir = dialog_get_dir(txt_browse[LANG]) #sg.popup_get_folder(txt_browse[LANG], background_color=background_color, no_window=True)
+        testdir = dialog_get_dir(txt_browse[LANG])
         if testdir != None:
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
@@ -401,7 +402,7 @@ while True:
             else:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
-                dialog_error(txt_incorrect[LANG]) #sg.popup_error(txt_incorrect[LANG], keep_on_top=True)
+                dialog_error(txt_incorrect[LANG])
                 window['-CONFIG-'].Update(button_color=("gray", background_color))
             else:
                 window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
@@ -459,10 +460,8 @@ while True:
                 frgbprint("Classes non selectionnées : ", "Unselected classes: ", end="")
                 print(forbiddenclasses)
             ########################
-            # Predictions using CNNs
+            ## DEEPFAUNE PREDICTIONS
             ########################            
-            frgbprint("Chargement des paramètres... ", "Loading model parameters... ", end="")
-            window.refresh()
             if VIDEO:
                 from predictTools import PredictorVideo
                 BATCH_SIZE = 12 # Batch size for predictor, in number of images
@@ -472,7 +471,11 @@ while True:
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
             else:
-                predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE)
+                if len(filenames)>5:
+                    popup_win = popup(txt_loadingmetadata[LANG])
+                predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE)                
+                if len(filenames)>5:
+                    popup_win.close()
                 filenames = predictor.getFilenames()
                 window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
             predictor.setForbiddenClasses(forbiddenclasses)
@@ -495,11 +498,11 @@ while True:
             thread = threading.Thread(target=runPredictor)
             thread.setDaemon(True)
             thread.start() 
-            hasrun = True
+            predictorready = True
             window['-PREDICTION-'].Update(disabled=False)
             window['-RESTRICT-'].Update(disabled=False)
             window['-CONFIG-'].Update(button_color=("gray", background_color))
-    elif (event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]) and hasrun == True:
+    elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
         #########################
         ## EXPORTING RESULTS
         #########################
@@ -546,7 +549,7 @@ while True:
                 cap = cv2.VideoCapture(filenames[curridx])
                 lag = int(cap.get(5) / 3)
                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                if hasrun:           
+                if predictorready:           
                     while ((BATCH_SIZE - 1) * lag > total_frames):
                         lag = lag - 1         
                     cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
@@ -563,7 +566,7 @@ while True:
             if imagecv is None:
                 imagecv = np.zeros((700,933,3), np.uint8)
             else:
-                if hasrun:
+                if predictorready:
                     predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
@@ -579,7 +582,7 @@ while True:
             # updating position in Table
             window['-TAB-'].update(select_rows=[rowidx])
             window['-TAB-'].Widget.see(rowidx+1)        
-    elif (event == txt_copy[LANG] or event == txt_move[LANG]) and hasrun == True:
+    elif event == txt_copy[LANG] or event == txt_move[LANG]:
         #########################
         ## CREATING SUBFOLDERS
         #########################
@@ -622,7 +625,7 @@ while True:
         ## CORRECTING PREDICTION
         #########################
         # color activated when possible to use keyboard on this element
-        if hasrun:
+        if predictorready:
             predictor.setPrediction(curridx, values['-PREDICTION-'], 1.0)
         window.Element('-PREDICTION-').Update(select=False)
         window.Element('-SCORE-').Update("\tScore: 1.0")
