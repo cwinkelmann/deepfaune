@@ -241,7 +241,7 @@ class Predictor(PredictorBase):
             self.k2 = min(self.k1+self.BATCH_SIZE,self.fileManager.nbFiles())
             self.batch = self.batch+1
             # returning batch results
-            return self.batch-1, k1_batch, k2_batch
+            return self.batch-1, k1_batch, k2_batch, k1seq_batch, k2seq_batch
                     
     def getPredictionsBase(self, k=None):
         if k is not None:

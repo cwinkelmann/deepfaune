@@ -95,6 +95,8 @@ class FileManager:
         lowerbound = 0
         i = 0
         for i in range(1, len(self.filenames)):
+            if i%10==0:
+                print(i)            
             dirname = op.dirname(self.filenames[self.order[i]])
             if currdir != dirname:
                 currdir = dirname

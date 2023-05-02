@@ -245,7 +245,7 @@ menu_def = [
         txt_language[LANG], ['fr', 'gb']
     ]],
     ['&'+txt_help[LANG], [
-        '&Version',
+        '&Version', [VERSION],
         '&'+txt_credits[LANG]
     ]]
 ]
@@ -258,9 +258,9 @@ layout = [
         [sg.Frame('',[
             [
                 sg.Column([
-                    [sg.Table(values=[],
+                    [sg.Table(values=[], font=FONT_NORMAL,
                               headings=['Filename'], justification = "l", 
-                              vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], expand_y=True,#num_rows=24, 
+                              vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], expand_y=True,
                               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                               background_color=background_color, text_color=text_color,
                               key='-TAB-')],
@@ -288,7 +288,7 @@ layout = [
     [
         sg.Frame('',[
             [
-                StyledButton(txt_configrun[LANG], accent_color, "gray", background_color, key='-CONFIG-', button_width=5+len(txt_configrun[LANG]), pad=(5, (7, 5))),
+                StyledButton(txt_configrun[LANG], accent_color, "gray", background_color, key='-CONFIG-', button_width=8+len(txt_configrun[LANG]), pad=(5, (7, 5))),
                 sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color)
             ],
         ], expand_x=True, background_color=background_color)
@@ -299,6 +299,8 @@ window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0),
                    font = FONT_MED,
                    resizable=True, background_color=background_color).Finalize()
 window.read(timeout=0)
+window['-PREDICTION-'].Update(disabled=True)
+window['-RESTRICT-'].Update(disabled=True)
 
 from tkinter import TclError
 from contextlib import suppress
@@ -307,15 +309,14 @@ with suppress(TclError):
 window.TKroot.tk.call('set_theme', 'dark')
 
 
-    
-window['-PREDICTION-'].Update(disabled=True)
-window['-RESTRICT-'].Update(disabled=True)
+####################################################################################
+### GUI UTILS (after it is created)
+####################################################################################
 def UpdateMenuExport(disabled):
     if disabled == True:
         menu_def[0][1][2] = '!'+txt_export[LANG]
     else:
         menu_def[0][1][2] = '&'+txt_export[LANG]
-    print("update",menu_def)
     window[txt_file[LANG]].Update(menu_def[0])
 
 def UpdateMenuSubfolders(disabled):
@@ -323,7 +324,6 @@ def UpdateMenuSubfolders(disabled):
         menu_def[0][1][4] = '!'+txt_createsubfolders[LANG]
     else:
         menu_def[0][1][4] = '&'+txt_createsubfolders[LANG]
-    print("update",menu_def)
     window[txt_file[LANG]].Update(menu_def[0])
 
 ####################################################################################
@@ -429,10 +429,11 @@ while True:
                 sequencespin
             ], background_color=background_color)],
             [
-                StyledButton(txt_run[LANG], accent_color, background_color, background_color, button_width=5+len(txt_run[LANG]), key='-RUN-')
+                StyledButton(txt_run[LANG], accent_color, background_color, background_color, button_width=8+len(txt_run[LANG]), key='-RUN-')
             ]
         ]
-        windowconfig = sg.Window(txt_configrun[LANG], copy.deepcopy(layoutconfig),  margins=(0, 0),
+        windowconfig = sg.Window(txt_configrun[LANG], copy.deepcopy(layoutconfig),  
+                                 font = FONT_MED, margins=(0, 0),
                                  background_color=background_color, finalize=True)
         with suppress(TclError):
             windowconfig.TKroot.tk.call('source', SUN_VALLEY_TCL)
@@ -482,12 +483,15 @@ while True:
                         batch, k1, k2 = predictor.nextBatch()
                         if k1==nbfiles: break
                         window['-PROGBAR-'].update_bar(batch/nbfiles)
-                        window.refresh()
+                        window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
+                                                                  for k in range(k1, k2)))
                 else:
                     while True:
-                        batch, k1, k2 = predictor.nextBatch()
+                        batch, k1, k2, k1seq_batch, k2seq_batch = predictor.nextBatch()
                         if k1==nbfiles: break
-                        window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)
+                        window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)     
+                        window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
+                                                                  for k in range(k1seq_batch, k2seq_batch)))
             thread = threading.Thread(target=runPredictor)
             thread.setDaemon(True)
             thread.start() 
@@ -650,7 +654,7 @@ while True:
         if thread.is_alive() == False:
             thread = None
             UpdateMenuExport(disabled=False)
-            UpdateMenuSubfolders(disabled=False)
+            UpdateMenuSubfolders(disabled=False)       
             window['-CONFIG-'].Update(button_color=(background_color, background_color))
 window.close()
 
