@@ -197,20 +197,16 @@ class Predictor(PredictorBase):
     
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
         super().__init__(filenames, threshold, LANG, BATCH_SIZE) # inherits all
-        print("ouoouuouo")
         self.predictedclass_base = [""]*self.fileManager.nbFiles()
         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
-        print("aaaaaaaaaaaaaaa")
         self.detector = Detector()
         self.classifier = Classifier()
-        print("ooooooooooooooooo")
         self.fileManager.findSequences(maxlag)
-        print("uuuuuuuuuuuuuuuuuuuuu")
         self.fileManager.reorderBySeqnum()
 
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
-            return self.batch, self.k1, self.k2
+            return self.batch, self.k1, self.k2, self.k1, self.k2
         else:
             idxanimal = []
             for k in range(self.k1,self.k2):

@@ -67,6 +67,8 @@ txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found
 txt_count = {'fr':"Comptage", 'gb':"Count"}
 txt_error = {'fr':"Erreur", 'gb':"Error"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
+txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'gb':"Copy in subfolders of:"}
+txt_destmove = {'fr':"Déplacer vers des sous-dossiers de :", 'gb':"Move to subfolders of:"}
 txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of "}
 txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of "}
 txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'gb':"Loading metadata... (this may take a while)"}
@@ -104,13 +106,13 @@ def draw_boxes(imagecv, box=None):
         cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
 
 import tkinter
-from tkinter import filedialog
-def dialog_get_dir(title):
+from tkinter import filedialog, messagebox
+def dialog_get_dir(title, initialdir=None):
     _root = tkinter.Tk()
     _root.tk.call('source', SUN_VALLEY_TCL)
     _root.tk.call('set_theme', 'light')
     _root.withdraw()
-    selectdir = filedialog.askdirectory(title=title, parent=_root)
+    selectdir = filedialog.askdirectory(title=title, initialdir=initialdir, parent=_root)
     if len(selectdir) == 0:
         selectdir = None
     _root.destroy()
@@ -126,13 +128,22 @@ def dialog_get_file(title, initialdir, initialfile, defaultextension):
         selectfile = None
     _root.destroy()
     return selectfile
-    
+
+def dialog_yesno(message):
+    _root = tkinter.Tk()
+    _root.tk.call('source', SUN_VALLEY_TCL)
+    _root.tk.call('set_theme', 'light')
+    _root.withdraw()
+    yesorno = messagebox.askquestion('', message, icon='warning', parent=_root)
+    _root.destroy()
+    return yesorno
+
 def dialog_error(message):
     _root = tkinter.Tk()
     _root.tk.call('source', SUN_VALLEY_TCL)
     _root.tk.call('set_theme', 'light')
     _root.withdraw()
-    messagebox.showerror(title=txt_error[LANG], message=message)
+    messagebox.showerror(title=txt_error[LANG], message=message, parent=_root)
     _root.destroy()
     
 def popup(message):
@@ -471,10 +482,10 @@ while True:
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
             else:
-                if len(filenames)>5:
+                if len(filenames)>1000:
                     popup_win = popup(txt_loadingmetadata[LANG])
                 predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE)                
-                if len(filenames)>5:
+                if len(filenames)>1000:
                     popup_win.close()
                 filenames = predictor.getFilenames()
                 window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
@@ -599,27 +610,28 @@ while True:
             return join(folder, basename)
 
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        destdir = None
         if event == txt_copy[LANG]:
-            confirm = dialog_yesno(txt_wanttocopy[LANG]+join(testdir,"deepfaune_"+now)+"?")
-            if confirm == 'yes':
-                frgbprint("Copie vers "+join(testdir,"deepfaune_"+now), "Copying to "+join(testdir,"deepfaune_"+now))
+            destdir = dialog_get_dir(txt_destcopy[LANG], initialdir=testdir)
+            if destdir is not None:
+                frgbprint("Copie vers "+join(destdir,"deepfaune_"+now), "Copying to "+join(destdir,"deepfaune_"+now))
         if event == txt_move[LANG]:
-            confirm = dialog_yesno(txt_wanttomove[LANG]+join(testdir,"deepfaune_"+now)+"?")
-            if confirm == 'yes':
-                frgbprint("Déplacement vers "+join(testdir,"deepfaune_"+now), "Moving to "+join(testdir,"deepfaune_"+now))
+            destdir = dialog_get_dir(txt_destmove[LANG], initialdir=testdir)
+            if destdir is not None:
+                frgbprint("Déplacement vers "+join(destdir,"deepfaune_"+now), "Moving to "+join(destdir,"deepfaune_"+now))
                 imgmoved = True
-        if confirm == 'yes':
+        if destdir is not None:
             import shutil
             predictedclass, predictedscore, _, _ = predictor.getPredictions()
-            mkdir(join(testdir,"deepfaune_"+now))
+            mkdir(join(destdir,"deepfaune_"+now))
             for subfolder in set(predictedclass):
-                mkdir(join(testdir,"deepfaune_"+now,subfolder))
+                mkdir(join(destdir,"deepfaune_"+now,subfolder))
             if event == txt_copy[LANG]:
                 for k in range(nbfiles):
-                    shutil.copyfile(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
+                    shutil.copyfile(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))
             if event == txt_move[LANG]:
                 for k in range(nbfiles):
-                    shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
+                    shutil.move(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))
     elif event == '-PREDICTION-':
         #########################
         ## CORRECTING PREDICTION
