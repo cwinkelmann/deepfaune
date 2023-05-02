@@ -147,6 +147,7 @@ def dialog_yesno(message):
     
 import base64
 from PIL import Image, ImageDraw
+from PIL.Image import Resampling
 def StyledButton(button_text, fill, text_color, background_color, font=None, tooltip=None, key=None, visible=True,
               pad=None, bind_return_key=False, button_width=None):
     multi = 4
@@ -160,13 +161,41 @@ def StyledButton(button_text, fill, text_color, background_color, font=None, too
     d.ellipse((btn_w - radius * 2 - 1, y0, btn_w - 1, height), fill=fill)
     d.rectangle((x0 + radius, y0, btn_w - radius, height), fill=fill)
     data = io.BytesIO()
-    btn_img.thumbnail((btn_w // 3, height // 3), Image.LANCZOS)
+    btn_img.thumbnail((btn_w // 3, height // 3), Resampling.LANCZOS)
     btn_img.save(data, format='png', quality=100)
     btn_img = base64.b64encode(data.getvalue())
     return sg.Button(button_text=button_text, image_data=btn_img,
                      button_color=(text_color, background_color), mouseover_colors=(text_color, background_color),
                      tooltip=tooltip, key=key, pad=pad, enable_events=False, size=(button_width, 1),
                      bind_return_key=bind_return_key, font=font, visible=visible, border_width=0)
+
+def StyledMenu(menu_definition, text_color, background_color, text_font, key):    
+    bar_text = text_color
+    bar_bg = background_color
+    bar_font = text_font
+    font = text_font
+    menu_bg = background_color
+    menu_text = text_color
+    disabled_text_color = 'gray'
+    row = []
+    for menu in menu_def:
+        text = menu[0]
+        print("le menu est: ",menu)
+        print("le texte est: ",text)
+        if sg.MENU_SHORTCUT_CHARACTER in text:
+            text = text.replace(sg.MENU_SHORTCUT_CHARACTER, '')
+        if text.startswith(sg.MENU_DISABLED_CHARACTER):
+            disabled = True
+            text = text[len(sg.MENU_DISABLED_CHARACTER):]
+        else:
+            disabled = False
+        button_menu = sg.ButtonMenu(text, menu, border_width=0, button_color=(bar_text, bar_bg), key=text, pad=(0, 0), disabled=disabled,
+                                    font=bar_font, item_font=font, disabled_text_color=disabled_text_color, text_color=menu_text, background_color=menu_bg) #, tearoff=tearoff)
+        button_menu.part_of_custom_menubar = True
+        #button_menu.custom_menubar_key = key if key is not None else k
+        row += [button_menu]
+    return(sg.Column([row], pad=(0,0), background_color=bar_bg, expand_x=True, key=key))
+
 
 ####################################################################################
 ### MAIN GUI WINDOW
@@ -223,10 +252,7 @@ menu_def = [
 
 layout = [
     [
-        sg.Menu(menu_def, pad=(0,0), font=FONT_NORMAL, #bar_font=FONT_NORMAL,
-                      background_color=background_color, text_color=text_color,
-                      #bar_background_color=background_color, bar_text_color=text_color,
-                      key='-MENUBAR-')
+        StyledMenu(menu_def, text_color=text_color, background_color=background_color, text_font=FONT_NORMAL, key='-MENUBAR-')
     ],
     [
         [sg.Frame('',[
@@ -269,7 +295,9 @@ layout = [
     ]
 ]
 
-window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0), font = FONT_MED, resizable=True, background_color=background_color).Finalize()
+window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0),
+                   font = FONT_MED,
+                   resizable=True, background_color=background_color).Finalize()
 window.read(timeout=0)
 
 from tkinter import TclError
@@ -288,7 +316,7 @@ def UpdateMenuExport(disabled):
     else:
         menu_def[0][1][2] = '&'+txt_export[LANG]
     print("update",menu_def)
-    window['-MENUBAR-'].Update(menu_def)
+    window[txt_file[LANG]].Update(menu_def[0])
 
 def UpdateMenuSubfolders(disabled):
     if disabled == True:
@@ -296,7 +324,7 @@ def UpdateMenuSubfolders(disabled):
     else:
         menu_def[0][1][4] = '&'+txt_createsubfolders[LANG]
     print("update",menu_def)
-    window['-MENUBAR-'].Update(menu_def)
+    window[txt_file[LANG]].Update(menu_def[0])
 
 ####################################################################################
 ### GUI IN ACTION
@@ -579,10 +607,10 @@ while True:
             mkdir(join(testdir,"deepfaune_"+now))
             for subfolder in set(predictedclass):
                 mkdir(join(testdir,"deepfaune_"+now,subfolder))
-            if txt_copy[LANG]:
+            if event == txt_copy[LANG]:
                 for k in range(nbfiles):
                     shutil.copyfile(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
-            if txt_move[LANG]:
+            if event == txt_move[LANG]:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(testdir, now, predictedclass[k], basename(filenames[k])))
     elif event == '-PREDICTION-':
@@ -619,7 +647,6 @@ while True:
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
     if thread is not None:
-        print(thread.is_alive())
         if thread.is_alive() == False:
             thread = None
             UpdateMenuExport(disabled=False)
