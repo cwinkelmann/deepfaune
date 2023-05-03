@@ -192,8 +192,6 @@ def StyledMenu(menu_definition, text_color, background_color, text_font, key):
     row = []
     for menu in menu_def:
         text = menu[0]
-        print("le menu est: ",menu)
-        print("le texte est: ",text)
         if sg.MENU_SHORTCUT_CHARACTER in text:
             text = text.replace(sg.MENU_SHORTCUT_CHARACTER, '')
         if text.startswith(sg.MENU_DISABLED_CHARACTER):
@@ -278,7 +276,7 @@ layout = [
                               key='-TAB-')],
                     [
                         sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color, enable_events=True,
-                                 default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key="-RESTRICT-"),
+                                 default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key='-RESTRICT-'),
                         sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous track'),
                         sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next track')
                      ]
@@ -374,20 +372,20 @@ while True:
         #########################
         ## LOADING MEDIAS
         #########################
-        if event == txt_importimage[LANG]:
-            VIDEO = False
-        if event == txt_importvideo[LANG]:
-            VIDEO = True
-        predictorready = False
-        curridx = -1
-        window['-PROGBAR-'].update_bar(0)
-        window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
-        window['-PREDICTION-'].Update(disabled=True)
-        window['-RESTRICT-'].Update(disabled=True)
-        UpdateMenuExport(disabled=True)
-        UpdateMenuSubfolders(disabled=True)
         testdir = dialog_get_dir(txt_browse[LANG])
         if testdir != None:
+            if event == txt_importimage[LANG]:
+                VIDEO = False
+            if event == txt_importvideo[LANG]:
+                    VIDEO = True
+            predictorready = False
+            curridx = -1
+            window['-PROGBAR-'].update_bar(0)
+            window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
+            window['-PREDICTION-'].Update(value="", disabled=True)
+            window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
+            UpdateMenuExport(disabled=True)
+            UpdateMenuSubfolders(disabled=True)
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
             if VIDEO:
@@ -416,12 +414,14 @@ while True:
                 dialog_error(txt_incorrect[LANG])
                 window['-CONFIG-'].Update(button_color=("gray", background_color))
             else:
-                window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
-                window['-CONFIG-'].Update(button_color=(background_color, background_color))
                 curridx = 0
                 rowidx = 0
                 subsetidx = list(range(0,len(filenames)))
+                window['-TAB-'].Update(values=[basename(f) for f in filenames])
+                window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
+                                                        for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[curridx])
+                window['-CONFIG-'].Update(button_color=(background_color, background_color))
     elif event == '-CONFIG-':
         #########################
         ## CONFIGURE & RUN
@@ -504,14 +504,12 @@ while True:
                         batch, k1, k2, k1seq_batch, k2seq_batch = predictor.nextBatch()
                         if k1==nbfiles: break
                         window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)     
-                        window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
-                                                                  for k in range(k1seq_batch, k2seq_batch)))
+                        window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
+                                                                for k in range(k1seq_batch, k2seq_batch)))
             thread = threading.Thread(target=runPredictor)
             thread.setDaemon(True)
             thread.start() 
             predictorready = True
-            window['-PREDICTION-'].Update(disabled=False)
-            window['-RESTRICT-'].Update(disabled=False)
             window['-CONFIG-'].Update(button_color=("gray", background_color))
     elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
         #########################
@@ -669,7 +667,9 @@ while True:
         if thread.is_alive() == False:
             thread = None
             UpdateMenuExport(disabled=False)
-            UpdateMenuSubfolders(disabled=False)       
+            UpdateMenuSubfolders(disabled=False) 
+            window['-PREDICTION-'].Update(disabled=False)
+            window['-RESTRICT-'].Update(disabled=False)      
             window['-CONFIG-'].Update(button_color=(background_color, background_color))
 window.close()
 
