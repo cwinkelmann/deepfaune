@@ -324,20 +324,37 @@ window.TKroot.tk.call('set_theme', 'dark')
 ####################################################################################
 ### GUI UTILS (after it is created)
 ####################################################################################
-def UpdateMenuExport(disabled):
+def updateMenuExport(disabled):
     if disabled == True:
         menu_def[0][1][2] = '!'+txt_export[LANG]
     else:
         menu_def[0][1][2] = '&'+txt_export[LANG]
     window[txt_file[LANG]].Update(menu_def[0])
 
-def UpdateMenuSubfolders(disabled):
+def updateMenuSubfolders(disabled):
     if disabled == True:
         menu_def[0][1][4] = '!'+txt_createsubfolders[LANG]
     else:
         menu_def[0][1][4] = '&'+txt_createsubfolders[LANG]
     window[txt_file[LANG]].Update(menu_def[0])
 
+def updateCurridxPrediction(reset):
+    if reset is True:
+        window['-PREDICTION-'].Update(value="")
+        window['-PREDICTION-'].Update(disabled=True)
+        window['-SCORE-'].Update("\tScore: 0.0")
+        window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
+        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
+    else:
+        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
+        if predictedclass_curridx is not txt_empty[LANG]:
+            draw_boxes(imagecv,predictedbox_curridx)
+        window['-PREDICTION-'].update(value=predictedclass_curridx)
+        window['-PREDICTION-'].Update(disabled=False)
+        window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
+        window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
+        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+    
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
@@ -353,6 +370,7 @@ import cv2
 
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
+updatecurridxrequired = False # do we need to refresh the prediction info for curridx
 testdir = None
 thread = None
 predictorready = False
@@ -386,12 +404,9 @@ while True:
             window['-PROGBAR-'].update_bar(0)
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
-            window['-PREDICTION-'].Update(value="", disabled=True)
-            window.Element('-SCORE-').Update("\tScore: 0.0")
-            window.Element('-COUNT-').Update("\t"+txt_count[LANG]+": NA")
-            window.Element('-SEQNUM-').Update("\t"+txt_seqnum[LANG]+": NA")
-            UpdateMenuExport(disabled=True)
-            UpdateMenuSubfolders(disabled=True)
+            updateCurridxPrediction(reset=True)
+            updateMenuExport(disabled=True)
+            updateMenuSubfolders(disabled=True)
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
             if VIDEO:
@@ -499,6 +514,9 @@ while True:
                 filenames = predictor.getFilenames()
                 seqnums = predictor.getSeqnums()
                 window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
+                curridx = 0
+                rowidx = 0
+                window['-TAB-'].update(select_rows=[curridx])
             predictor.setForbiddenClasses(forbiddenclasses)
             def runPredictor():
                 global window, nbfiles, BATCH_SIZE, VIDEO
@@ -516,6 +534,10 @@ while True:
                         window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)     
                         window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
                                                                 for k in range(k1seq_batch, k2seq_batch)))
+                        if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
+                            updatecurridxrequired = True
+                        else:
+                            updatecurridxrequired = False
             thread = threading.Thread(target=runPredictor)
             thread.setDaemon(True)
             thread.start() 
@@ -586,14 +608,7 @@ while True:
                 imagecv = np.zeros((700,933,3), np.uint8)
             else:
                 if predictorready:
-                    predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-                    if predictedclass_curridx is not txt_empty[LANG]:
-                        draw_boxes(imagecv,predictedbox_curridx)
-                    window['-PREDICTION-'].update(value=predictedclass_curridx)
-                    window['-PREDICTION-'].Update(disabled=False)
-                    window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
-                    window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
-                    window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+                    updateCurridxPrediction()
             imagecv = cv2.resize(imagecv, (933,700))
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)
@@ -666,11 +681,7 @@ while True:
             dialog_error(txt_classnotfound[LANG])
             window.Element('-TAB-').Update(values=[])
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
-            window.Element('-PREDICTION-').Update(value="")
-            window['-PREDICTION-'].Update(disabled=True)
-            window.Element('-SCORE-').Update("\tScore: 0.0")
-            window.Element('-COUNT-').Update("\t"+txt_count[LANG]+": NA")
-            window.Element('-SEQNUM-').Update("\t"+txt_seqnum[LANG]+": NA")
+            updateCurridxPrediction(reset=True)
         curridx = 0
         rowidx = 0
     elif event == sg.TIMEOUT_KEY:
@@ -678,8 +689,8 @@ while True:
     if thread is not None:
         if thread.is_alive() == False:
             thread = None
-            UpdateMenuExport(disabled=False)
-            UpdateMenuSubfolders(disabled=False) 
+            updateMenuExport(disabled=False)
+            updateMenuSubfolders(disabled=False) 
             window['-PREDICTION-'].Update(disabled=False)
             window['-RESTRICT-'].Update(disabled=False)      
             window['-CONFIG-'].Update(button_color=(background_color, background_color))
