@@ -374,8 +374,9 @@ while True:
         #########################
         ## LOADING MEDIAS
         #########################
-        testdir = dialog_get_dir(txt_browse[LANG])
-        if testdir != None:
+        newtestdir = dialog_get_dir(txt_browse[LANG]) # we keep the previous testdir, if not None
+        if newtestdir != None:
+            testdir = newtestdir
             if event == txt_importimage[LANG]:
                 VIDEO = False
             if event == txt_importvideo[LANG]:
@@ -384,8 +385,11 @@ while True:
             curridx = -1
             window['-PROGBAR-'].update_bar(0)
             window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
-            window['-PREDICTION-'].Update(value="", disabled=True)
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
+            window['-PREDICTION-'].Update(value="", disabled=True)
+            window.Element('-SCORE-').Update("\tScore: 0.0")
+            window.Element('-COUNT-').Update("\t"+txt_count[LANG]+": NA")
+            window.Element('-SEQNUM-').Update("\t"+txt_seqnum[LANG]+": NA")
             UpdateMenuExport(disabled=True)
             UpdateMenuSubfolders(disabled=True)
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
@@ -414,6 +418,8 @@ while True:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
                 dialog_error(txt_incorrect[LANG])
+                testdir = None
+                window['-TAB-'].Update(values=[])
                 window['-CONFIG-'].Update(button_color=("gray", background_color))
             else:
                 curridx = 0
@@ -424,7 +430,7 @@ while True:
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[curridx])
                 window['-CONFIG-'].Update(button_color=(background_color, background_color))
-    elif event == '-CONFIG-' and testdir is not None:
+    elif event == '-CONFIG-' and testdir is not None and thread is None:
         #########################
         ## CONFIGURE
         #########################
@@ -663,8 +669,8 @@ while True:
             window.Element('-PREDICTION-').Update(value="")
             window['-PREDICTION-'].Update(disabled=True)
             window.Element('-SCORE-').Update("\tScore: 0.0")
-            window.Element('-COUNT-').Update(txt_count[LANG]+": NA")
-            window.Element('-SEQNUM-').Update(txt_seqnum[LANG]+": NA")
+            window.Element('-COUNT-').Update("\t"+txt_count[LANG]+": NA")
+            window.Element('-SEQNUM-').Update("\t"+txt_seqnum[LANG]+": NA")
         curridx = 0
         rowidx = 0
     elif event == sg.TIMEOUT_KEY:
