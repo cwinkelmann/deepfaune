@@ -64,6 +64,8 @@ txt_selectclasses = {'fr':"Sélection des classes", 'gb':"Classes selection"}
 txt_close  = {'fr':"Fermer", 'gb':"Close"}
 txt_all = {'fr':"toutes", 'gb':"all"}
 txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found for this class"}
+txt_filename = {'fr':"Nom de fichier", 'gb':"Filename"}
+txt_prediction = {'fr':"Prédiction", 'gb':"Prediction"}
 txt_count = {'fr':"Comptage", 'gb':"Count"}
 txt_seqnum = {'fr':"Séquence", 'gb':"Sequence:"}
 txt_error = {'fr':"Erreur", 'gb':"Error"}
@@ -270,7 +272,7 @@ layout = [
             [
                 sg.Column([
                     [sg.Table(values=[], font=FONT_NORMAL,
-                              headings=['Filename'], justification = "l", 
+                              headings=[txt_filename[LANG]], justification = "l", 
                               vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], expand_y=True,
                               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
                               background_color=background_color, text_color=text_color,
@@ -287,7 +289,7 @@ layout = [
                               [[sg.Image(filename=r'icons/1316-black-large-933x700.png', key='-IMAGE-', size=(933, 700), background_color=background_color)]]
                               , background_color=background_color)
                      ],
-                    [sg.Text('Prediction:', background_color=background_color, text_color=text_color, size=(10, 1)),
+                    [sg.Text(txt_prediction[LANG]+':', background_color=background_color, text_color=text_color, size=(10, 1)),
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", enable_events=True,
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=False, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
