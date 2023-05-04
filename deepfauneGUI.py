@@ -422,7 +422,7 @@ while True:
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[curridx])
                 window['-CONFIG-'].Update(button_color=(background_color, background_color))
-    elif event == '-CONFIG-':
+    elif event == '-CONFIG-' and testdir is not None:
         #########################
         ## CONFIGURE & RUN
         #########################
