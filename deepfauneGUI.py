@@ -41,7 +41,7 @@ os.environ["PYTORCH_JIT"] = "0"
 ### PARAMETERS
 ####################################################################################
 VERSION = "1.0.0"
-LANG = 'fr'
+LANG = 'it'
 VIDEO = False 
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
@@ -50,31 +50,33 @@ maxlag = maxlag_default = 10 # seconds
 ### GUI TEXT
 ####################################################################################
 from predictTools import txt_undefined, txt_empty, txt_classes
-txt_other =  {'fr':"autre", 'gb':"other"}
-txt_browse = {'fr':"Choisir", 'gb':"Select"}
-txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect folder - no media found"}
-txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold"}
-txt_sequencemaxlag = {'fr':"Délai max / séquence (secondes)", 'gb':"Sequence max lag (seconds)"}
-txt_configrun = {'fr':"Configurer et lancer", 'gb':"Configure & Run"}
-txt_run = {'fr':"Lancer", 'gb':"Run"}
-txt_nextpred = {'fr':"Suivant", 'gb':"Next"}
-txt_prevpred = {'fr':"Précédent", 'gb':"Previous"}
-txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters"}
-txt_selectclasses = {'fr':"Sélection des classes", 'gb':"Classes selection"}
-txt_close  = {'fr':"Fermer", 'gb':"Close"}
-txt_all = {'fr':"toutes", 'gb':"all"}
-txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found for this class"}
-txt_filename = {'fr':"Nom de fichier", 'gb':"Filename"}
-txt_prediction = {'fr':"Prédiction", 'gb':"Prediction"}
-txt_count = {'fr':"Comptage", 'gb':"Count"}
-txt_seqnum = {'fr':"Séquence", 'gb':"Sequence:"}
-txt_error = {'fr':"Erreur", 'gb':"Error"}
-txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
-txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'gb':"Copy in subfolders of:"}
-txt_destmove = {'fr':"Déplacer vers des sous-dossiers de :", 'gb':"Move to subfolders of:"}
-txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of "}
-txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of "}
-txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'gb':"Loading metadata... (this may take a while)"}
+txt_other =  {'fr':"autre", 'gb':"other", 'it':"altro"}
+txt_browse = {'fr':"Choisir", 'gb':"Select", 'it':"Scegliere"}
+txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect folder - no media found", 'it':"File scorretto - media non trovato"}
+txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold", 'it':"Livello minimo di affidabilita"}
+txt_sequencemaxlag = {'fr':"Intervalle max / séquence (secondes)", 'gb':"Sequence max lag (seconds)", 'it':"Intervallo massimo / sequenza (secondi)"}
+txt_configrun = {'fr':"Configurer et lancer", 'gb':"Configure & Run", 'it':"Configurare e inviare"}
+txt_run = {'fr':"Lancer", 'gb':"Run", 'it':"Inviare"}
+txt_nextpred = {'fr':"Suivant", 'gb':"Next", 'it':"Prossimo"}
+txt_prevpred = {'fr':"Précédent", 'gb':"Previous", 'it':"Precedente"}
+txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters", 'it':"Parametri"}
+txt_selectclasses = {'fr':"Sélection des classes", 'gb':"Classes selection", 'it':"Selezione delle classi"}
+txt_close  = {'fr':"Fermer", 'gb':"Close", 'it':"Chiudere"}
+txt_all = {'fr':"toutes", 'gb':"all", 'it':"tutte"}
+txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found for this class", 'it':"Nessun media per questa classe"}
+txt_filename = {'fr':"Nom de fichier", 'gb':"Filename", 'it':"Nome del file"}
+txt_prediction = {'fr':"Prédiction", 'gb':"Prediction", 'it':"Predizione"}
+txt_count = {'fr':"Comptage", 'gb':"Count", 'it':"Conto"}
+txt_seqnum = {'fr':"Séquence", 'gb':"Sequence:", 'it':"Sequenza"}
+txt_error = {'fr':"Erreur", 'gb':"Error", 'it':"Errore"}
+txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in ",
+                       'it':"Volete registrare le predizioni nel"}
+txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'gb':"Copy in subfolders of:", 'it':"Copiare nei sotto file di"}
+txt_destmove = {'fr':"Déplacer vers des sous-dossiers de :", 'gb':"Move to subfolders of:", 'it':"Spostare nei sotto file di"}
+#txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of ", 'it':""}
+#txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of ", 'it':""}
+txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'gb':"Loading metadata... (this may take a while)",
+                       'it':"Carica dei metadata... (puo essere lungo)"}
 
 ####################################################################################
 ### THEME SETTINGS
@@ -234,20 +236,20 @@ credits_layout = [
 ]
 
 # Main window
-txt_file = {'fr':"Fichier", 'gb':"File"}
-txt_pref = {'fr':"Préférences", 'gb':"Preferences"}
-txt_help = {'fr':"Aide", 'gb':"Help"}
-txt_import = {'fr':"Importer", 'gb':"Import"}
-txt_importimage = {'fr':"Images", 'gb':"Images"}
-txt_importvideo = {'fr':"Vidéos", 'gb':"Videos"}
-txt_export = {'fr':"Exporter les résultats", 'gb':"Export results"}
-txt_ascsv = {'fr':"Format CSV", 'gb':"As CSV"}
-txt_asxlsx = {'fr':"Format XSLX", 'gb':"As XSLX"}
-txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders"}
-txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files"}
-txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files"}
-txt_language = {'fr':"Langue", 'gb':"Language"}
-txt_credits = {'fr':"A propos", 'gb':"About DeepFaune"}
+txt_file = {'fr':"Fichier", 'gb':"File", 'it':"File"}
+txt_pref = {'fr':"Préférences", 'gb':"Preferences", 'it':"Preferenze"}
+txt_help = {'fr':"Aide", 'gb':"Help", 'it':"Aiuto"}
+txt_import = {'fr':"Importer", 'gb':"Import", 'it':"Caricare"}
+txt_importimage = {'fr':"Images", 'gb':"Images", 'it':"Immagine"}
+txt_importvideo = {'fr':"Vidéos", 'gb':"Videos", 'it':"Video"}
+txt_export = {'fr':"Exporter les résultats", 'gb':"Export results", 'it':"Esportare i risultati"}
+txt_ascsv = {'fr':"Format CSV", 'gb':"As CSV", 'it':"Formato CSV"}
+txt_asxlsx = {'fr':"Format XSLX", 'gb':"As XSLX", 'it':"Formato XSLX"}
+txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders", 'it':"Creare dei sotto file"}
+txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files", 'it':"Copiare i file"}
+txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files", 'it':"Spostare i file"}
+txt_language = {'fr':"Langue", 'gb':"Language", 'it':"Lingua"}
+txt_credits = {'fr':"A propos", 'gb':"About DeepFaune", 'it':"A proposito"}
 menu_def = [
     ['&'+txt_file[LANG], [
         '&'+txt_import[LANG],[txt_importimage[LANG],txt_importvideo[LANG]],
@@ -255,7 +257,7 @@ menu_def = [
         '!'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
     ]],
     ['!'+txt_pref[LANG], [
-        txt_language[LANG], ['fr', 'gb']
+        txt_language[LANG], ['fr', 'gb', 'it']
     ]],
     ['&'+txt_help[LANG], [
         '&Version', [VERSION],

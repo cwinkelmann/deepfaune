@@ -49,6 +49,9 @@ txt_animalclasses = {
            "mouton", "mustelide", "oiseau", "ours", "ragondin", "renard", "sanglier", "vache"],
     'gb': ["badger", "ibex", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "squirrel", "equid", "genet",
            "hedgehog", "lagomorph", "wolf", "lynx", "marmot", "micromammal", "mouflon",
+           "sheep", "mustelid", "bird", "bear", "nutria", "fox", "wild boar", "cow"],
+    'it': ["badger", "ibex", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "squirrel", "equid", "genet",
+           "hedgehog", "lagomorph", "wolf", "lynx", "marmot", "micromammal", "mouflon",
            "sheep", "mustelid", "bird", "bear", "nutria", "fox", "wild boar", "cow"]
 }
 
