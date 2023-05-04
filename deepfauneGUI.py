@@ -291,8 +291,8 @@ layout = [
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", enable_events=True,
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
-                     sg.Text("\t"+txt_count[LANG]+": 0", background_color=background_color, text_color=text_color, key='-COUNT-'),
-                     sg.Text("\t"+txt_seqnum[LANG]+": ", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
+                     sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, key='-COUNT-'),
+                     sg.Text("\t"+txt_seqnum[LANG]+": NA", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
                 ], background_color=background_color)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -663,7 +663,8 @@ while True:
             window.Element('-PREDICTION-').Update(value="")
             window['-PREDICTION-'].Update(disabled=True)
             window.Element('-SCORE-').Update("\tScore: 0.0")
-            window.Element('-COUNT-').Update("\tCount: 0")
+            window.Element('-COUNT-').Update(txt_count[LANG]+": NA")
+            window.Element('-SEQNUM-').Update(txt_seqnum[LANG]+": NA")
         curridx = 0
         rowidx = 0
     elif event == sg.TIMEOUT_KEY:
