@@ -65,6 +65,7 @@ txt_close  = {'fr':"Fermer", 'gb':"Close"}
 txt_all = {'fr':"toutes", 'gb':"all"}
 txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found for this class"}
 txt_count = {'fr':"Comptage", 'gb':"Count"}
+txt_seqnum = {'fr':"Séquence", 'gb':"Sequence:"}
 txt_error = {'fr':"Erreur", 'gb':"Error"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in "}
 txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'gb':"Copy in subfolders of:"}
@@ -290,7 +291,8 @@ layout = [
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", enable_events=True,
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
-                     sg.Text("\t"+txt_count[LANG]+": 0", background_color=background_color, text_color=text_color, key='-COUNT-')]
+                     sg.Text("\t"+txt_count[LANG]+": 0", background_color=background_color, text_color=text_color, key='-COUNT-'),
+                     sg.Text("\t"+txt_seqnum[LANG]+": ", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
                 ], background_color=background_color)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -424,7 +426,7 @@ while True:
                 window['-CONFIG-'].Update(button_color=(background_color, background_color))
     elif event == '-CONFIG-' and testdir is not None:
         #########################
-        ## CONFIGURE & RUN
+        ## CONFIGURE
         #########################
         import copy
         if VIDEO:
@@ -470,9 +472,10 @@ while True:
             if len(forbiddenclasses):
                 frgbprint("Classes non selectionnées : ", "Unselected classes: ", end="")
                 print(forbiddenclasses)
-            ########################
-            ## DEEPFAUNE PREDICTIONS
-            ########################            
+        ########################
+        ## RUN
+        ########################
+        if not configabort:            
             if VIDEO:
                 from predictTools import PredictorVideo
                 BATCH_SIZE = 12 # Batch size for predictor, in number of images
@@ -488,6 +491,7 @@ while True:
                 if len(filenames)>1000:
                     popup_win.close()
                 filenames = predictor.getFilenames()
+                seqnums = predictor.getSeqnums()
                 window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
             predictor.setForbiddenClasses(forbiddenclasses)
             def runPredictor():
@@ -583,6 +587,7 @@ while True:
                     window['-PREDICTION-'].Update(disabled=False)
                     window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
                     window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
+                    window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
             imagecv = cv2.resize(imagecv, (933,700))
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)
