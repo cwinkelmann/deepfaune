@@ -284,7 +284,7 @@ layout = [
                 ], background_color=background_color, expand_y=True),
                 sg.Column([ 
                     [sg.Frame('',
-                              [[sg.Image(filename=r'icons/1316-black-large.png', key='-IMAGE-', size=(933, 700), background_color=background_color)]]
+                              [[sg.Image(filename=r'icons/1316-black-large-933x700.png', key='-IMAGE-', size=(933, 700), background_color=background_color)]]
                               , background_color=background_color)
                      ],
                     [sg.Text('Prediction:', background_color=background_color, text_color=text_color, size=(10, 1)),
@@ -384,7 +384,7 @@ while True:
             predictorready = False
             curridx = -1
             window['-PROGBAR-'].update_bar(0)
-            window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
+            window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             window['-PREDICTION-'].Update(value="", disabled=True)
             window.Element('-SCORE-').Update("\tScore: 0.0")
@@ -665,7 +665,7 @@ while True:
         else:
             dialog_error(txt_classnotfound[LANG])
             window.Element('-TAB-').Update(values=[])
-            window['-IMAGE-'].update(filename=r'icons/1316-black-large.png', size=(933, 700))
+            window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window.Element('-PREDICTION-').Update(value="")
             window['-PREDICTION-'].Update(disabled=True)
             window.Element('-SCORE-').Update("\tScore: 0.0")
