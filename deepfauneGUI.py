@@ -277,7 +277,7 @@ layout = [
                               key='-TAB-')],
                     [
                         sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color, enable_events=True,
-                                 default_value=txt_all[LANG], size=(12, 1), bind_return_key=True, key='-RESTRICT-'),
+                                 default_value=txt_all[LANG], size=(12, 1), bind_return_key=False, key='-RESTRICT-'),
                         sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous track'),
                         sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next track')
                      ]
@@ -289,7 +289,7 @@ layout = [
                      ],
                     [sg.Text('Prediction:', background_color=background_color, text_color=text_color, size=(10, 1)),
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", enable_events=True,
-                              background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
+                              background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=False, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, key='-COUNT-'),
                      sg.Text("\t"+txt_seqnum[LANG]+": NA", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
@@ -338,22 +338,15 @@ def updateMenuSubfolders(disabled):
         menu_def[0][1][4] = '&'+txt_createsubfolders[LANG]
     window[txt_file[LANG]].Update(menu_def[0])
 
-def updateCurridxPrediction(reset):
-    if reset is True:
+def updateCurridxPrediction(disabled):
+    if disabled is True:
         window['-PREDICTION-'].Update(value="")
         window['-PREDICTION-'].Update(disabled=True)
         window['-SCORE-'].Update("\tScore: 0.0")
         window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
         window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
     else:
-        predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-        if predictedclass_curridx is not txt_empty[LANG]:
-            draw_boxes(imagecv,predictedbox_curridx)
-        window['-PREDICTION-'].update(value=predictedclass_curridx)
-        window['-PREDICTION-'].Update(disabled=False)
-        window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
-        window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
-        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+        pass
     
 ####################################################################################
 ### GUI IN ACTION
@@ -375,7 +368,6 @@ testdir = None
 thread = None
 predictorready = False
 imgmoved  = False
-frgbprint("terminé","done")
 
 while True:
     event, values = window.read(timeout=10)
@@ -404,7 +396,7 @@ while True:
             window['-PROGBAR-'].update_bar(0)
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
-            updateCurridxPrediction(reset=True)
+            updateCurridxPrediction(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
             frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
@@ -432,10 +424,10 @@ while True:
             else:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
-                dialog_error(txt_incorrect[LANG])
                 testdir = None
                 window['-TAB-'].Update(values=[])
                 window['-CONFIG-'].Update(button_color=("gray", background_color))
+                dialog_error(txt_incorrect[LANG])
             else:
                 curridx = 0
                 rowidx = 0
@@ -519,7 +511,7 @@ while True:
                 window['-TAB-'].update(select_rows=[curridx])
             predictor.setForbiddenClasses(forbiddenclasses)
             def runPredictor():
-                global window, nbfiles, BATCH_SIZE, VIDEO
+                global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
                 if VIDEO:
                     while True:
                         batch, k1, k2 = predictor.nextBatch()
@@ -536,8 +528,7 @@ while True:
                                                                 for k in range(k1seq_batch, k2seq_batch)))
                         if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
                             updatecurridxrequired = True
-                        else:
-                            updatecurridxrequired = False
+                        print("update?",updatecurridxrequired )
             thread = threading.Thread(target=runPredictor)
             thread.setDaemon(True)
             thread.start() 
@@ -568,22 +559,13 @@ while True:
                 frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
                 preddf.to_excel(xlsxpath, index=False)
     elif (testdir is not None) \
-         and ((event == '-TAB-' and len(values['-TAB-'])>0) or  event == '-PREVIOUS-' or event == '-NEXT-') \
+         and (event == '-TAB-' and len(values['-TAB-'])>0) \
          and (len(subsetidx)>0):
         #########################
-        ## BROWSING MEDIAS
+        ## SHOW SELECTED MEDIA
+        ## AND ITS PREDICTION
         #########################
-        if event == '-TAB-':
-            rowidx = values['-TAB-'][0]
-        else:
-            if event == '-NEXT-':
-                rowidx = rowidx+1
-                if rowidx==len(subsetidx):
-                    rowidx = 0
-            if event == '-PREVIOUS-':
-                rowidx = rowidx-1
-                if rowidx==-1:
-                    rowidx = len(subsetidx)-1           
+        rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
         if not imgmoved: 
             if VIDEO:
@@ -602,21 +584,53 @@ while True:
             else:
                 try:
                     imagecv = cv2.imread(filenames[curridx])
+                    print("IMREAD")
                 except:
                     imagecv = None
             if imagecv is None:
                 imagecv = np.zeros((700,933,3), np.uint8)
             else:
                 if predictorready:
-                    updateCurridxPrediction()
-            imagecv = cv2.resize(imagecv, (933,700))
+                    predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
+                    window['-PREDICTION-'].update(value=predictedclass_curridx)
+                    window['-PREDICTION-'].Update(disabled=False)
+                    window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
+                    window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
+                    window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+                    if predictedclass_curridx is not txt_empty[LANG]:
+                        draw_boxes(imagecv,predictedbox_curridx)
+                imagecv = cv2.resize(imagecv, (933,700))
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)
             window['-IMAGE-'].update(data=bio.getvalue())
-        if event == '-PREVIOUS-' or event == '-NEXT-':
-            # updating position in Table
-            window['-TAB-'].update(select_rows=[rowidx])
-            window['-TAB-'].Widget.see(rowidx+1)        
+    elif updatecurridxrequired == True \
+         and event != '-TAB-' and event != '-PREVIOUS-' and event != '-NEXT-':
+        #########################
+        ## UPDATING PREDICTION FOR CURRENT MEDIA
+        #########################
+        rowidx = values['-TAB-'][0]
+        # touching position in Table, will send an event
+        window['-TAB-'].update(select_rows=[rowidx])
+        updatecurridxrequired = False
+    elif (testdir is not None) \
+         and (event == '-PREVIOUS-' or event == '-NEXT-') \
+         and (len(subsetidx)>0):
+        #########################
+        ## NEXT/PREVIOUS MEDIA
+        #########################
+        rowidx = values['-TAB-'][0]
+        if event == '-NEXT-':
+            rowidx = rowidx+1
+            if rowidx==len(subsetidx):
+                rowidx = 0
+        if event == '-PREVIOUS-':
+            rowidx = rowidx-1
+            if rowidx==-1:
+                rowidx = len(subsetidx)-1
+        curridx = subsetidx[rowidx]
+        # updating position in Table, will send an event
+        window['-TAB-'].update(select_rows=[rowidx])
+        window['-TAB-'].Widget.see(rowidx+1)
     elif event == txt_copy[LANG] or event == txt_move[LANG]:
         #########################
         ## CREATING SUBFOLDERS
@@ -681,7 +695,8 @@ while True:
             dialog_error(txt_classnotfound[LANG])
             window.Element('-TAB-').Update(values=[])
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
-            updateCurridxPrediction(reset=True)
+            updateCurridxPrediction(disabled=True)
+            dialog_error(txt_classnotfound[LANG])
         curridx = 0
         rowidx = 0
     elif event == sg.TIMEOUT_KEY:
