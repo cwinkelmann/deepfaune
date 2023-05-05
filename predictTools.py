@@ -280,6 +280,7 @@ class PredictorVideo(PredictorBase):
             predictionallframe = np.zeros(shape=(self.BATCH_SIZE, self.nbclasses), dtype=np.float32)
             bestboxesallframe = np.zeros(shape=(self.BATCH_SIZE, 4), dtype=np.float32)
             k = 0
+            maxcount = 0
             for kframe in range(0, self.BATCH_SIZE*lag, lag):
                 video.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                 ret,frame = video.read()
@@ -289,6 +290,8 @@ class PredictorVideo(PredictorBase):
                     imagecv = frame
                     croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv)
                     bestboxesallframe[k] = box
+                    if count>maxcount:
+                        maxcount = count
                     if category > 0: # not empty
                         idxnonempty.append(k)
                     if category == 1: # animal
@@ -314,6 +317,7 @@ class PredictorVideo(PredictorBase):
                 # self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
             self.predictedclass[self.k1], self.predictedscore[self.k1] = self._PredictorBase__score2class(self.prediction[self.k1,])
             self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
+            self.count[self.k1] = maxcount
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2

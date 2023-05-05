@@ -296,7 +296,8 @@ layout = [
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=False, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, key='-COUNT-'),
-                     sg.Text("\t"+txt_seqnum[LANG]+": NA", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
+                     sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
+                     #sg.Text("\t"+txt_seqnum[LANG]+": NA", background_color=background_color, text_color=text_color, key='-SEQNUM-')] not OK if media are videos
                 ], background_color=background_color)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -348,7 +349,10 @@ def updateCurridxPrediction(disabled):
         window['-PREDICTION-'].Update(disabled=True)
         window['-SCORE-'].Update("\tScore: 0.0")
         window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
-        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
+        if VIDEO:
+            window['-SEQNUM-'].Update("")            
+        else:
+            window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
     else:
         pass
     
@@ -523,6 +527,8 @@ while True:
                         window['-PROGBAR-'].update_bar(batch/nbfiles)
                         window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
                                                                   for k in range(k1, k2)))
+                        if curridx>=k1 and curridx<k2: # current video must be refreshed
+                            updatecurridxrequired = True
                 else:
                     while True:
                         batch, k1, k2, k1seq_batch, k2seq_batch = predictor.nextBatch()
@@ -532,7 +538,6 @@ while True:
                                                                 for k in range(k1seq_batch, k2seq_batch)))
                         if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
                             updatecurridxrequired = True
-                        print("update?",updatecurridxrequired )
             thread = threading.Thread(target=runPredictor)
             thread.setDaemon(True)
             thread.start() 
@@ -599,7 +604,8 @@ while True:
                     window['-PREDICTION-'].Update(disabled=False)
                     window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
                     window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
-                    window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+                    if not VIDEO:
+                        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
                 imagecv = cv2.resize(imagecv, (933,700))
