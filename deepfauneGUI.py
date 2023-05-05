@@ -41,7 +41,7 @@ os.environ["PYTORCH_JIT"] = "0"
 ### PARAMETERS
 ####################################################################################
 VERSION = "1.0.0"
-LANG = 'it'
+LANG = 'fr'
 VIDEO = False 
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
@@ -105,7 +105,7 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
         print(txt_fr, end=end)
     if LANG=="gb":
         print(txt_gb, end=end)
-        
+
 def draw_boxes(imagecv, box=None):
     if box is not None:
         cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
@@ -429,14 +429,14 @@ while True:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
                 testdir = None
-                window['-TAB-'].Update(values=[])
+                window['-TAB-'].Update(values=[[]])
                 window['-CONFIG-'].Update(button_color=("gray", background_color))
                 dialog_error(txt_incorrect[LANG])
             else:
                 curridx = 0
                 rowidx = 0
                 subsetidx = list(range(0,len(filenames)))
-                window['-TAB-'].Update(values=[basename(f) for f in filenames])
+                window['-TAB-'].Update(values=[[basename(f)] for f in filenames])
                 window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[curridx])
@@ -509,7 +509,7 @@ while True:
                     popup_win.close()
                 filenames = predictor.getFilenames()
                 seqnums = predictor.getSeqnums()
-                window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
+                window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames])
                 curridx = 0
                 rowidx = 0
                 window['-TAB-'].update(select_rows=[curridx])
@@ -587,8 +587,7 @@ while True:
                     imagecv = None
             else:
                 try:
-                    imagecv = cv2.imread(filenames[curridx])
-                    print("IMREAD")
+                    imagecv = cv2.imdecode(np.fromfile(filenames[curridx], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
                 except:
                     imagecv = None
             if imagecv is None:
@@ -693,7 +692,7 @@ while True:
             predictedclass, _, _, _ = predictor.getPredictions()
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
         if len(subsetidx)>0:
-            window.Element('-TAB-').Update(values=[basename(f) for f in [filenames[k] for k in subsetidx]])
+            window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
             window['-TAB-'].update(select_rows=[0])
         else:
             dialog_error(txt_classnotfound[LANG])

@@ -26,7 +26,7 @@ The latest versions are available at:
 
 1. Download the latest `zip` file
 2. Uncompress the file on your Desktop
-3. Double-click on `deepfauneGUI.exe`
+3. Double-click on `deepfaune_installer.exe` to install the software on your computer
 
 
 ## FOR LINUX / MAC OS USERS (and WINDOWS  USERS used to Python)

@@ -213,7 +213,8 @@ class Predictor(PredictorBase):
             idxanimal = []
             for k in range(self.k1,self.k2):
                 try:
-                    imagecv = cv2.imread(self.fileManager.getFilename(k))
+                    imagecv = cv2.imdecode(np.fromfile(self.fileManager.getFilename(k), dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+                    # imagecv = cv2.imread(self.fileManager.getFilename(k))
                 except:
                     imagecv = None
                 if imagecv is None:
@@ -270,8 +271,7 @@ class PredictorVideo(PredictorBase):
         else:   
             idxanimal = []
             idxnonempty = []
-            video_path = self.fileManager.getFilename(self.k1)
-            video = cv2.VideoCapture(video_path)
+            video = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
             lag = int(fps/3) # lag between two successive frames
