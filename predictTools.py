@@ -144,7 +144,6 @@ class PredictorBase(ABC):
             return txt_undefined[self.LANG], int(max(pred)*100)/100.            
 
     def __majorityVotingInSequence(self, df_prediction):
-        print("df:",df_prediction)
         txt_empty_lang = txt_empty[self.LANG]
         majority = df_prediction.groupby(['prediction']).sum()
         meanscore = df_prediction.groupby(['prediction']).mean()['score']
@@ -163,10 +162,7 @@ class PredictorBase(ABC):
         seqnum = self.fileManager.getSeqnums()
         k1seq = self.k1 # first sequence in batch
         k2seq = self.k2 ## last sequence in batch
-        print(self.k1,self.k2)
-        print(k1seq,k2seq)
         subseqnum = np.array(self.fileManager.getSeqnums()[k1seq:k2seq])
-        print("Treating? ",subseqnum)
         while (k1seq-1)>=0 and seqnum[(k1seq-1)]==seqnum[self.k1]:
             # previous batch contains images of the first sequence present in the current batch
             k1seq = k1seq-1
@@ -175,9 +171,7 @@ class PredictorBase(ABC):
                 # next batch contains images of the last sequence present in the current batch
                 while seqnum[(k2seq-1)]==seqnum[self.k2-1] and (k2seq-1>0):
                     k2seq = k2seq-1
-        print(k1seq,k2seq)
         subseqnum = np.array(self.fileManager.getSeqnums()[k1seq:k2seq])
-        print("Treating ",subseqnum)
         if len(subseqnum)>0:
             for num in range(min(subseqnum), max(subseqnum)+1):
                 idx4num = k1seq + np.nonzero(subseqnum==num)[0]
@@ -267,7 +261,7 @@ class PredictorVideo(PredictorBase):
     
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
-            return self.batch, self.k1
+            return self.batch, self.k1, self.k1
         else:   
             idxanimal = []
             idxnonempty = []
