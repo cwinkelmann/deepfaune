@@ -67,7 +67,7 @@ txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found
 txt_filename = {'fr':"Nom de fichier", 'gb':"Filename", 'it':"Nome del file"}
 txt_prediction = {'fr':"Prédiction", 'gb':"Prediction", 'it':"Predizione"}
 txt_count = {'fr':"Comptage", 'gb':"Count", 'it':"Conto"}
-txt_seqnum = {'fr':"Séquence", 'gb':"Sequence:", 'it':"Sequenza"}
+txt_seqnum = {'fr':"Numéro de séquence", 'gb':"Sequence ID", 'it':"Sequenza"}
 txt_error = {'fr':"Erreur", 'gb':"Error", 'it':"Errore"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in ",
                        'it':"Volete registrare le predizioni nel"}
@@ -379,7 +379,7 @@ testdir = None
 thread = None
 predictorready = False
 imgmoved  = False
-batchduration = deque(maxlen=50)
+batchduration = deque(maxlen=20)
 
 while True:
     event, values = window.read(timeout=10)
@@ -523,6 +523,7 @@ while True:
                 window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
             curridx = 0
             rowidx = 0
+            batchduration = deque(maxlen=20)
             window['-TAB-'].update(select_rows=[curridx])
             predictor.setForbiddenClasses(forbiddenclasses)
             def runPredictor():
