@@ -88,6 +88,7 @@ settings: dict = {'theme': DEFAULT_THEME.copy()}
 accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
 
 SUN_VALLEY_TCL = 'theme/sun-valley.tcl'
+SUN_VALLEY_THEME = 'dark' # 'light' not coherent with DEFAULT THEME
 FONT_NORMAL = 'Segoe UI', 11
 FONT_SMALL = 'Segoe UI', 10
 FONT_LINK = 'Segoe UI', 11, 'underline'
@@ -159,7 +160,7 @@ def popup(message):
     from contextlib import suppress
     with suppress(TclError):
         windowpopup.TKroot.tk.call('source', SUN_VALLEY_TCL)
-    windowpopup.TKroot.tk.call('set_theme', 'dark')
+    windowpopup.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
     return windowpopup
     
 import base64
@@ -226,14 +227,6 @@ for k in range(0,len(sorted_txt_classes_lang)):
         lineCB = []
 if lineCB:
     listCB = listCB+[lineCB]
-select_frame = sg.Frame(txt_selectclasses[LANG], listCB, font=FONT_NORMAL, expand_x=True, expand_y=True, background_color=background_color)
-
-# Credits
-credits_layout = [
-    [sg.Text("DeepFaune - version "+VERSION)],
-    [sg.Text("Copyright CNRS - Licence CeCILL")],
-    [sg.Text("https://www.deepfaune.cnrs.fr", font=('Any 13', 14, 'underline'), enable_events=True, key='-URL-')]
-]
 
 # Main window
 txt_file = {'fr':"Fichier", 'gb':"File", 'it':"File"}
@@ -322,7 +315,7 @@ from tkinter import TclError
 from contextlib import suppress
 with suppress(TclError):
     window.TKroot.tk.call('source', SUN_VALLEY_TCL)
-window.TKroot.tk.call('set_theme', 'dark')
+window.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
 
 
 ####################################################################################
@@ -452,7 +445,8 @@ while True:
             sequencespin = [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
                             sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
         layoutconfig = [
-            [select_frame],
+            [sg.Frame(txt_selectclasses[LANG], listCB, font=FONT_NORMAL, expand_x=True, expand_y=True,
+                      background_color=background_color)],
             [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, layout=[
                 [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
                  sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True,
@@ -468,7 +462,7 @@ while True:
                                  background_color=background_color, finalize=True)
         with suppress(TclError):
             windowconfig.TKroot.tk.call('source', SUN_VALLEY_TCL)
-        windowconfig.TKroot.tk.call('set_theme', 'dark')
+        windowconfig.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
         configabort = False
         while True:
             eventconfig, valuesconfig = windowconfig.read(timeout=10)
