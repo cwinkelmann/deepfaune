@@ -41,7 +41,7 @@ os.environ["PYTORCH_JIT"] = "0"
 ### PARAMETERS
 ####################################################################################
 VERSION = "1.0.0"
-LANG = 'it'
+LANG = 'fr'
 VIDEO = False 
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
@@ -67,7 +67,7 @@ txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found
 txt_filename = {'fr':"Nom de fichier", 'gb':"Filename", 'it':"Nome del file"}
 txt_prediction = {'fr':"Prédiction", 'gb':"Prediction", 'it':"Predizione"}
 txt_count = {'fr':"Comptage", 'gb':"Count", 'it':"Conto"}
-txt_seqnum = {'fr':"Séquence", 'gb':"Sequence:", 'it':"Sequenza"}
+txt_seqnum = {'fr':"Numéro de séquence", 'gb':"Sequence ID", 'it':"Sequenza"}
 txt_error = {'fr':"Erreur", 'gb':"Error", 'it':"Errore"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in ",
                        'it':"Volete registrare le predizioni nel"}
@@ -106,7 +106,7 @@ def frgbprint(txt_fr, txt_gb, end='\n'):
         print(txt_fr, end=end)
     if LANG=="gb":
         print(txt_gb, end=end)
-        
+
 def draw_boxes(imagecv, box=None):
     if box is not None:
         cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
@@ -289,7 +289,8 @@ layout = [
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=False, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, key='-COUNT-'),
-                     sg.Text("\t"+txt_seqnum[LANG]+": NA", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
+                     sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
+                     #sg.Text("\t"+txt_seqnum[LANG]+": NA", background_color=background_color, text_color=text_color, key='-SEQNUM-')] not OK if media are videos
                 ], background_color=background_color)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -298,7 +299,7 @@ layout = [
         sg.Frame('',[
             [
                 StyledButton(txt_configrun[LANG], accent_color, "gray", background_color, key='-CONFIG-', button_width=8+len(txt_configrun[LANG]), pad=(5, (7, 5))),
-                sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color)
+                sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color), sg.Text("00:00:00", background_color=background_color, text_color=text_color, key='-RTIME-')
             ],
         ], expand_x=True, background_color=background_color)
     ]
@@ -341,7 +342,10 @@ def updateCurridxPrediction(disabled):
         window['-PREDICTION-'].Update(disabled=True)
         window['-SCORE-'].Update("\tScore: 0.0")
         window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
-        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
+        if VIDEO:
+            window['-SEQNUM-'].Update("")            
+        else:
+            window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
     else:
         pass
     
@@ -357,6 +361,9 @@ from os.path import join, basename
 from pathlib import Path
 import pkgutil
 import cv2
+import time
+from collections import deque
+from statistics import mean
 
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
@@ -365,6 +372,7 @@ testdir = None
 thread = None
 predictorready = False
 imgmoved  = False
+batchduration = deque(maxlen=20)
 
 while True:
     event, values = window.read(timeout=10)
@@ -390,6 +398,7 @@ while True:
                     VIDEO = True
             predictorready = False
             curridx = -1
+            window['-RTIME-'].Update("00:00:00")
             window['-PROGBAR-'].update_bar(0)
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
@@ -422,14 +431,14 @@ while True:
                 frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
                 testdir = None
-                window['-TAB-'].Update(values=[])
+                window['-TAB-'].Update(values=[[]])
                 window['-CONFIG-'].Update(button_color=("gray", background_color))
                 dialog_error(txt_incorrect[LANG])
             else:
                 curridx = 0
                 rowidx = 0
                 subsetidx = list(range(0,len(filenames)))
-                window['-TAB-'].Update(values=[basename(f) for f in filenames])
+                window['-TAB-'].Update(values=[[basename(f)] for f in filenames])
                 window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[curridx])
@@ -495,6 +504,8 @@ while True:
                 BATCH_SIZE = 8
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
+                window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
+                                                        for k in range(0, nbfiles))) # color reset is required
             else:
                 if len(filenames)>1000:
                     popup_win = popup(txt_loadingmetadata[LANG])
@@ -503,32 +514,44 @@ while True:
                     popup_win.close()
                 filenames = predictor.getFilenames()
                 seqnums = predictor.getSeqnums()
-                window.Element('-TAB-').Update(values=[basename(f) for f in filenames])
-                curridx = 0
-                rowidx = 0
-                window['-TAB-'].update(select_rows=[curridx])
+                window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
+            curridx = 0
+            rowidx = 0
+            batchduration = deque(maxlen=20)
+            window['-TAB-'].update(select_rows=[curridx])
             predictor.setForbiddenClasses(forbiddenclasses)
             def runPredictor():
                 global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
                 if VIDEO:
                     while True:
+                        start = time.time()
                         batch, k1, k2 = predictor.nextBatch()
+                        end = time.time()
+                        batchduration.append(end-start)
                         if k1==nbfiles: break
+                        window['-RTIME-'].Update(time.strftime("%H:%M:%S",
+                                                                 time.gmtime(mean(batchduration)*(nbfiles-batch))))
                         window['-PROGBAR-'].update_bar(batch/nbfiles)
                         window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
                                                                   for k in range(k1, k2)))
+                        if curridx>=k1 and curridx<k2: # current video must be refreshed
+                            updatecurridxrequired = True
                 else:
                     while True:
+                        start = time.time()
                         batch, k1, k2, k1seq_batch, k2seq_batch = predictor.nextBatch()
+                        end = time.time()
+                        batchduration.append(end-start)
                         if k1==nbfiles: break
+                        window['-RTIME-'].Update(time.strftime("%H:%M:%S",
+                                                                 time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch))))
                         window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)     
                         window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
                                                                 for k in range(k1seq_batch, k2seq_batch)))
                         if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
                             updatecurridxrequired = True
-                        print("update?",updatecurridxrequired )
             thread = threading.Thread(target=runPredictor)
-            thread.setDaemon(True)
+            thread.daemon = True
             thread.start() 
             predictorready = True
             window['-CONFIG-'].Update(button_color=("gray", background_color))
@@ -581,8 +604,7 @@ while True:
                     imagecv = None
             else:
                 try:
-                    imagecv = cv2.imread(filenames[curridx])
-                    print("IMREAD")
+                    imagecv = cv2.imdecode(np.fromfile(filenames[curridx], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
                 except:
                     imagecv = None
             if imagecv is None:
@@ -594,7 +616,8 @@ while True:
                     window['-PREDICTION-'].Update(disabled=False)
                     window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
                     window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
-                    window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+                    if not VIDEO:
+                        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
                 imagecv = cv2.resize(imagecv, (933,700))
@@ -687,7 +710,7 @@ while True:
             predictedclass, _, _, _ = predictor.getPredictions()
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
         if len(subsetidx)>0:
-            window.Element('-TAB-').Update(values=[basename(f) for f in [filenames[k] for k in subsetidx]])
+            window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
             window['-TAB-'].update(select_rows=[0])
         else:
             dialog_error(txt_classnotfound[LANG])

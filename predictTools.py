@@ -144,7 +144,6 @@ class PredictorBase(ABC):
             return txt_undefined[self.LANG], int(max(pred)*100)/100.            
 
     def __majorityVotingInSequence(self, df_prediction):
-        print("df:",df_prediction)
         txt_empty_lang = txt_empty[self.LANG]
         majority = df_prediction.groupby(['prediction']).sum()
         meanscore = df_prediction.groupby(['prediction']).mean()['score']
@@ -163,10 +162,7 @@ class PredictorBase(ABC):
         seqnum = self.fileManager.getSeqnums()
         k1seq = self.k1 # first sequence in batch
         k2seq = self.k2 ## last sequence in batch
-        print(self.k1,self.k2)
-        print(k1seq,k2seq)
         subseqnum = np.array(self.fileManager.getSeqnums()[k1seq:k2seq])
-        print("Treating? ",subseqnum)
         while (k1seq-1)>=0 and seqnum[(k1seq-1)]==seqnum[self.k1]:
             # previous batch contains images of the first sequence present in the current batch
             k1seq = k1seq-1
@@ -175,9 +171,7 @@ class PredictorBase(ABC):
                 # next batch contains images of the last sequence present in the current batch
                 while seqnum[(k2seq-1)]==seqnum[self.k2-1] and (k2seq-1>0):
                     k2seq = k2seq-1
-        print(k1seq,k2seq)
         subseqnum = np.array(self.fileManager.getSeqnums()[k1seq:k2seq])
-        print("Treating ",subseqnum)
         if len(subseqnum)>0:
             for num in range(min(subseqnum), max(subseqnum)+1):
                 idx4num = k1seq + np.nonzero(subseqnum==num)[0]
@@ -213,7 +207,8 @@ class Predictor(PredictorBase):
             idxanimal = []
             for k in range(self.k1,self.k2):
                 try:
-                    imagecv = cv2.imread(self.fileManager.getFilename(k))
+                    imagecv = cv2.imdecode(np.fromfile(self.fileManager.getFilename(k), dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+                    # imagecv = cv2.imread(self.fileManager.getFilename(k))
                 except:
                     imagecv = None
                 if imagecv is None:
@@ -266,12 +261,11 @@ class PredictorVideo(PredictorBase):
     
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
-            return self.batch, self.k1
+            return self.batch, self.k1, self.k1
         else:   
             idxanimal = []
             idxnonempty = []
-            video_path = self.fileManager.getFilename(self.k1)
-            video = cv2.VideoCapture(video_path)
+            video = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
             total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(video.get(5))
             lag = int(fps/3) # lag between two successive frames
@@ -280,6 +274,7 @@ class PredictorVideo(PredictorBase):
             predictionallframe = np.zeros(shape=(self.BATCH_SIZE, self.nbclasses), dtype=np.float32)
             bestboxesallframe = np.zeros(shape=(self.BATCH_SIZE, 4), dtype=np.float32)
             k = 0
+            maxcount = 0
             for kframe in range(0, self.BATCH_SIZE*lag, lag):
                 video.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                 ret,frame = video.read()
@@ -289,6 +284,8 @@ class PredictorVideo(PredictorBase):
                     imagecv = frame
                     croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv)
                     bestboxesallframe[k] = box
+                    if count>maxcount:
+                        maxcount = count
                     if category > 0: # not empty
                         idxnonempty.append(k)
                     if category == 1: # animal
@@ -314,6 +311,7 @@ class PredictorVideo(PredictorBase):
                 # self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
             self.predictedclass[self.k1], self.predictedscore[self.k1] = self._PredictorBase__score2class(self.prediction[self.k1,])
             self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
+            self.count[self.k1] = maxcount
             k1_batch = self.k1
             k2_batch = self.k2
             self.k1 = self.k2
