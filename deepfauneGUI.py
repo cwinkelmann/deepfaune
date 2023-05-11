@@ -184,7 +184,7 @@ def StyledButton(button_text, fill, text_color, background_color, font=None, too
     btn_img = base64.b64encode(data.getvalue())
     return sg.Button(button_text=button_text, image_data=btn_img,
                      button_color=(text_color, background_color), mouseover_colors=(text_color, background_color),
-                     tooltip=tooltip, key=key, pad=pad, enable_events=False, size=(button_width, 1),
+                     tooltip=tooltip, key=key, pad=pad, enable_events=True, size=(button_width, 1),
                      bind_return_key=bind_return_key, font=font, visible=visible, border_width=0)
 
 def StyledMenu(menu_definition, text_color, background_color, text_font, key):    
@@ -343,7 +343,7 @@ def updateCurridxPrediction(disabled):
         window['-SCORE-'].Update("\tScore: 0.0")
         window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
         if VIDEO:
-            window['-SEQNUM-'].Update("")            
+            window['-SEQNUM-'].Update("")
         else:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
     else:
@@ -713,7 +713,6 @@ while True:
             window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
             window['-TAB-'].update(select_rows=[0])
         else:
-            dialog_error(txt_classnotfound[LANG])
             window.Element('-TAB-').Update(values=[])
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             updateCurridxPrediction(disabled=True)
