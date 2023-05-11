@@ -392,12 +392,11 @@ while True:
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event in listlang:
-        LANG = event
+        # LANG = event
         config.set('General', 'language', event)
         with open("settings.ini", "w") as inif:
             config.write(inif)
         yesorno = dialog_yesno(txt_restart[LANG])
-        print(LANG)
         if yesorno == 'yes':
             break
     elif event == txt_credits[LANG]:
