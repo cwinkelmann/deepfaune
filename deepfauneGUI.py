@@ -227,6 +227,8 @@ for k in range(0,len(sorted_txt_classes_lang)):
         lineCB = []
 if lineCB:
     listCB = listCB+[lineCB]
+select_frame = sg.Frame(txt_selectclasses[LANG], listCB, font=FONT_NORMAL, expand_x=True, expand_y=True,
+                        background_color=background_color) # required here to avoid element reuse (not accepted) 
 
 # Main window
 txt_file = {'fr':"Fichier", 'gb':"File", 'it':"File"}
@@ -454,8 +456,7 @@ while True:
             sequencespin = [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
                             sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
         layoutconfig = [
-            [sg.Frame(txt_selectclasses[LANG], listCB, font=FONT_NORMAL, expand_x=True, expand_y=True,
-                      background_color=background_color)],
+            [select_frame],
             [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, layout=[
                 [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
                  sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True,
@@ -711,6 +712,8 @@ while True:
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
         if len(subsetidx)>0:
             window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
+            window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
+                                                      for k in range(0, len(subsetidx)))) # row in accent_color because prediction is available
             window['-TAB-'].update(select_rows=[0])
         else:
             window.Element('-TAB-').Update(values=[])
@@ -727,7 +730,7 @@ while True:
             updateMenuExport(disabled=False)
             updateMenuSubfolders(disabled=False) 
             window['-PREDICTION-'].Update(disabled=False)
-            window['-RESTRICT-'].Update(disabled=False)      
+            window['-RESTRICT-'].Update(disabled=False)
             window['-CONFIG-'].Update(button_color=(background_color, background_color))
 window.close()
 
