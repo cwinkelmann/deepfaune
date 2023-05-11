@@ -43,11 +43,11 @@ from classifTools import txt_animalclasses, CROP_SIZE, Classifier
 from fileManager import FileManager
 
 txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
-               'gb': txt_animalclasses['gb']+["human","vehicle"],
+               'en': txt_animalclasses['en']+["human","vehicle"],
                'it': txt_animalclasses['it']+["umano","veicolo"]
                }
-txt_empty = {'fr':"vide", 'gb':"empty", 'it':"vuoto"}
-txt_undefined = {'fr':"indéfini", 'gb':"undefined", 'it':"indeterminato"}
+txt_empty = {'fr':"vide", 'en':"empty", 'it':"vuoto"}
+txt_undefined = {'fr':"indéfini", 'en':"undefined", 'it':"indeterminato"}
 
 
 class PredictorBase(ABC):

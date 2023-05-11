@@ -47,7 +47,7 @@ txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "ecureuil", "equide", "genette",
            "herisson", "lagomorphe", "loup", "lynx", "marmotte", "micromammifere", "mouflon",
            "mouton", "mustelide", "oiseau", "ours", "ragondin", "renard", "sanglier", "vache"],
-    'gb': ["badger", "ibex", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "squirrel", "equid", "genet",
+    'en': ["badger", "ibex", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "squirrel", "equid", "genet",
            "hedgehog", "lagomorph", "wolf", "lynx", "marmot", "micromammal", "mouflon",
            "sheep", "mustelid", "bird", "bear", "nutria", "fox", "wild boar", "cow"],
     'it': ["tasso", "stambecco", "cervo", "camoscio", "gatto", "capra", "capriolo", "cane", "scoiattolo", "equide", "genet",

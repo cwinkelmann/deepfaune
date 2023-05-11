@@ -56,32 +56,30 @@ maxlag = maxlag_default = 10 # seconds
 ### GUI TEXT
 ####################################################################################
 from predictTools import txt_undefined, txt_empty, txt_classes
-txt_other =  {'fr':"autre", 'gb':"other", 'it':"altro"}
-txt_browse = {'fr':"Choisir", 'gb':"Select", 'it':"Scegliere"}
-txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'gb':"Incorrect folder - no media found", 'it':"File scorretto - media non trovato"}
-txt_confidence = {'fr':"Seuil de confiance", 'gb':"Confidence threshold", 'it':"Livello minimo di affidabilita"}
-txt_sequencemaxlag = {'fr':"Intervalle max / séquence (secondes)", 'gb':"Sequence max lag (seconds)", 'it':"Intervallo massimo / sequenza (secondi)"}
-txt_configrun = {'fr':"Configurer et lancer", 'gb':"Configure & Run", 'it':"Configurare e inviare"}
-txt_run = {'fr':"Lancer", 'gb':"Run", 'it':"Inviare"}
-txt_nextpred = {'fr':"Suivant", 'gb':"Next", 'it':"Prossimo"}
-txt_prevpred = {'fr':"Précédent", 'gb':"Previous", 'it':"Precedente"}
-txt_paramframe = {'fr':"Paramètres", 'gb':"Parameters", 'it':"Parametri"}
-txt_selectclasses = {'fr':"Sélection des classes", 'gb':"Classes selection", 'it':"Selezione delle classi"}
-txt_close  = {'fr':"Fermer", 'gb':"Close", 'it':"Chiudere"}
-txt_all = {'fr':"toutes", 'gb':"all", 'it':"tutte"}
-txt_classnotfound = {'fr':"Aucun média pour cette classe", 'gb':"No media found for this class", 'it':"Nessun media per questa classe"}
-txt_filename = {'fr':"Nom de fichier", 'gb':"Filename", 'it':"Nome del file"}
-txt_prediction = {'fr':"Prédiction", 'gb':"Prediction", 'it':"Predizione"}
-txt_count = {'fr':"Comptage", 'gb':"Count", 'it':"Conto"}
-txt_seqnum = {'fr':"Numéro de séquence", 'gb':"Sequence ID", 'it':"Sequenza"}
-txt_error = {'fr':"Erreur", 'gb':"Error", 'it':"Errore"}
-txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'gb':"Do you want to save predictions in ",
+txt_other =  {'fr':"autre", 'en':"other", 'it':"altro"}
+txt_browse = {'fr':"Choisir", 'en':"Select", 'it':"Scegliere"}
+txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'en':"Incorrect folder - no media found", 'it':"File scorretto - media non trovato"}
+txt_confidence = {'fr':"Seuil de confiance", 'en':"Confidence threshold", 'it':"Livello minimo di affidabilita"}
+txt_sequencemaxlag = {'fr':"Intervalle max / séquence (secondes)", 'en':"Sequence max lag (seconds)", 'it':"Intervallo massimo / sequenza (secondi)"}
+txt_configrun = {'fr':"Configurer et lancer", 'en':"Configure & Run", 'it':"Configurare e inviare"}
+txt_run = {'fr':"Lancer", 'en':"Run", 'it':"Inviare"}
+txt_nextpred = {'fr':"Suivant", 'en':"Next", 'it':"Prossimo"}
+txt_prevpred = {'fr':"Précédent", 'en':"Previous", 'it':"Precedente"}
+txt_paramframe = {'fr':"Paramètres", 'en':"Parameters", 'it':"Parametri"}
+txt_selectclasses = {'fr':"Sélection des classes", 'en':"Classes selection", 'it':"Selezione delle classi"}
+txt_close  = {'fr':"Fermer", 'en':"Close", 'it':"Chiudere"}
+txt_all = {'fr':"toutes", 'en':"all", 'it':"tutte"}
+txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found for this class", 'it':"Nessun media per questa classe"}
+txt_filename = {'fr':"Nom de fichier", 'en':"Filename", 'it':"Nome del file"}
+txt_prediction = {'fr':"Prédiction", 'en':"Prediction", 'it':"Predizione"}
+txt_count = {'fr':"Comptage", 'en':"Count", 'it':"Conto"}
+txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID", 'it':"Sequenza"}
+txt_error = {'fr':"Erreur", 'en':"Error", 'it':"Errore"}
+txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'en':"Do you want to save predictions in ",
                        'it':"Volete registrare le predizioni nel"}
-txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'gb':"Copy in subfolders of:", 'it':"Copiare nei sotto file di"}
-txt_destmove = {'fr':"Déplacer vers des sous-dossiers de :", 'gb':"Move to subfolders of:", 'it':"Spostare nei sotto file di"}
-#txt_wanttocopy = {'fr':"Voulez-vous copier les médias vers des sous-dossiers de ", 'gb':"Do you want to copy medias in subfolders of ", 'it':""}
-#txt_wanttomove = {'fr':"Voulez-vous déplacer les déplacer vers des sous-dossiers de ", 'gb':"Do you want to move medias in subfolders of ", 'it':""}
-txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'gb':"Loading metadata... (this may take a while)",
+txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'en':"Copy in subfolders of:", 'it':"Copiare nei sotto file di"}
+txt_destmove = {'fr':"Déplacer vers des sous-dossiers de :", 'en':"Move to subfolders of:", 'it':"Spostare nei sotto file di"}
+txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'en':"Loading metadata... (this may take a while)",
                        'it':"Carica dei metadata... (puo essere lungo)"}
 
 ####################################################################################
@@ -107,11 +105,11 @@ LINK_COLOR = '#3ea6ff'
 ####################################################################################
 ### GUI UTILS
 ####################################################################################
-def frgbprint(txt_fr, txt_gb, end='\n'):
+def debugprint(txt_fr, txt_en, end='\n'):
     if LANG=="fr":
         print(txt_fr, end=end)
-    if LANG=="gb":
-        print(txt_gb, end=end)
+    else:
+        print(txt_en, end=end)
 
 def draw_boxes(imagecv, box=None):
     if box is not None:
@@ -237,20 +235,20 @@ select_frame = sg.Frame(txt_selectclasses[LANG], listCB, font=FONT_NORMAL, expan
                         background_color=background_color) # required here to avoid element reuse (not accepted) 
 
 # Main window
-txt_file = {'fr':"Fichier", 'gb':"File", 'it':"File"}
-txt_pref = {'fr':"Préférences", 'gb':"Preferences", 'it':"Preferenze"}
-txt_help = {'fr':"Aide", 'gb':"Help", 'it':"Aiuto"}
-txt_import = {'fr':"Importer", 'gb':"Import", 'it':"Caricare"}
-txt_importimage = {'fr':"Images", 'gb':"Images", 'it':"Immagine"}
-txt_importvideo = {'fr':"Vidéos", 'gb':"Videos", 'it':"Video"}
-txt_export = {'fr':"Exporter les résultats", 'gb':"Export results", 'it':"Esportare i risultati"}
-txt_ascsv = {'fr':"Format CSV", 'gb':"As CSV", 'it':"Formato CSV"}
-txt_asxlsx = {'fr':"Format XSLX", 'gb':"As XSLX", 'it':"Formato XSLX"}
-txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'gb':"Create subfolders", 'it':"Creare dei sotto file"}
-txt_copy = {'fr':"Copier les fichiers", 'gb':"Copy files", 'it':"Copiare i file"}
-txt_move = {'fr':"Déplacer les fichiers", 'gb':"Move files", 'it':"Spostare i file"}
-txt_language = {'fr':"Langue", 'gb':"Language", 'it':"Lingua"}
-txt_credits = {'fr':"A propos", 'gb':"About DeepFaune", 'it':"A proposito"}
+txt_file = {'fr':"Fichier", 'en':"File", 'it':"File"}
+txt_pref = {'fr':"Préférences", 'en':"Preferences", 'it':"Preferenze"}
+txt_help = {'fr':"Aide", 'en':"Help", 'it':"Aiuto"}
+txt_import = {'fr':"Importer", 'en':"Import", 'it':"Caricare"}
+txt_importimage = {'fr':"Images", 'en':"Images", 'it':"Immagine"}
+txt_importvideo = {'fr':"Vidéos", 'en':"Videos", 'it':"Video"}
+txt_export = {'fr':"Exporter les résultats", 'en':"Export results", 'it':"Esportare i risultati"}
+txt_ascsv = {'fr':"Format CSV", 'en':"As CSV", 'it':"Formato CSV"}
+txt_asxlsx = {'fr':"Format XSLX", 'en':"As XSLX", 'it':"Formato XSLX"}
+txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'en':"Create subfolders", 'it':"Creare dei sotto file"}
+txt_copy = {'fr':"Copier les fichiers", 'en':"Copy files", 'it':"Copiare i file"}
+txt_move = {'fr':"Déplacer les fichiers", 'en':"Move files", 'it':"Spostare i file"}
+txt_language = {'fr':"Langue", 'en':"Language", 'it':"Lingua"}
+txt_credits = {'fr':"A propos", 'en':"About DeepFaune", 'it':"A proposito"}
 menu_def = [
     ['&'+txt_file[LANG], [
         '&'+txt_import[LANG],[txt_importimage[LANG],txt_importvideo[LANG]],
@@ -258,7 +256,7 @@ menu_def = [
         '!'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
     ]],
     ['!'+txt_pref[LANG], [
-        txt_language[LANG], ['fr', 'gb', 'it']
+        txt_language[LANG], ['fr', 'en', 'it']
     ]],
     ['&'+txt_help[LANG], [
         '&Version', [VERSION],
@@ -413,7 +411,7 @@ while True:
             updateCurridxPrediction(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
-            frgbprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
+            debugprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
             if VIDEO:
                 filenames = sorted(
@@ -434,9 +432,9 @@ while True:
                 )
             nbfiles = len(filenames)
             if VIDEO:
-                frgbprint("Nombre de vidéos : "+str(nbfiles), "Number of videos: "+str(nbfiles))
+                debugprint("Nombre de vidéos : "+str(nbfiles), "Number of videos: "+str(nbfiles))
             else:
-                frgbprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
+                debugprint("Nombre d'images : "+str(nbfiles), "Number of images: "+str(nbfiles))
             if nbfiles==0:
                 testdir = None
                 window['-TAB-'].Update(values=[[]])
@@ -497,7 +495,7 @@ while True:
                 if not valuesconfig[label]:
                     forbiddenclasses += [label]
             if len(forbiddenclasses):
-                frgbprint("Classes non selectionnées : ", "Unselected classes: ", end="")
+                debugprint("Classes non selectionnées : ", "Unselected classes: ", end="")
                 print(forbiddenclasses)
         ########################
         ## RUN
@@ -579,12 +577,12 @@ while True:
         if event == txt_ascsv[LANG]:
             csvpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.csv", defaultextension=".csv")
             if csvpath:
-                frgbprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
+                debugprint("Enregistrement dans "+csvpath, "Saving to "+csvpath)
                 preddf.to_csv(csvpath, index=False)
         if event == txt_asxlsx[LANG]:
             xlsxpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.xlsx", defaultextension=".xlsx")
             if xlsxpath:
-                frgbprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
+                debugprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
                 preddf.to_excel(xlsxpath, index=False)
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
@@ -680,11 +678,11 @@ while True:
         if event == txt_copy[LANG]:
             destdir = dialog_get_dir(txt_destcopy[LANG], initialdir=testdir)
             if destdir is not None:
-                frgbprint("Copie vers "+join(destdir,"deepfaune_"+now), "Copying to "+join(destdir,"deepfaune_"+now))
+                debugprint("Copie vers "+join(destdir,"deepfaune_"+now), "Copying to "+join(destdir,"deepfaune_"+now))
         if event == txt_move[LANG]:
             destdir = dialog_get_dir(txt_destmove[LANG], initialdir=testdir)
             if destdir is not None:
-                frgbprint("Déplacement vers "+join(destdir,"deepfaune_"+now), "Moving to "+join(destdir,"deepfaune_"+now))
+                debugprint("Déplacement vers "+join(destdir,"deepfaune_"+now), "Moving to "+join(destdir,"deepfaune_"+now))
                 imgmoved = True
         if destdir is not None:
             import shutil
