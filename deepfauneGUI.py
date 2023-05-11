@@ -37,9 +37,16 @@ import io
 import os
 os.environ["PYTORCH_JIT"] = "0"
 
+
+####################################################################################
+### VERSION
+####################################################################################
+VERSION = "1.0.0"
+
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
+listlang = ['fr', 'en', 'it']
 import configparser
 config = configparser.ConfigParser()
 config.read('settings.ini')
@@ -47,7 +54,6 @@ try:
     LANG = config.get('General','language')
 except configparser.NoOptionError:
     LANG = "fr"
-VERSION = "1.0.0"
 VIDEO = False 
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
@@ -81,6 +87,7 @@ txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'en':"Copy in subfold
 txt_destmove = {'fr':"Déplacer vers des sous-dossiers de :", 'en':"Move to subfolders of:", 'it':"Spostare nei sotto file di"}
 txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'en':"Loading metadata... (this may take a while)",
                        'it':"Carica dei metadata... (puo essere lungo)"}
+txt_restart = {'fr':"xxx", 'en':"yyy", 'it':"zzz"}
 
 ####################################################################################
 ### THEME SETTINGS
@@ -255,8 +262,8 @@ menu_def = [
         '!'+txt_export[LANG],[txt_ascsv[LANG],txt_asxlsx[LANG]],
         '!'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
     ]],
-    ['!'+txt_pref[LANG], [
-        txt_language[LANG], ['fr', 'en', 'it']
+    ['&'+txt_pref[LANG], [
+        txt_language[LANG], listlang
     ]],
     ['&'+txt_help[LANG], [
         '&Version', [VERSION],
@@ -384,6 +391,15 @@ while True:
     event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    elif event in listlang:
+        LANG = event
+        config.set('General', 'language', event)
+        with open("settings.ini", "w") as inif:
+            config.write(inif)
+        yesorno = dialog_yesno(txt_restart[LANG])
+        print(LANG)
+        if yesorno == 'yes':
+            break
     elif event == txt_credits[LANG]:
         #########################
         ## CREDITS
