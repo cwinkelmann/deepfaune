@@ -57,7 +57,7 @@ filenames = sorted(
 )
 
 ## PREDICTORVIDEO OBJECT
-LANG = 'gb'
+LANG = 'en'
 maxlag = 20
 threshold = 0.5
 predictor = PredictorVideo(filenames, threshold, LANG)

@@ -39,7 +39,7 @@ sys.path.append(curdir+'/../')
 ## DEEPFAUNE objects
 from detectTools import DetectorJSON
 from classifTools import Classifier, CROP_SIZE, txt_classes
-LANG = 'fr' # or 'gb'
+LANG = 'fr'
 detector = DetectorJSON(sys.argv[1])
 classifier = Classifier()
 

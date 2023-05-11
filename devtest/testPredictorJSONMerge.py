@@ -7,7 +7,7 @@ sys.path.append(curdir+'/../')
 
 ## DEEPFAUNE objects
 from predictTools import PredictorJSON
-LANG = 'gb'
+LANG = 'en'
 maxlag = 20
 threshold = 0.5
 

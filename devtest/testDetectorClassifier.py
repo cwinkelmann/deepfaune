@@ -43,7 +43,7 @@ sys.path.append(curdir+'/../')
 
 ## DEEPFAUNE objects
 from detectTools import Detector
-LANG = 'fr' # or 'gb'
+LANG = 'fr'
 detector = Detector()
 classifier = Classifier()
 

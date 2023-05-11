@@ -50,7 +50,7 @@ from predictTools import PredictorJSON
 jsonfilename = sys.argv[1]
 
 ## PREDICTOR OBJECT
-LANG = 'gb'
+LANG = 'en'
 maxlag = 20
 threshold = 0.5
 predictor = PredictorJSON(jsonfilename, threshold, LANG)
