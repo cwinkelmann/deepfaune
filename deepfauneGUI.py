@@ -40,8 +40,14 @@ os.environ["PYTORCH_JIT"] = "0"
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
+import configparser
+config = configparser.ConfigParser()
+config.read('settings.ini')
+try:
+    LANG = config.get('General','language')
+except configparser.NoOptionError:
+    LANG = "fr"
 VERSION = "1.0.0"
-LANG = 'fr'
 VIDEO = False 
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
