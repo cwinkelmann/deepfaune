@@ -120,7 +120,8 @@ def debugprint(txt_fr, txt_en, end='\n'):
 
 def draw_boxes(imagecv, box=None):
     if box is not None:
-        cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
+        if np.count_nonzero(box)>0: # is not default empty box
+            cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
 
 import tkinter
 from tkinter import filedialog, messagebox
