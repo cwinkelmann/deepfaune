@@ -300,7 +300,7 @@ layout = [
                      ],
                     [sg.Text(txt_prediction[LANG]+':', background_color=background_color, text_color=text_color, size=(10, 1)),
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", enable_events=True,
-                              background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=False, key='-PREDICTION-'),
+                              background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, key='-COUNT-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
@@ -746,6 +746,9 @@ while True:
         window.refresh()
     if thread is not None:
         if thread.is_alive() == False:
+            #########################
+            ## WORK TERMINATED IN THREAD
+            #########################
             thread = None
             updateMenuExport(disabled=False)
             updateMenuSubfolders(disabled=False) 
