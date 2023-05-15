@@ -289,8 +289,8 @@ layout = [
                     [
                         sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color, enable_events=True,
                                  default_value=txt_all[LANG], size=(12, 1), bind_return_key=False, key='-RESTRICT-'),
-                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous track'),
-                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next track')
+                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous media'),
+                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next media')
                      ]
                 ], background_color=background_color, expand_y=True),
                 sg.Column([ 
@@ -303,8 +303,7 @@ layout = [
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, key='-COUNT-'),
-                     sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-')]
-                     #sg.Text("\t"+txt_seqnum[LANG]+": NA", background_color=background_color, text_color=text_color, key='-SEQNUM-')] not OK if media are videos
+                     sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-')] # not used if media are videos
                 ], background_color=background_color)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -541,6 +540,7 @@ while True:
             batchduration = deque(maxlen=20)
             window['-TAB-'].update(select_rows=[curridx])
             predictor.setForbiddenClasses(forbiddenclasses)
+            ##
             def runPredictor():
                 global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
                 if VIDEO:
@@ -571,6 +571,8 @@ while True:
                                                                 for k in range(k1seq_batch, k2seq_batch)))
                         if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
                             updatecurridxrequired = True
+                window['-RTIME-'].Update("00:00:00")
+            ##
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 
