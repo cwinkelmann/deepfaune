@@ -61,7 +61,7 @@ except configparser.NoOptionError:
 VIDEO = False 
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
-from detectTools import YOLO_THRES
+from detectTools import YOLO_THRESH
 yolothreshold_permissive = 0.4
 
 ####################################################################################
