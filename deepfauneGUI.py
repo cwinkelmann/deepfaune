@@ -54,6 +54,10 @@ try:
     LANG = config.get('General','language')
 except configparser.NoOptionError:
     LANG = "fr"
+try:
+    countactivated = config.getboolean('General','count')
+except configparser.NoOptionError:
+    countactivated = False
 VIDEO = False 
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
@@ -79,7 +83,7 @@ txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found
 txt_filename = {'fr':"Nom de fichier", 'en':"Filename", 'it':"Nome del file"}
 txt_prediction = {'fr':"Prédiction", 'en':"Prediction", 'it':"Predizione"}
 txt_count = {'fr':"Comptage", 'en':"Count", 'it':"Conto"}
-txt_countactivated = {'fr':"Comptage activé (expérimental)", 'en':"Count activated (experimental)", 'it':"Conto attivato (sperimentale)"}
+#txt_countactivated = {'fr':"Comptage activé (expérimental)", 'en':"Count activated (experimental)", 'it':"Conto attivato (sperimentale)"}
 txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID", 'it':"Sequenza"}
 txt_error = {'fr':"Erreur", 'en':"Error", 'it':"Errore"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'en':"Do you want to save predictions in ",
@@ -262,6 +266,11 @@ txt_language = {'fr':"Langue", 'en':"Language", 'it':"Lingua"}
 txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate count (experimental)", 'it':"Attivare il conto (sperimentale)"}
 txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Deactivate count (experimental)", 'it':"Disattivare il conto (sperimentale)"}
 txt_credits = {'fr':"A propos", 'en':"About DeepFaune", 'it':"A proposito"}
+if countactivated:
+    txt_statuscount = txt_deactivatecount[LANG]
+else:
+    txt_statuscount = txt_activatecount[LANG]
+    
 menu_def = [
     ['&'+txt_file[LANG], [
         '&'+txt_import[LANG],[txt_importimage[LANG],txt_importvideo[LANG]],
@@ -270,7 +279,7 @@ menu_def = [
     ]],
     ['&'+txt_pref[LANG], [
         txt_language[LANG], listlang,
-        txt_activatecount[LANG]
+        txt_statuscount
     ]],
     ['&'+txt_help[LANG], [
         '&Version', [VERSION],
@@ -399,7 +408,6 @@ testdir = None
 thread = None
 predictorready = False
 imgmoved  = False
-countactivated = False
 batchduration = deque(maxlen=20)
 
 while True:
@@ -417,10 +425,16 @@ while True:
     elif event == txt_activatecount[LANG]:
         countactivated = True
         window['-COUNT-'].Update(visible=True)
+        config.set('General', 'count', 'True')
+        with open("settings.ini", "w") as inif:
+            config.write(inif)
         updateMenuActivateCount()
     elif event == txt_deactivatecount[LANG]:
         countactivated = False
         window['-COUNT-'].Update(visible=False)
+        config.set('General', 'count', 'False')
+        with open("settings.ini", "w") as inif:
+            config.write(inif)
         updateMenuActivateCount()
     elif event == txt_credits[LANG]:
         #########################
