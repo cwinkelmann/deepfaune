@@ -79,7 +79,7 @@ txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found
 txt_filename = {'fr':"Nom de fichier", 'en':"Filename", 'it':"Nome del file"}
 txt_prediction = {'fr':"Prédiction", 'en':"Prediction", 'it':"Predizione"}
 txt_count = {'fr':"Comptage", 'en':"Count", 'it':"Conto"}
-txt_activatecount = {'fr':"Comptage activé (expréimental)", 'en':"Count activated (experimental)", 'it':"Conto attivato (sperimentale)"}
+txt_countactivated = {'fr':"Comptage activé (expérimental)", 'en':"Count activated (experimental)", 'it':"Conto attivato (sperimentale)"}
 txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID", 'it':"Sequenza"}
 txt_error = {'fr':"Erreur", 'en':"Error", 'it':"Errore"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'en':"Do you want to save predictions in ",
@@ -259,6 +259,8 @@ txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'en':"Create subfolders
 txt_copy = {'fr':"Copier les fichiers", 'en':"Copy files", 'it':"Copiare i file"}
 txt_move = {'fr':"Déplacer les fichiers", 'en':"Move files", 'it':"Spostare i file"}
 txt_language = {'fr':"Langue", 'en':"Language", 'it':"Lingua"}
+txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate count (experimental)", 'it':"Attivare il conto (sperimentale)"}
+txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Deactivate count (experimental)", 'it':"Disattivare il conto (sperimentale)"}
 txt_credits = {'fr':"A propos", 'en':"About DeepFaune", 'it':"A proposito"}
 menu_def = [
     ['&'+txt_file[LANG], [
@@ -267,7 +269,8 @@ menu_def = [
         '!'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
     ]],
     ['&'+txt_pref[LANG], [
-        txt_language[LANG], listlang
+        txt_language[LANG], listlang,
+        txt_activatecount[LANG]
     ]],
     ['&'+txt_help[LANG], [
         '&Version', [VERSION],
@@ -352,6 +355,13 @@ def updateMenuSubfolders(disabled):
         menu_def[0][1][4] = '&'+txt_createsubfolders[LANG]
     window[txt_file[LANG]].Update(menu_def[0])
 
+def updateMenuActivateCount():
+    if menu_def[1][1][2] == txt_activatecount[LANG]:
+        menu_def[1][1][2] = txt_deactivatecount[LANG]
+    else:
+        menu_def[1][1][2] = txt_activatecount[LANG]
+    window[txt_pref[LANG]].Update(menu_def[1])
+            
 def updateCurridxPrediction(disabled):
     if disabled is True:
         window['-PREDICTION-'].Update(value="")
@@ -404,6 +414,14 @@ while True:
             yesorno = dialog_yesno(txt_restart[LANG])
             if yesorno == 'yes':
                 break
+    elif event == txt_activatecount[LANG]:
+        countactivated = True
+        window['-COUNT-'].Update(visible=True)
+        updateMenuActivateCount()
+    elif event == txt_deactivatecount[LANG]:
+        countactivated = False
+        window['-COUNT-'].Update(visible=False)
+        updateMenuActivateCount()
     elif event == txt_credits[LANG]:
         #########################
         ## CREDITS
@@ -428,8 +446,6 @@ while True:
             window['-PROGBAR-'].update_bar(0)
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
-            window['-COUNT-'].Update(visible=False)
-            coutactivated = False
             updateCurridxPrediction(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
