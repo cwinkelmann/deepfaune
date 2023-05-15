@@ -79,6 +79,7 @@ txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found
 txt_filename = {'fr':"Nom de fichier", 'en':"Filename", 'it':"Nome del file"}
 txt_prediction = {'fr':"Prédiction", 'en':"Prediction", 'it':"Predizione"}
 txt_count = {'fr':"Comptage", 'en':"Count", 'it':"Conto"}
+txt_activatecount = {'fr':"Comptage activé (expréimental)", 'en':"Count activated (experimental)", 'it':"Conto attivato (sperimentale)"}
 txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID", 'it':"Sequenza"}
 txt_error = {'fr':"Erreur", 'en':"Error", 'it':"Errore"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'en':"Do you want to save predictions in ",
@@ -87,7 +88,9 @@ txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'en':"Copy in subfold
 txt_destmove = {'fr':"Déplacer vers des sous-dossiers de :", 'en':"Move to subfolders of:", 'it':"Spostare nei sotto file di"}
 txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'en':"Loading metadata... (this may take a while)",
                        'it':"Carica dei metadata... (puo essere lungo)"}
-txt_restart = {'fr':"xxx", 'en':"yyy", 'it':"zzz"}
+txt_restart = {'fr':"Redémarrage nécessaire pour changer la langue. Arréter le logiciel ?",
+               'en':"Restart required to change the language. Stopping the software?",
+               'it':"Per cambiare la lingua è necessario un riavvio. Arresto del software ?"}
 
 ####################################################################################
 ### THEME SETTINGS
@@ -302,8 +305,8 @@ layout = [
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", enable_events=True,
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
-                     sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, key='-COUNT-'),
-                     sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-')] # not used if media are videos
+                     sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
+                     sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, visible=False, key='-COUNT-')] # not used if media are videos
                 ], background_color=background_color)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -354,7 +357,8 @@ def updateCurridxPrediction(disabled):
         window['-PREDICTION-'].Update(value="")
         window['-PREDICTION-'].Update(disabled=True)
         window['-SCORE-'].Update("\tScore: 0.0")
-        window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
+        if countactivated:
+            window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
         if VIDEO:
             window['-SEQNUM-'].Update("")
         else:
@@ -385,6 +389,7 @@ testdir = None
 thread = None
 predictorready = False
 imgmoved  = False
+countactivated = False
 batchduration = deque(maxlen=20)
 
 while True:
@@ -392,13 +397,13 @@ while True:
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event in listlang:
-        # LANG = event
         config.set('General', 'language', event)
-        with open("settings.ini", "w") as inif:
-            config.write(inif)
-        yesorno = dialog_yesno(txt_restart[LANG])
-        if yesorno == 'yes':
-            break
+        if event != LANG:
+            with open("settings.ini", "w") as inif:
+                config.write(inif)
+            yesorno = dialog_yesno(txt_restart[LANG])
+            if yesorno == 'yes':
+                break
     elif event == txt_credits[LANG]:
         #########################
         ## CREDITS
@@ -423,6 +428,8 @@ while True:
             window['-PROGBAR-'].update_bar(0)
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
+            window['-COUNT-'].Update(visible=False)
+            coutactivated = False
             updateCurridxPrediction(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
@@ -540,7 +547,7 @@ while True:
             batchduration = deque(maxlen=20)
             window['-TAB-'].update(select_rows=[curridx])
             predictor.setForbiddenClasses(forbiddenclasses)
-            ##
+            ###
             def runPredictor():
                 global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
                 if VIDEO:
@@ -572,7 +579,7 @@ while True:
                         if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
                             updatecurridxrequired = True
                 window['-RTIME-'].Update("00:00:00")
-            ##
+            ###
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 
@@ -587,10 +594,15 @@ while True:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
             predictedclass_base, predictedscore_base, _, count = predictor.getPredictionsBase()
-        preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
-                                'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                'prediction':predictedclass, 'score':predictedscore,
-                                'count':count})
+        if countactivated:
+            preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
+                                    'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
+                                    'prediction':predictedclass, 'score':predictedscore,
+                                    'count':count})
+        else:
+            preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
+                                    'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
+                                    'prediction':predictedclass, 'score':predictedscore})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         if event == txt_ascsv[LANG]:
             csvpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.csv", defaultextension=".csv")
@@ -638,7 +650,8 @@ while True:
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
                     window['-PREDICTION-'].Update(disabled=False)
                     window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
-                    window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
+                    if countactivated:
+                        window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
                     if not VIDEO:
                         window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
                     if predictedclass_curridx is not txt_empty[LANG]:
