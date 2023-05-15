@@ -37,6 +37,7 @@ from PIL import Image
 from ultralytics import YOLO
 
 YOLO_WIDTH = 1280 # image width
+YOLO_THRESH = 0.6
 model = 'deepfaune-yolov8s.pt'
 
 ####################################################################################
@@ -62,7 +63,7 @@ class Detector:
     :return: cropped image, possibly None
     :rtype: PIL image
     """
-    def bestBoxDetection(self, imagecv, threshold=0.6):
+    def bestBoxDetection(self, imagecv, threshold=YOLO_THRESH):
         '''
         in/out as numpy int array (0-255) in BGR
         '''

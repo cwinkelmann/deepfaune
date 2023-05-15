@@ -38,7 +38,7 @@ import pandas as pd
 from abc import ABC, abstractmethod
 from math import log
 
-from detectTools import Detector, DetectorJSON
+from detectTools import Detector, DetectorJSON, YOLO_THRESH
 from classifTools import txt_animalclasses, CROP_SIZE, Classifier
 from fileManager import FileManager
 
@@ -82,6 +82,9 @@ class PredictorBase(ABC):
     @abstractmethod
     def nextBatch(self):
         pass
+
+    def setClassificationThreshold(threshold):
+        self.threshold = threshold
             
     def getPredictions(self, k=None):
         if k is not None:
@@ -196,6 +199,7 @@ class Predictor(PredictorBase):
         self.predictedclass_base = [""]*self.fileManager.nbFiles()
         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.detector = Detector()
+        self.yolothreshold = YOLO_THRESH
         self.classifier = Classifier()
         self.fileManager.findSequences(maxlag)
         self.fileManager.reorderBySeqnum()
@@ -214,7 +218,7 @@ class Predictor(PredictorBase):
                 if imagecv is None:
                     pass # Corrupted image, considered as empty
                 else:
-                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv)
+                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.yolothreshold)
                     self.bestboxes[k] = box
                     self.count[k] = count
                     if category > 0: # not empty
@@ -240,6 +244,9 @@ class Predictor(PredictorBase):
             # returning batch results
             return self.batch-1, k1_batch, k2_batch, k1seq_batch, k2seq_batch
                     
+    def setDetectionThreshold(self, threshold):
+        self.yolothreshold = threshold
+        
     def getPredictionsBase(self, k=None):
         if k is not None:
             return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
@@ -252,6 +259,7 @@ class PredictorVideo(PredictorBase):
          super().__init__(filenames, threshold, LANG, BATCH_SIZE) # inherits all
          self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
+         self.yolothreshold = YOLO_THRESH
          self.classifier = Classifier()
 
     def resetBatch(self):
@@ -282,7 +290,7 @@ class PredictorVideo(PredictorBase):
                     pass # Corrupted or unavailable image, considered as empty
                 else:
                     imagecv = frame
-                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv)
+                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.yolothreshold)
                     bestboxesallframe[k] = box
                     if count>maxcount:
                         maxcount = count
@@ -317,8 +325,11 @@ class PredictorVideo(PredictorBase):
             self.k1 = self.k2
             self.k2 = min(self.k1+1,self.fileManager.nbFiles())
             self.batch = self.batch+1  
-            return self.batch-1, k1_batch, k2_batch
-        
+            return self.batch-1, k1_batch, k2_batch    
+
+    def setDetectionThreshold(self, threshold):
+        self.yolothreshold = threshold
+
     def getKeyFrames(self, index):
         return self.keyframes[index]
 

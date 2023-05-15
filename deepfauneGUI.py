@@ -61,6 +61,8 @@ except configparser.NoOptionError:
 VIDEO = False 
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
+from detectTools import YOLO_THRES
+yolothreshold_permissive = 0.4
 
 ####################################################################################
 ### GUI TEXT
@@ -84,7 +86,10 @@ txt_filename = {'fr':"Nom de fichier", 'en':"Filename", 'it':"Nome del file"}
 txt_prediction = {'fr':"Prédiction", 'en':"Prediction", 'it':"Predizione"}
 txt_count = {'fr':"Comptage", 'en':"Count", 'it':"Conto"}
 #txt_countactivated = {'fr':"Comptage activé (expérimental)", 'en':"Count activated (experimental)", 'it':"Conto attivato (sperimentale)"}
-txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID", 'it':"Sequenza"}
+txt_counttype = {'fr':"Type de comptage (expérimental)", 'en':"Type of count (experimental)", 'it':"Tipo di conto (sperimentale)"}
+txt_restrictive = {'fr':"Restrictif", 'en':"Restrictive", 'it':"Restrittivo"}
+txt_permissive = {'fr':"Permissif", 'en':"Permissive", 'it':"Permissivo"}
+txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID", 'it':"Sequenza ID"}
 txt_error = {'fr':"Erreur", 'en':"Error", 'it':"Errore"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'en':"Do you want to save predictions in ",
                        'it':"Volete registrare le predizioni nel"}
@@ -318,7 +323,7 @@ layout = [
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
-                     sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, visible=False, key='-COUNT-')] # not used if media are videos
+                     sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-')] # not used if media are videos
                 ], background_color=background_color)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -511,13 +516,20 @@ while True:
         else:
             sequencespin = [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
                             sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
+        if countactivated:
+            countradio = [sg.Text(txt_counttype[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
+                          sg.Radio(txt_restrictive[LANG], 'CountType', default=True, expand_x=True, key='-COUNTRESTRICTIVE-', background_color=background_color, text_color=text_color),
+                          sg.Radio(txt_permissive[LANG], 'CountType', default=False, expand_x=True, key='-COUNTPERMISSIVE-', background_color=background_color, text_color=text_color)]
+        else:
+            countradio = []
         layoutconfig = [
             [select_frame],
             [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, layout=[
                 [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
                  sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True,
                          background_color=background_color, text_color=text_color, key='-THRESHOLD-')],
-                sequencespin
+                sequencespin,
+                countradio
             ], background_color=background_color)],
             [
                 StyledButton(txt_run[LANG], accent_color, background_color, background_color, button_width=8+len(txt_run[LANG]), key='-RUN-')
@@ -577,6 +589,8 @@ while True:
             batchduration = deque(maxlen=20)
             window['-TAB-'].update(select_rows=[curridx])
             predictor.setForbiddenClasses(forbiddenclasses)
+            if valuesconfig['-COUNTPERMISSIVE-']:
+                predictor.setDetectionThreshold(yolothreshold_permissive)
             ###
             def runPredictor():
                 global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
@@ -658,7 +672,7 @@ while True:
                 cap = cv2.VideoCapture(filenames[curridx])
                 lag = int(cap.get(5) / 3)
                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                if predictorready:           
+                if predictorready:
                     while ((BATCH_SIZE - 1) * lag > total_frames):
                         lag = lag - 1         
                     cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
