@@ -1,10 +1,11 @@
 2023-05-15  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 1.0.0
-	    * New GUI with new features and improved designed.
+	    * Major changes in GUI features and design.
 	    * Italian version available.
 	    * Models from version 0.6.0 are still used.
-	    * Box count available as an option.
+	    * Box count available as an option (experimental).
+	    * API changes with no reverse compatibility with previous versions.
 
 2023-03-23  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 

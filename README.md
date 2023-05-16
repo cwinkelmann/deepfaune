@@ -10,7 +10,7 @@
 # NEWS
 ---
 
-Release v0.6 is available. 
+Release v1.0 is available. 
 
 Supported categories/species : BADGER, BEAR, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, REDDEER, ROEDEER, SHEEP, SQUIRREL, WILDBOAR, WOLF + HUMAN, VEHICULE + EMPTY 
 
@@ -65,10 +65,10 @@ On Linux or Windows **with PyPi (pip)**:
 
 For some users, it may be necessary to install `python-tk` or `python3-tk` as well, when you have a message `no module tkinter`...
 
-On Windows with **[Anaconda Individual Edition](https://www.anaconda.com/products/individual)** (WARNING: during installation of Anaconda, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE).
+On Windows, install these dependencies using **[Anaconda Individual Edition](https://www.anaconda.com/products/individual)** (WARNING: during installation of Anaconda, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE).
 
 - Open Anaconda window, search for `torchvision` and click to install it, , as explained [here](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-packages/)
-- (optional) Open Anaconda window, search for `openpyxl` and click to install it
+- and so on for the other dependencies listed above.
 
 ---
 # USING DEEPFAUNE
@@ -78,7 +78,7 @@ On Windows with **[Anaconda Individual Edition](https://www.anaconda.com/product
 
 In a terminal, launch `python deepfauneGUI.py` or `python.exe deepfauneGUI.py`
 
-You can use the GUI, and you can also consult [the user manual](https://plmlab.math.cnrs.fr/deepfaune/software/-/tree/master/man).
+Now you can use the GUI !
 
 
 ### Using the API
