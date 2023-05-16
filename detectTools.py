@@ -38,6 +38,7 @@ from ultralytics import YOLO
 
 YOLO_WIDTH = 1280 # image width
 YOLO_THRESH = 0.6
+YOLOCOUNT_THRESH = 0.6
 model = 'deepfaune-yolov8s.pt'
 
 ####################################################################################
@@ -74,7 +75,7 @@ class Detector:
         if not len(detection.cls) or detection.conf[0] < threshold:
             return [], 0, np.zeros(4), 0
         category = detection.cls[0] + 1
-        count = sum(detection.conf>threshold)
+        count = sum(detection.conf>YOLOCOUNT_THRESH) # only if best box > YOLOTHRESH
         box = detection.xyxy[0] / ratio  # xmin, ymin, xmax, ymax
         croppedimage = cropSquare(image, box.copy())
         return croppedimage, category, box, count
