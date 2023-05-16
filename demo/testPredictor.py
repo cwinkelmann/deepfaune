@@ -64,18 +64,19 @@ threshold = 0.5
 predictor = Predictor(filenames, threshold, maxlag, LANG)
 
 ## RUNNING BATCHES OF PREDICTION
+## ONE AT A TIME
 while True:
-    batch, k1, k2, predictedclass_batch, predictedscore_batch = predictor.nextBatch()
-    if not len(predictedclass_batch): break
+    batch, k1, k2, k1seq, k2seq = predictor.nextBatch()
+    if k1 == len(filenames): break
     print("Traitement du batch d'images "+str(batch)+"\n")
-
+## OR ALL TOGETHER
 predictor.allBatch()
 
 ## GETTING THE RESULTS
 ## without using the sequences
-predictedclass_base, predictedscore_base, best_boxes = predictor.getPredictions()
+predictedclass_base, predictedscore_base, best_boxes, count = predictor.getPredictionsBase()
 ## or using the sequences
-predictedclass, predictedscore, best_boxes = predictor.getPredictionsWithSequences(maxlag)
+predictedclass, predictedscore, best_boxes, count = predictor.getPredictions()
 
 ## OUTPUT
 dates = predictor.getDates()

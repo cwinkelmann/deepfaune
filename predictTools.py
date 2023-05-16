@@ -335,10 +335,14 @@ class PredictorVideo(PredictorBase):
 
 class PredictorJSON(PredictorBase):
     
-    def __init__(self, jsonfilename, threshold, LANG, BATCH_SIZE=8):
-         self.detector = DetectorJSON(jsonfilename)
-         self.classifier = Classifier()
+    def __init__(self, jsonfilename, threshold, maxlag, LANG, BATCH_SIZE=8):
+         self.detector = DetectorJSON(jsonfilename) # first, to manage filenames in json
          super().__init__(self.detector.getFilenames(), threshold, LANG, BATCH_SIZE) # inherits all
+         self.predictedclass_base = [""]*self.fileManager.nbFiles()
+         self.predictedscore_base = [0.]*self.fileManager.nbFiles()
+         self.classifier = Classifier()
+         self.fileManager.findSequences(maxlag)
+         self.fileManager.reorderBySeqnum()
     
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
@@ -369,6 +373,12 @@ class PredictorJSON(PredictorBase):
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch
         
+    def getPredictionsBase(self, k=None):
+        if k is not None:
+            return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
+        else:            
+            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
+
     def merge(self, predictor):
         super().merge(predictor)
         self.detector.merge(predictor.detector)
