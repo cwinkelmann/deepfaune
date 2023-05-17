@@ -37,7 +37,7 @@ from pathlib import Path
 import pandas as pd
 
 if (len(sys.argv)!=3):
-    print("Usage: python testPredictor.py <IMAGEPATH> <CSVFILENAME>")
+    print("Usage: python testPredictor.py <VIDEOPATH> <CSVFILENAME>")
     exit()
 
 ## IMPORT DEEPFAUNE CLASSES
@@ -63,17 +63,20 @@ threshold = 0.5
 predictor = PredictorVideo(filenames, threshold, LANG)
 
 ## RUNNING BATCHES OF PREDICTION
+## ONE AT A TIME
+while True:
+    batch, k1, k2 = predictor.nextBatch()
+    if k1 == len(filenames): break
+    print("Traitement du batch d'images "+str(batch)+"\n")
+## OR ALL TOGETHER
 predictor.allBatch()
 
 ## GETTING THE RESULTS
-## without using the sequences
-predictedclass_base, predictedscore_base = predictor.getPredictions()
-## or using the sequences
-predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
+predictedclass, predictedscore, best_boxes, count = predictor.getPredictions()
 
 ## OUTPUT
 dates = predictor.getDates()
 seqnum = predictor.getSeqnums()
-preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore})
+preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'prediction':predictedclass, 'score':predictedscore, 'count':count})
 preddf.to_csv(sys.argv[2], index=False)
 print('Done, results saved in '+sys.argv[2])

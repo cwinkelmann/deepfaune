@@ -764,8 +764,6 @@ while True:
         #########################
         ## CORRECTING PREDICTION
         #########################
-        print(values['-PREDICTION-'])
-        print(predictor.getPredictions(curridx))
         if predictorready:
             # if predicted empty associated to another class, set count to NA
             if predictor.getPredictedClass(curridx) == txt_empty[LANG]:

@@ -389,6 +389,12 @@ class PredictorJSON(PredictorImageBase):
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch
         
+    def getPredictionsBase(self, k=None):
+        if k is not None:
+            return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
+        else:            
+            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
+
     def merge(self, predictor):
         PredictorImageBase.merge(predictor)
         self.detector.merge(predictor.detector)

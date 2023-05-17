@@ -53,16 +53,16 @@ jsonfilename = sys.argv[1]
 LANG = 'en'
 maxlag = 20
 threshold = 0.5
-predictor = PredictorJSON(jsonfilename, threshold, LANG)
+predictor = PredictorJSON(jsonfilename, threshold, maxlag, LANG)
 
 ## RUNNING BATCHES OF PREDICTION
 predictor.allBatch()
 
 ## GETTING THE RESULTS
 ## without using the sequences
-predictedclass_base, predictedscore_base = predictor.getPredictions()
+predictedclass_base, predictedscore_base, best_boxes, count = predictor.getPredictionsBase()
 ## or using the sequences
-predictedclass, predictedscore = predictor.getPredictionsWithSequences(maxlag)
+predictedclass, predictedscore, best_boxes, count = predictor.getPredictions()
 
 ## OUTPUT
 filenames = predictor.getFilenames()
