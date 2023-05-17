@@ -427,6 +427,11 @@ while True:
                 break
     elif event == txt_activatecount[LANG]:
         countactivated = True
+        if predictorready:
+            _, _, _, count_curridx = predictor.getPredictions(curridx)
+            window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
+        else:
+            window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
         window['-COUNT-'].Update(visible=True)
         config.set('General', 'count', 'True')
         with open("settings.ini", "w") as inif:
