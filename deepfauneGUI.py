@@ -302,7 +302,8 @@ layout = [
                               background_color=background_color, text_color=text_color,
                               key='-TAB-')],
                     [
-                        sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]], background_color=background_color, text_color=text_color, enable_events=True,
+                        sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]],
+                                 background_color=background_color, text_color=text_color, enable_events=True,
                                  default_value=txt_all[LANG], size=(12, 1), bind_return_key=False, key='-RESTRICT-'),
                         sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous media'),
                         sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next media')
@@ -314,7 +315,8 @@ layout = [
                               , background_color=background_color)
                      ],
                     [sg.Text(txt_prediction[LANG]+':', background_color=background_color, text_color=text_color, size=(10, 1)),
-                     sg.Combo(values=list(sorted_txt_classes_lang+[txt_empty[LANG]]+[txt_other[LANG]]), default_value="", enable_events=True,
+                     sg.Combo(values=list(sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]),
+                              default_value="", enable_events=True,
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
@@ -409,6 +411,7 @@ thread = None
 predictorready = False
 imgmoved  = False
 batchduration = deque(maxlen=20)
+txt_new_classes_lang = []
 
 while True:
     event, values = window.read(timeout=10)
@@ -764,8 +767,12 @@ while True:
         # color activated when possible to use keyboard on this element
         if predictorready:
             predictor.setPrediction(curridx, values['-PREDICTION-'], 1.0)
-        window.Element('-PREDICTION-').Update(select=False)
-        window.Element('-SCORE-').Update("\tScore: 1.0")
+        if not values['-PREDICTION-'] in sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]+txt_new_classes_lang:
+            txt_new_classes_lang.append(values['-PREDICTION-']) # new class proposed by the user
+            window['-PREDICTION-'].Update(values=sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]],
+                                          value=values['-PREDICTION-'])
+        window['-PREDICTION-'].Update(select=False)
+        window['-SCORE-'].Update("\tScore: 1.0")
     elif event == '-RESTRICT-':
         #########################
         ## BROWSING RESTRICTION
