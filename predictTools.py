@@ -50,11 +50,15 @@ txt_empty = {'fr':"vide", 'en':"empty", 'it':"vuoto"}
 txt_undefined = {'fr':"indéfini", 'en':"undefined", 'it':"indeterminato"}
 
 
+####################################################################################
+### PREDICTOR BASE
+####################################################################################
 class PredictorBase(ABC):
     def __init__(self, filenames, threshold, LANG, BATCH_SIZE=8):
         self.LANG = LANG
         self.BATCH_SIZE = BATCH_SIZE
         self.fileManager = FileManager(filenames)
+        self.classifier = Classifier()
         self.cropped_data = torch.ones((self.BATCH_SIZE,3,CROP_SIZE,CROP_SIZE))
         self.nbclasses = len(txt_classes[self.LANG])
         self.idxhuman = len(txt_animalclasses[self.LANG]) # idx of 'human' class in prediction
@@ -95,9 +99,12 @@ class PredictorBase(ABC):
         else:            
             return self.predictedclass, self.predictedscore, self.bestboxes, self.count
 
-    def setPrediction(self, k, label, score):
+    def getPredictedClass(self, k):
+        return self.predictedclass[k]
+        
+    def setPredictedClass(self, k, label):
         self.predictedclass[k] = label
-        self.predictedscore[k] = score
+        self.predictedscore[k] = 1.0
         
     def getFilenames(self):
         return self.fileManager.getFilenames()
@@ -117,14 +124,6 @@ class PredictorBase(ABC):
             exit("You can not merge incompatible predictors (incompatible type or number of classes)")
         self.fileManager.merge(predictor.fileManager)
         self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
-        if self.predictedclass_base == [] or predictor.predictedclass_base == []:
-            self.predictedclass_base = []
-        else:
-            self.predictedclass_base += predictor.predictedclass_base
-        if self.predictedscore_base == [] or predictor.predictedscore_base == []:
-             self.predictedscore_base = []
-        else:            
-            self.predictedscore_base += predictor.predictedscore_base
         if self.predictedclass == [] or predictor.predictedclass == []:
             self.predictedclass = []
         else:
@@ -159,8 +158,36 @@ class PredictorBase(ABC):
             best = np.argmax(majority['score']) # selecting class with best total score
             majorityclass = majority.index[best]
             majorityscore = meanscore[best] # overall score as the mean for this class
-            return majorityclass, int(majorityscore*100)/100.
+            return majorityclass, int(majorityscore*100)/100.    
     
+####################################################################################
+### PREDICTOR IMAGE BASE
+####################################################################################
+class PredictorImageBase(PredictorBase):    
+    def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
+        PredictorBase.__init__(self, filenames, threshold, LANG, BATCH_SIZE) # inherits all
+        self.predictedclass_base = [""]*self.fileManager.nbFiles()
+        self.predictedscore_base = [0.]*self.fileManager.nbFiles()
+        self.fileManager.findSequences(maxlag)
+        self.fileManager.reorderBySeqnum()
+
+    def getPredictionsBase(self, k=None):
+        if k is not None:
+            return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
+        else:            
+            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
+
+    def merge(self, predictor):
+        PredictorBase.merge(predictor)
+        if self.predictedclass_base == [] or predictor.predictedclass_base == []:
+            self.predictedclass_base = []
+        else:
+            self.predictedclass_base += predictor.predictedclass_base
+        if self.predictedscore_base == [] or predictor.predictedscore_base == []:
+             self.predictedscore_base = []
+        else:            
+            self.predictedscore_base += predictor.predictedscore_base
+        
     def correctPredictionsWithSequenceBatch(self):
         seqnum = self.fileManager.getSeqnums()
         k1seq = self.k1 # first sequence in batch
@@ -180,7 +207,7 @@ class PredictorBase(ABC):
                 idx4num = k1seq + np.nonzero(subseqnum==num)[0]
                 df_prediction = pd.DataFrame({'prediction':[self.predictedclass_base[k] for k in idx4num],
                                               'score':[self.predictedscore_base[k] for k in idx4num]})
-                majorityclass, meanscore = self.__majorityVotingInSequence(df_prediction)
+                majorityclass, meanscore = self._PredictorBase__majorityVotingInSequence(df_prediction)
                 for k in idx4num:
                     self.predictedclass[k] = majorityclass
                     self.predictedscore[k] = meanscore
@@ -190,19 +217,16 @@ class PredictorBase(ABC):
         self.k1 = 0 # batch start
         self.k2 = self.fileManager.nbFiles()
         self.correctPredictionsWithSequenceBatch()
-    
-    
-class Predictor(PredictorBase):
-    
+
+
+####################################################################################
+### PREDICTOR IMAGE
+####################################################################################
+class PredictorImage(PredictorImageBase):    
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
-        super().__init__(filenames, threshold, LANG, BATCH_SIZE) # inherits all
-        self.predictedclass_base = [""]*self.fileManager.nbFiles()
-        self.predictedscore_base = [0.]*self.fileManager.nbFiles()
+        PredictorImageBase.__init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = Detector()
         self.yolothreshold = YOLO_THRESH
-        self.classifier = Classifier()
-        self.fileManager.findSequences(maxlag)
-        self.fileManager.reorderBySeqnum()
 
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
@@ -247,20 +271,15 @@ class Predictor(PredictorBase):
     def setDetectionThreshold(self, threshold):
         self.yolothreshold = threshold
         
-    def getPredictionsBase(self, k=None):
-        if k is not None:
-            return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
-        else:            
-            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
-        
+####################################################################################
+### PREDICTOR VIDEO 
+####################################################################################
 class PredictorVideo(PredictorBase):
-
     def __init__(self, filenames, threshold, LANG, BATCH_SIZE=8):
-         super().__init__(filenames, threshold, LANG, BATCH_SIZE) # inherits all
+         PredictorBase.__init__(self, filenames, threshold, LANG, BATCH_SIZE) # inherits all
          self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.yolothreshold = YOLO_THRESH
-         self.classifier = Classifier()
 
     def resetBatch(self):
         self.k1 = 0
@@ -333,12 +352,13 @@ class PredictorVideo(PredictorBase):
     def getKeyFrames(self, index):
         return self.keyframes[index]
 
-class PredictorJSON(PredictorBase):
-    
-    def __init__(self, jsonfilename, threshold, LANG, BATCH_SIZE=8):
+####################################################################################
+### PREDICTOR IMAGE FROM JSON
+####################################################################################
+class PredictorJSON(PredictorImageBase):    
+    def __init__(self, jsonfilename, threshold, maxlag, LANG, BATCH_SIZE=8):
          self.detector = DetectorJSON(jsonfilename)
-         self.classifier = Classifier()
-         super().__init__(self.detector.getFilenames(), threshold, LANG, BATCH_SIZE) # inherits all
+         PredictorImageBase.__init__(self, self.detector.getFilenames(), threshold, maxlag, LANG, BATCH_SIZE) # inherits all
     
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
@@ -370,6 +390,6 @@ class PredictorJSON(PredictorBase):
             return self.batch-1, k1_batch, k2_batch
         
     def merge(self, predictor):
-        super().merge(predictor)
+        PredictorImageBase.merge(predictor)
         self.detector.merge(predictor.detector)
         

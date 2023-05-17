@@ -560,7 +560,7 @@ while True:
                 from predictTools import PredictorVideo
                 BATCH_SIZE = 12 # Batch size for predictor, in number of images
             else:
-                from predictTools import Predictor
+                from predictTools import PredictorImage
                 BATCH_SIZE = 8
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
@@ -569,7 +569,7 @@ while True:
             else:
                 if len(filenames)>1000:
                     popup_win = popup(txt_loadingmetadata[LANG])
-                predictor = Predictor(filenames, threshold, maxlag, LANG, BATCH_SIZE)                
+                predictor = PredictorImage(filenames, threshold, maxlag, LANG, BATCH_SIZE)
                 if len(filenames)>1000:
                     popup_win.close()
                 filenames = predictor.getFilenames()
@@ -764,15 +764,21 @@ while True:
         #########################
         ## CORRECTING PREDICTION
         #########################
-        # color activated when possible to use keyboard on this element
+        print(values['-PREDICTION-'])
+        print(predictor.getPredictions(curridx))
         if predictorready:
-            predictor.setPrediction(curridx, values['-PREDICTION-'], 1.0)
+            # if predicted empty associated to another class, set count to NA
+            if predictor.getPredictedClass(curridx) == txt_empty[LANG]:
+                if values['-PREDICTION-'] != txt_empty[LANG]:
+                    window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
+            predictor.setPredictedClass(curridx, values['-PREDICTION-'])
+            window['-PREDICTION-'].Update(select=False)
+            window['-SCORE-'].Update("\tScore: 1.0")
+        # new class proposed by the user ?
         if not values['-PREDICTION-'] in sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]+txt_new_classes_lang:
-            txt_new_classes_lang.append(values['-PREDICTION-']) # new class proposed by the user
+            txt_new_classes_lang.append(values['-PREDICTION-']) 
             window['-PREDICTION-'].Update(values=sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]],
                                           value=values['-PREDICTION-'])
-        window['-PREDICTION-'].Update(select=False)
-        window['-SCORE-'].Update("\tScore: 1.0")
     elif event == '-RESTRICT-':
         #########################
         ## BROWSING RESTRICTION

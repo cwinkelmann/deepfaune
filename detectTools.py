@@ -83,7 +83,6 @@ class Detector:
 ####################################################################################
 ### BEST BOX DETECTION WITH JSON
 ####################################################################################
-
 from load_api_results import load_api_results
 import contextlib
 import os
