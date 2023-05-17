@@ -579,6 +579,8 @@ while True:
             rowidx = 0
             batchduration = deque(maxlen=20)
             window['-TAB-'].update(select_rows=[curridx])
+            window['-PREDICTION-'].Update(disabled=True)
+            window['-RESTRICT-'].Update(disabled=True)
             predictor.setForbiddenClasses(forbiddenclasses)
             ###
             def runPredictor():
@@ -681,7 +683,6 @@ while True:
                 if predictorready:
                     predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
-                    window['-PREDICTION-'].Update(disabled=False)
                     window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
                     if countactivated:
                         window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
@@ -765,11 +766,15 @@ while True:
         ## CORRECTING PREDICTION
         #########################
         if predictorready:
-            # if predicted empty associated to another class, set count to NA
+            # if predicted empty associated to another class, set count to 1
             if predictor.getPredictedClass(curridx) == txt_empty[LANG]:
                 if values['-PREDICTION-'] != txt_empty[LANG]:
-                    window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
-            predictor.setPredictedClass(curridx, values['-PREDICTION-'])
+                    window['-COUNT-'].Update("\t"+txt_count[LANG]+": 1")
+                    predictor.setPredictedCount(curridx, 1)
+            if VIDEO:
+                predictor.setPredictedClass(curridx, values['-PREDICTION-'])
+            else:
+                predictor.setPredictedClassInSequence(curridx, values['-PREDICTION-'])
             window['-PREDICTION-'].Update(select=False)
             window['-SCORE-'].Update("\tScore: 1.0")
         # new class proposed by the user ?
@@ -777,6 +782,9 @@ while True:
             txt_new_classes_lang.append(values['-PREDICTION-']) 
             window['-PREDICTION-'].Update(values=sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]],
                                           value=values['-PREDICTION-'])
+            valuerestrict = values['-RESTRICT-']
+            window['-RESTRICT-'].Update(values=[txt_all[LANG]]+sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_empty[LANG]],
+                                        value=valuerestrict)
     elif event == '-RESTRICT-':
         #########################
         ## BROWSING RESTRICTION
@@ -808,8 +816,8 @@ while True:
             thread = None
             updateMenuExport(disabled=False)
             updateMenuSubfolders(disabled=False) 
-            window['-PREDICTION-'].Update(disabled=False)
             window['-RESTRICT-'].Update(disabled=False)
+            window['-PREDICTION-'].Update(disabled=False)
             window['-CONFIG-'].Update(button_color=(background_color, background_color))
 window.close()
 

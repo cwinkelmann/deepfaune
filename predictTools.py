@@ -102,9 +102,12 @@ class PredictorBase(ABC):
     def getPredictedClass(self, k):
         return self.predictedclass[k]
         
-    def setPredictedClass(self, k, label):
+    def setPredictedClass(self, k, label, score=1.0):
         self.predictedclass[k] = label
-        self.predictedscore[k] = 1.0
+        self.predictedscore[k] = score
+
+    def setPredictedCount(self, k, count):
+        self.count[k] = count
         
     def getFilenames(self):
         return self.fileManager.getFilenames()
@@ -176,6 +179,17 @@ class PredictorImageBase(PredictorBase):
             return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
         else:            
             return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
+
+    def setPredictedClassInSequence(self, k, label, score=1.0):
+        self.setPredictedClass(k, label, score)
+        seqnum = self.fileManager.getSeqnums()
+        k1seq = k2seq = k
+        while (k1seq-1)>=0 and seqnum[(k1seq-1)]==seqnum[k]:
+            k1seq = k1seq-1
+            self.setPredictedClass(k1seq, label, score)
+        while (k2seq+1)<len(seqnum) and seqnum[(k2seq+1)]==seqnum[k]:
+            k2seq = k2seq+1
+            self.setPredictedClass(k2seq, label, score)
 
     def merge(self, predictor):
         PredictorBase.merge(predictor)
