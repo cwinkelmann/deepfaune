@@ -415,6 +415,7 @@ txt_new_classes_lang = []
 
 while True:
     event, values = window.read(timeout=10)
+    print(curridx)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event in listlang:
