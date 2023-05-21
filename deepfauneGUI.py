@@ -427,7 +427,7 @@ while True:
                 break
     elif event == txt_activatecount[LANG]:
         countactivated = True
-        if predictorready:
+        if predictorready and len(subsetidx)>0:
             _, _, _, count_curridx = predictor.getPredictions(curridx)
             window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
         else:
