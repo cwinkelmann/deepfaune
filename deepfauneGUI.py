@@ -317,7 +317,7 @@ layout = [
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]),
                               default_value="", enable_events=True,
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
-                     sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
+                     sg.Text("   Score: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
                      sg.Text("\t"+txt_count[LANG]+":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-'),
                      sg.Input(default_text="0", size=(2, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color,
@@ -380,7 +380,7 @@ def updateCurridxPrediction(disabled):
     if disabled is True:
         window['-PREDICTION-'].Update(value="")
         window['-PREDICTION-'].Update(disabled=True)
-        window['-SCORE-'].Update("\tScore: 0.0")
+        window['-SCORE-'].Update("   Score: 0.0")
         if countactivated:
             window['-COUNTER-'].Update(value=0)
             window['-COUNTER-'].Update(disabled=True)
@@ -698,7 +698,7 @@ while True:
                 if predictorready:
                     predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
-                    window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
+                    window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
                     if countactivated:
                         window['-COUNTER-'].Update(value=count_curridx)
                     if not VIDEO:
@@ -791,7 +791,7 @@ while True:
             else:
                 predictor.setPredictedClassInSequence(curridx, values['-PREDICTION-'])
             window['-PREDICTION-'].Update(select=False)
-            window['-SCORE-'].Update("\tScore: 1.0")
+            window['-SCORE-'].Update("   Score: 1.0")
         # new class proposed by the user ?
         if not values['-PREDICTION-'] in sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]+txt_new_classes_lang:
             txt_new_classes_lang.append(values['-PREDICTION-']) 
