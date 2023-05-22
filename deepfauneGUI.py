@@ -319,8 +319,10 @@ layout = [
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("\tScore: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
-                     sg.Text("\t"+txt_count[LANG]+": NA", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-')] # not used if media are videos
-                ], background_color=background_color)
+                     sg.Text("\t"+txt_count[LANG]+":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-'),
+                     sg.Input(default_text="0", size=(2, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color,
+                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
+                ], background_color=background_color, expand_x=True)
             ]
         ], background_color=background_color, expand_y=True)]
     ],
@@ -339,6 +341,8 @@ window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0),
                    resizable=True, background_color=background_color).Finalize()
 window.read(timeout=0)
 window['-PREDICTION-'].Update(disabled=True)
+window['-COUNTER-'].Update(disabled=True)
+window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after return key
 window['-RESTRICT-'].Update(disabled=True)
 
 from tkinter import TclError
@@ -378,7 +382,8 @@ def updateCurridxPrediction(disabled):
         window['-PREDICTION-'].Update(disabled=True)
         window['-SCORE-'].Update("\tScore: 0.0")
         if countactivated:
-            window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
+            window['-COUNTER-'].Update(value=0)
+            window['-COUNTER-'].Update(disabled=True)
         if VIDEO:
             window['-SEQNUM-'].Update("")
         else:
@@ -414,7 +419,6 @@ txt_new_classes_lang = []
 
 while True:
     event, values = window.read(timeout=10)
-    print(curridx)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     elif event in listlang:
@@ -426,13 +430,17 @@ while True:
             if yesorno == 'yes':
                 break
     elif event == txt_activatecount[LANG]:
+        #########################
+        ## (DE)ACTIVATING COUNT
+        #########################
         countactivated = True
         if predictorready and len(subsetidx)>0:
             _, _, _, count_curridx = predictor.getPredictions(curridx)
-            window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
+            window['-COUNTER-'].Update(value=count_curridx)
         else:
-            window['-COUNT-'].Update("\t"+txt_count[LANG]+": NA")
+            window['-COUNTER-'].Update(value=0)
         window['-COUNT-'].Update(visible=True)
+        window['-COUNTER-'].Update(visible=True)
         config.set('General', 'count', 'True')
         with open("settings.ini", "w") as inif:
             config.write(inif)
@@ -440,6 +448,7 @@ while True:
     elif event == txt_deactivatecount[LANG]:
         countactivated = False
         window['-COUNT-'].Update(visible=False)
+        window['-COUNTER-'].Update(visible=False)
         config.set('General', 'count', 'False')
         with open("settings.ini", "w") as inif:
             config.write(inif)
@@ -507,7 +516,7 @@ while True:
                 window['-TAB-'].Update(values=[[basename(f)] for f in filenames])
                 window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
-                window['-TAB-'].update(select_rows=[curridx])
+                window['-TAB-'].update(select_rows=[0])
                 window['-CONFIG-'].Update(button_color=(background_color, background_color))
     elif event == '-CONFIG-' and testdir is not None and thread is None:
         #########################
@@ -518,12 +527,12 @@ while True:
             sequencespin = []
         else:
             sequencespin = [sg.Text(txt_sequencemaxlag[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
-                            sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), change_submits=True, enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
+                            sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
         layoutconfig = [
             [select_frame],
             [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, layout=[
                 [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
-                 sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), change_submits=True, enable_events=True,
+                 sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), enable_events=True,
                          background_color=background_color, text_color=text_color, key='-THRESHOLD-')],
                 sequencespin
             ], background_color=background_color)],
@@ -583,8 +592,9 @@ while True:
             curridx = 0
             rowidx = 0
             batchduration = deque(maxlen=20)
-            window['-TAB-'].update(select_rows=[curridx])
+            window['-TAB-'].update(select_rows=[0])
             window['-PREDICTION-'].Update(disabled=True)
+            window['-COUNTER-'].Update(disabled=True)
             window['-RESTRICT-'].Update(disabled=True)
             predictor.setForbiddenClasses(forbiddenclasses)
             ###
@@ -690,7 +700,7 @@ while True:
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
                     window['-SCORE-'].Update("\tScore: "+str(predictedscore_curridx))
                     if countactivated:
-                        window['-COUNT-'].Update("\t"+txt_count[LANG]+": "+str(count_curridx))
+                        window['-COUNTER-'].Update(value=count_curridx)
                     if not VIDEO:
                         window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
                     if predictedclass_curridx is not txt_empty[LANG]:
@@ -774,7 +784,7 @@ while True:
             # if predicted empty associated to another class, set count to 1
             if predictor.getPredictedClass(curridx) == txt_empty[LANG]:
                 if values['-PREDICTION-'] != txt_empty[LANG]:
-                    window['-COUNT-'].Update("\t"+txt_count[LANG]+": 1")
+                    window['-COUNTER-'].Update(value=1)
                     predictor.setPredictedCount(curridx, 1)
             if VIDEO:
                 predictor.setPredictedClass(curridx, values['-PREDICTION-'])
@@ -790,6 +800,14 @@ while True:
             valuerestrict = values['-RESTRICT-']
             window['-RESTRICT-'].Update(values=[txt_all[LANG]]+sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_empty[LANG]],
                                         value=valuerestrict)
+    elif event == '-COUNTER-' + "_Enter":
+        if predictorready:
+            try:
+                newcount = int(values['-COUNTER-'])
+                predictor.setPredictedCount(curridx, values['-COUNTER-'])
+            except ValueError:
+                window['-COUNTER-'].Update(value=count_curridx)
+            #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor
     elif event == '-RESTRICT-':
         #########################
         ## BROWSING RESTRICTION
@@ -823,6 +841,8 @@ while True:
             updateMenuSubfolders(disabled=False) 
             window['-RESTRICT-'].Update(disabled=False)
             window['-PREDICTION-'].Update(disabled=False)
+            if countactivated:
+                window['-COUNTER-'].Update(disabled=False)
             window['-CONFIG-'].Update(button_color=(background_color, background_color))
 window.close()
 
