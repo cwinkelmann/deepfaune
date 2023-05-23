@@ -52,7 +52,11 @@ txt_animalclasses = {
            "sheep", "mustelid", "bird", "bear", "nutria", "fox", "wild boar", "cow"],
     'it': ["tasso", "stambecco", "cervo", "camoscio", "gatto", "capra", "capriolo", "cane", "scoiattolo", "equide", "genet",
            "riccio", "lagomorfo", "lupo", "lince", "marmotta", "micromammifero", "muflone",
-           "pecora", "mustelide", "uccello", "orso", "nutria", "volpe", "cinghiale", "mucca"]
+           "pecora", "mustelide", "uccello", "orso", "nutria", "volpe", "cinghiale", "mucca"],
+    'de': ["Dachs", "Steinbock", "Rothirsch", "Gämse", "Katze", "Ziege", "Rehwild", "Hund", "Eichhörnchen", "Equiden", "Ginsterkatze",
+           "Igel", "Lagomorpha", "Wolf", "Luchs", "Murmeltier", "Kleinsäuger", "Mufflon",
+           "Schaf", "Mustelide", "Vogen", "Bär", "Nutria", "Fuchs", "Wildschwein", "Kuh"],
+    
 }
 
 

@@ -46,7 +46,7 @@ VERSION = "1.0.0"
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-listlang = ['fr', 'en', 'it']
+listlang = ['fr', 'en', 'it', 'de']
 import configparser
 config = configparser.ConfigParser()
 config.read('settings.ini')
@@ -66,35 +66,52 @@ maxlag = maxlag_default = 10 # seconds
 ### GUI TEXT
 ####################################################################################
 from predictTools import txt_undefined, txt_empty, txt_classes
-txt_other =  {'fr':"autre", 'en':"other", 'it':"altro"}
-txt_browse = {'fr':"Choisir", 'en':"Select", 'it':"Scegliere"}
-txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'en':"Incorrect folder - no media found", 'it':"File scorretto - media non trovato"}
-txt_confidence = {'fr':"Seuil de confiance", 'en':"Confidence threshold", 'it':"Livello minimo di affidabilita"}
-txt_sequencemaxlag = {'fr':"Intervalle max / séquence (secondes)", 'en':"Sequence max lag (seconds)", 'it':"Intervallo massimo / sequenza (secondi)"}
-txt_configrun = {'fr':"Configurer et lancer", 'en':"Configure & Run", 'it':"Configurare e inviare"}
-txt_run = {'fr':"Lancer", 'en':"Run", 'it':"Inviare"}
-txt_nextpred = {'fr':"Suivant", 'en':"Next", 'it':"Prossimo"}
-txt_prevpred = {'fr':"Précédent", 'en':"Previous", 'it':"Precedente"}
-txt_paramframe = {'fr':"Paramètres", 'en':"Parameters", 'it':"Parametri"}
-txt_selectclasses = {'fr':"Sélection des classes", 'en':"Classes selection", 'it':"Selezione delle classi"}
-txt_close  = {'fr':"Fermer", 'en':"Close", 'it':"Chiudere"}
-txt_all = {'fr':"toutes", 'en':"all", 'it':"tutte"}
-txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found for this class", 'it':"Nessun media per questa classe"}
-txt_filename = {'fr':"Nom de fichier", 'en':"Filename", 'it':"Nome del file"}
-txt_prediction = {'fr':"Prédiction", 'en':"Prediction", 'it':"Predizione"}
-txt_count = {'fr':"Comptage", 'en':"Count", 'it':"Conto"}
-txt_counttype = {'fr':"Type de comptage (expérimental)", 'en':"Type of count (experimental)", 'it':"Tipo di conto (sperimentale)"}
-txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID", 'it':"Sequenza ID"}
-txt_error = {'fr':"Erreur", 'en':"Error", 'it':"Errore"}
+txt_other =  {'fr':"autre", 'en':"other",
+              'it':"altro", 'de':"andere Klasse"}
+txt_browse = {'fr':"Choisir", 'en':"Select",
+              'it':"Scegliere", 'de':"Wählen"}
+txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'en':"Incorrect folder - no media found",
+                 'it':"File scorretto - media non trovato", 'de':"Falscher Ordner - keine Medien gefunden"}
+txt_confidence = {'fr':"Seuil de confiance", 'en':"Confidence threshold",
+                  'it':"Livello minimo di affidabilita", 'de':"Konfidenzniveau"}
+txt_sequencemaxlag = {'fr':"Durée maximale entre images consécutives\n d'une séquence (secondes)",
+                      'en':"Maximum length between consecutive images\n in a sequence (seconds)",
+                      'it':"Durata massima tra immagini consecutive\n in una sequenza (secondi)",
+                      'de':"Maximale Dauer zwischen aufeinanderfolgenden Bildern\n in einer Sequenz (Sekunden)"}
+txt_configrun = {'fr':"Configurer et lancer", 'en':"Configure & Run",
+                 'it':"Configurare e inviare", 'de':"Konfigurieren und starten"}
+txt_run = {'fr':"Lancer", 'en':"Run",
+           'it':"Inviare", 'de':"Starten"}
+txt_paramframe = {'fr':"Paramètres", 'en':"Parameters",
+                  'it':"Parametri", 'de':"Parameter"}
+txt_selectclasses = {'fr':"Sélection des classes", 'en':"Classes selection",
+                     'it':"Selezione delle classi", 'de':"Auswahl der Klassen"}
+txt_all = {'fr':"toutes", 'en':"all",
+           'it':"tutte", 'de':"Alles"}
+txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found for this class",
+                     'it':"Nessun media per questa classe", 'de':"Keine Medien für diese Klasse gefunden"}
+txt_filename = {'fr':"Nom de fichier", 'en':"Filename",
+                'it':"Nome del file", 'de':"Dateiname"}
+txt_prediction = {'fr':"Prédiction", 'en':"Prediction",
+                  'it':"Predizione", 'de':"Vorhersage"}
+txt_count = {'fr':"Comptage", 'en':"Count",
+             'it':"Conto", 'de':"Zählung"}
+txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID",
+              'it':"Sequenza ID", 'de':"Sequenz ID"}
+txt_error = {'fr':"Erreur", 'en':"Error",
+             'it':"Errore", 'de':"Fehler"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'en':"Do you want to save predictions in ",
-                       'it':"Volete registrare le predizioni nel"}
-txt_destcopy = {'fr':"Copier dans des sous-dossiers de :", 'en':"Copy in subfolders of:", 'it':"Copiare nei sotto file di"}
-txt_destmove = {'fr':"Déplacer vers des sous-dossiers de :", 'en':"Move to subfolders of:", 'it':"Spostare nei sotto file di"}
+                       'it':"Volete registrare le predizioni nel ", 'de':"Möchten Sie Vorhersagen speichern"}
+txt_destcopy = {'fr':"Copier dans des sous-dossiers de", 'en':"Copy in subfolders of",
+                'it':"Copiare nei sotto file di", 'de':"In Unterordner Kopieren"}
+txt_destmove = {'fr':"Déplacer vers des sous-dossiers de", 'en':"Move to subfolders of",
+                'it':"Spostare nei sotto file di", 'de':"In Unterordner Verschieben"}
 txt_loadingmetadata = {'fr':"Chargement des metadonnées... (cela peut prendre du temps)", 'en':"Loading metadata... (this may take a while)",
-                       'it':"Carica dei metadata... (puo essere lungo)"}
+                       'it':"Carica dei metadata... (puo essere lungo)", 'de':"Laden der Metadaten... (dies kann eine Weile dauern)"}
 txt_restart = {'fr':"Redémarrage nécessaire pour changer la langue. Arréter le logiciel ?",
                'en':"Restart required to change the language. Stopping the software?",
-               'it':"Per cambiare la lingua è necessario un riavvio. Arresto del software ?"}
+               'it':"Per cambiare la lingua è necessario un riavvio. Arresto del software ?",
+               'de':"Neustart erforderlich, um die Sprache zu ändern. Wollen Sie die Software stoppen?"}
 
 ####################################################################################
 ### THEME SETTINGS
@@ -249,22 +266,38 @@ select_frame = sg.Frame(txt_selectclasses[LANG], listCB, font=FONT_NORMAL, expan
                         background_color=background_color) # required here to avoid element reuse (not accepted) 
 
 # Main window
-txt_file = {'fr':"Fichier", 'en':"File", 'it':"File"}
-txt_pref = {'fr':"Préférences", 'en':"Preferences", 'it':"Preferenze"}
-txt_help = {'fr':"Aide", 'en':"Help", 'it':"Aiuto"}
-txt_import = {'fr':"Importer", 'en':"Import", 'it':"Caricare"}
-txt_importimage = {'fr':"Images", 'en':"Images", 'it':"Immagine"}
-txt_importvideo = {'fr':"Vidéos", 'en':"Videos", 'it':"Video"}
-txt_export = {'fr':"Exporter les résultats", 'en':"Export results", 'it':"Esportare i risultati"}
-txt_ascsv = {'fr':"Format CSV", 'en':"As CSV", 'it':"Formato CSV"}
-txt_asxlsx = {'fr':"Format XSLX", 'en':"As XSLX", 'it':"Formato XSLX"}
-txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'en':"Create subfolders", 'it':"Creare dei sotto file"}
-txt_copy = {'fr':"Copier les fichiers", 'en':"Copy files", 'it':"Copiare i file"}
-txt_move = {'fr':"Déplacer les fichiers", 'en':"Move files", 'it':"Spostare i file"}
-txt_language = {'fr':"Langue", 'en':"Language", 'it':"Lingua"}
-txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate count (experimental)", 'it':"Attivare il conto (sperimentale)"}
-txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Deactivate count (experimental)", 'it':"Disattivare il conto (sperimentale)"}
-txt_credits = {'fr':"A propos", 'en':"About DeepFaune", 'it':"A proposito"}
+txt_file = {'fr':"Fichier", 'en':"File",
+            'it':"File", 'de':"Datei"}
+txt_pref = {'fr':"Préférences", 'en':"Preferences",
+            'it':"Preferenze", 'de':"Präferenzen"}
+txt_help = {'fr':"Aide", 'en':"Help",
+            'it':"Aiuto", 'de':"Hilfe"}
+txt_import = {'fr':"Importer", 'en':"Import",
+              'it':"Caricare", 'de':"Importieren"}
+txt_importimage = {'fr':"Images", 'en':"Images",
+                   'it':"Immagine", 'de':"Bilder"}
+txt_importvideo = {'fr':"Vidéos", 'en':"Videos",
+                   'it':"Video", 'de':"Videos"}
+txt_export = {'fr':"Exporter les résultats", 'en':"Export results",
+              'it':"Esportare i risultati", 'de':"Resultate exportieren"}
+txt_ascsv = {'fr':"Format CSV", 'en':"As CSV",
+             'it':"Formato CSV", 'de':"Als CSV"}
+txt_asxlsx = {'fr':"Format XSLX", 'en':"As XSLX",
+              'it':"Formato XSLX", 'de':"Als XLSX"}
+txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'en':"Create subfolders",
+                        'it':"Creare dei sotto file", 'de':"Unterordner erstellen"}
+txt_copy = {'fr':"Copier les fichiers", 'en':"Copy files",
+            'it':"Copiare i file", 'de':"Dateien kopieren"}
+txt_move = {'fr':"Déplacer les fichiers", 'en':"Move files",
+            'it':"Spostare i file", 'de':"Dateien verschieben"}
+txt_language = {'fr':"Langue", 'en':"Language",
+                'it':"Lingua", 'de':"Sprache"}
+txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate count (experimental)",
+                     'it':"Attivare il conto (sperimentale)", 'de':"Zählung aktivieren (experimentell)"}
+txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Deactivate count (experimental)",
+                       'it':"Disattivare il conto (sperimentale)", 'de':"Zählung desaktivieren (experimentell)"}
+txt_credits = {'fr':"A propos", 'en':"About DeepFaune",
+               'it':"A proposito", 'de':"Über DeepFaune"}
 if countactivated:
     txt_statuscount = txt_deactivatecount[LANG]
 else:
@@ -304,8 +337,8 @@ layout = [
                         sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]],
                                  background_color=background_color, text_color=text_color, enable_events=True,
                                  default_value=txt_all[LANG], size=(12, 1), bind_return_key=False, key='-RESTRICT-'),
-                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip='previous media'),
-                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip='next media')
+                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None),
+                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)
                      ]
                 ], background_color=background_color, expand_y=True),
                 sg.Column([ 
@@ -376,7 +409,7 @@ def updateMenuActivateCount():
         menu_def[1][1][2] = txt_activatecount[LANG]
     window[txt_pref[LANG]].Update(menu_def[1])
             
-def updateCurridxPrediction(disabled):
+def updatePredictionInfo(disabled):
     if disabled is True:
         window['-PREDICTION-'].Update(value="")
         window['-PREDICTION-'].Update(disabled=True)
@@ -389,7 +422,9 @@ def updateCurridxPrediction(disabled):
         else:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
     else:
-        pass
+        window['-PREDICTION-'].Update(disabled=False)
+        if countactivated:
+            window['-COUNTER-'].Update(disabled=False)
     
 ####################################################################################
 ### GUI IN ACTION
@@ -477,7 +512,7 @@ while True:
             window['-PROGBAR-'].update_bar(0)
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
-            updateCurridxPrediction(disabled=True)
+            updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
             debugprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
@@ -786,6 +821,11 @@ while True:
                 if values['-PREDICTION-'] != txt_empty[LANG]:
                     window['-COUNTER-'].Update(value=1)
                     predictor.setPredictedCount(curridx, 1)
+            # if predicted non empty associated to another class, set count to 0
+            if values['-PREDICTION-'] == txt_empty[LANG]:
+                if predictor.getPredictedClass(curridx) != txt_empty[LANG]:
+                    window['-COUNTER-'].Update(value=0)
+                    predictor.setPredictedCount(curridx, 0)
             if VIDEO:
                 predictor.setPredictedClass(curridx, values['-PREDICTION-'])
             else:
@@ -818,14 +858,15 @@ while True:
             predictedclass, _, _, _ = predictor.getPredictions()
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
         if len(subsetidx)>0:
+            updatePredictionInfo(disabled=False)
             window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
             window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
                                                       for k in range(0, len(subsetidx)))) # row in accent_color because prediction is available
             window['-TAB-'].update(select_rows=[0])
         else:
+            updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[])
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
-            updateCurridxPrediction(disabled=True)
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
         rowidx = 0
@@ -840,9 +881,7 @@ while True:
             updateMenuExport(disabled=False)
             updateMenuSubfolders(disabled=False) 
             window['-RESTRICT-'].Update(disabled=False)
-            window['-PREDICTION-'].Update(disabled=False)
-            if countactivated:
-                window['-COUNTER-'].Update(disabled=False)
+            updatePredictionInfo(disabled=False)
             window['-CONFIG-'].Update(button_color=(background_color, background_color))
 window.close()
 

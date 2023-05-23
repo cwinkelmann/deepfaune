@@ -44,10 +44,11 @@ from fileManager import FileManager
 
 txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
                'en': txt_animalclasses['en']+["human","vehicle"],
-               'it': txt_animalclasses['it']+["umano","veicolo"]
+               'it': txt_animalclasses['it']+["umano","veicolo"],
+               'de': txt_animalclasses['de']+["Mensch","Fahrzeug"]
                }
-txt_empty = {'fr':"vide", 'en':"empty", 'it':"vuoto"}
-txt_undefined = {'fr':"indéfini", 'en':"undefined", 'it':"indeterminato"}
+txt_empty = {'fr':"vide", 'en':"empty", 'it':"vuoto", 'de':"Leer"}
+txt_undefined = {'fr':"indéfini", 'en':"undefined", 'it':"indeterminato", 'de':"Undefiniert"}
 
 
 ####################################################################################

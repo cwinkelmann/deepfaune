@@ -2,7 +2,7 @@
 
 	    Version 1.0.0
 	    * Major changes in GUI features and design.
-	    * Italian version available.
+	    * French/english/italian/german translations available.
 	    * Models from version 0.6.0 are still used.
 	    * Box count available as an option (experimental).
 	    * API changes with no reverse compatibility with previous versions.
