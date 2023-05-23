@@ -74,22 +74,20 @@ txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'en':"Incorrect
                  'it':"File scorretto - media non trovato", 'de':"Falscher Ordner - keine Medien gefunden"}
 txt_confidence = {'fr':"Seuil de confiance", 'en':"Confidence threshold",
                   'it':"Livello minimo di affidabilita", 'de':"Konfidenzniveau"}
-txt_sequencemaxlag = {'fr':"Intervalle max par séquence (secondes)", 'en':"Max sequence lag (seconds)",
-                      'it':"Intervallo massimo per sequenza (secondi)", 'de':"Maximale Sequenz Zeitintervall (Sekunden)"}
+txt_sequencemaxlag = {'fr':"Durée maximale entre images consécutives\n d'une séquence (secondes)",
+                      'en':"Maximum length between consecutive images\n in a sequence (seconds)",
+                      'it':"Durata massima tra immagini consecutive\n in una sequenza (secondi)",
+                      'de':"Maximale Dauer zwischen aufeinanderfolgenden Bildern\n in einer Sequenz (Sekunden)"}
 txt_configrun = {'fr':"Configurer et lancer", 'en':"Configure & Run",
                  'it':"Configurare e inviare", 'de':"Konfigurieren und starten"}
 txt_run = {'fr':"Lancer", 'en':"Run",
            'it':"Inviare", 'de':"Starten"}
-txt_next = {'fr':"Suivant", 'en':"Next",
-            'it':"Prossimo", 'de':"Nächstes"}
-txt_prev = {'fr':"Précédent", 'en':"Previous",
-            'it':"Precedente", 'de':"Vorheriges"}
 txt_paramframe = {'fr':"Paramètres", 'en':"Parameters",
                   'it':"Parametri", 'de':"Parameter"}
 txt_selectclasses = {'fr':"Sélection des classes", 'en':"Classes selection",
                      'it':"Selezione delle classi", 'de':"Auswahl der Klassen"}
 txt_all = {'fr':"toutes", 'en':"all",
-           'it':"tutte", 'de':"alles"}
+           'it':"tutte", 'de':"Alles"}
 txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found for this class",
                      'it':"Nessun media per questa classe", 'de':"Keine Medien für diese Klasse gefunden"}
 txt_filename = {'fr':"Nom de fichier", 'en':"Filename",
@@ -411,7 +409,7 @@ def updateMenuActivateCount():
         menu_def[1][1][2] = txt_activatecount[LANG]
     window[txt_pref[LANG]].Update(menu_def[1])
             
-def updateCurridxPrediction(disabled):
+def updatePredictionInfo(disabled):
     if disabled is True:
         window['-PREDICTION-'].Update(value="")
         window['-PREDICTION-'].Update(disabled=True)
@@ -424,7 +422,9 @@ def updateCurridxPrediction(disabled):
         else:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
     else:
-        pass
+        window['-PREDICTION-'].Update(disabled=False)
+        if countactivated:
+            window['-COUNTER-'].Update(disabled=False)
     
 ####################################################################################
 ### GUI IN ACTION
@@ -512,7 +512,7 @@ while True:
             window['-PROGBAR-'].update_bar(0)
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
-            updateCurridxPrediction(disabled=True)
+            updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
             debugprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
@@ -853,14 +853,15 @@ while True:
             predictedclass, _, _, _ = predictor.getPredictions()
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
         if len(subsetidx)>0:
+            updatePredictionInfo(disabled=False)
             window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
             window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
                                                       for k in range(0, len(subsetidx)))) # row in accent_color because prediction is available
             window['-TAB-'].update(select_rows=[0])
         else:
+            updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[])
             window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
-            updateCurridxPrediction(disabled=True)
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
         rowidx = 0
@@ -875,9 +876,7 @@ while True:
             updateMenuExport(disabled=False)
             updateMenuSubfolders(disabled=False) 
             window['-RESTRICT-'].Update(disabled=False)
-            window['-PREDICTION-'].Update(disabled=False)
-            if countactivated:
-                window['-COUNTER-'].Update(disabled=False)
+            updatePredictionInfo(disabled=False)
             window['-CONFIG-'].Update(button_color=(background_color, background_color))
 window.close()
 
