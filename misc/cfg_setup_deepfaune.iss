@@ -32,22 +32,14 @@ WizardStyle=modern
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
-Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
-Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
-
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [Files]
 Source: "path\to\dist\deepfauneGUI\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "path\to\dist\deepfauneGUI\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\Users\jrabault\Documents\00 - CNRS PRO\01 - Projet\01 - PNRIA\01 - Projet PNRIA en cours\04 - DeepFaune\02-software\dist\deepfauneGUI\settings.ini"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-
-//[Icons]
-//Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-//Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}\icons\1316-white-small.png"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
@@ -102,11 +94,12 @@ begin
   begin
     LanguagePage :=
       CreateInputOptionPage(
-        wpSelectTasks, 'Langue du logiciel', 'Traductions disponibles:', '', True, True);
+        wpSelectTasks, 'Langue du logiciel', 'Traductions disponibles :', '', True, True);
     Languages := TStringList.Create;
     AddLanguage('fr', 'Français');
     AddLanguage('en', 'Anglais');
     AddLanguage('it', 'Italien');
+    AddLanguage('it', 'Allemand');
   end;
   if InstallerLanguage = 'english' then
   begin
@@ -117,6 +110,7 @@ begin
     AddLanguage('fr', 'French');
     AddLanguage('en', 'English');
     AddLanguage('it', 'Italian');
+    AddLanguage('it', 'German');
   end;
   if InstallerLanguage = 'italian' then
   begin
@@ -127,6 +121,18 @@ begin
     AddLanguage('fr', 'Francese');
     AddLanguage('en', 'Inglese');
     AddLanguage('it', 'Italiano');
+    AddLanguage('it', 'Tedesco');
+  end;
+  if InstallerLanguage = 'german' then
+  begin
+    LanguagePage :=
+      CreateInputOptionPage(
+        wpSelectTasks, 'Software Sprache', 'Verfügbare Übersetzungen:', '', True, True);
+    Languages := TStringList.Create;
+    AddLanguage('fr', 'Französisch');
+    AddLanguage('en', 'Englisch');
+    AddLanguage('it', 'Italienisch');
+    AddLanguage('it', 'Deutsch');
   end;
   LanguagePage.CheckListBox.Color := clBtnFace;
   LanguagePage.CheckListBox.WantTabs := True;

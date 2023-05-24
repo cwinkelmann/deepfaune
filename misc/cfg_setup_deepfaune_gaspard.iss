@@ -33,6 +33,7 @@ WizardStyle=modern
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
+Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [Files]
 Source: "D:\Documents\Thèse\software\dist\deepfauneGUI\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
@@ -92,11 +93,12 @@ begin
   begin
     LanguagePage :=
       CreateInputOptionPage(
-        wpSelectTasks, 'Langue du logiciel', 'Traductions disponibles:', '', True, True);
+        wpSelectTasks, 'Langue du logiciel', 'Traductions disponibles :', '', True, True);
     Languages := TStringList.Create;
     AddLanguage('fr', 'Français');
     AddLanguage('en', 'Anglais');
     AddLanguage('it', 'Italien');
+    AddLanguage('it', 'Allemand');
   end;
   if InstallerLanguage = 'english' then
   begin
@@ -107,6 +109,7 @@ begin
     AddLanguage('fr', 'French');
     AddLanguage('en', 'English');
     AddLanguage('it', 'Italian');
+    AddLanguage('it', 'German');
   end;
   if InstallerLanguage = 'italian' then
   begin
@@ -117,6 +120,18 @@ begin
     AddLanguage('fr', 'Francese');
     AddLanguage('en', 'Inglese');
     AddLanguage('it', 'Italiano');
+    AddLanguage('it', 'Tedesco');
+  end;
+  if InstallerLanguage = 'german' then
+  begin
+    LanguagePage :=
+      CreateInputOptionPage(
+        wpSelectTasks, 'Software Sprache', 'Verfügbare Übersetzungen:', '', True, True);
+    Languages := TStringList.Create;
+    AddLanguage('fr', 'Französisch');
+    AddLanguage('en', 'Englisch');
+    AddLanguage('it', 'Italienisch');
+    AddLanguage('it', 'Deutsch');
   end;
   LanguagePage.CheckListBox.Color := clBtnFace;
   LanguagePage.CheckListBox.WantTabs := True;
