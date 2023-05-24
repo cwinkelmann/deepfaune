@@ -252,11 +252,10 @@ class PredictorImage(PredictorImageBase):
             for k in range(self.k1,self.k2):
                 try:
                     imagecv = cv2.imdecode(np.fromfile(self.fileManager.getFilename(k), dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-                    # imagecv = cv2.imread(self.fileManager.getFilename(k))
                 except:
                     imagecv = None
                 if imagecv is None:
-                    pass # Corrupted image, considered as empty
+                    pass # corrupted image, considered as empty
                 else:
                     croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.yolothreshold)
                     self.bestboxes[k] = box
@@ -308,37 +307,40 @@ class PredictorVideo(PredictorBase):
         else:   
             idxanimal = []
             idxnonempty = []
-            video = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
-            total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-            fps = int(video.get(5))
-            lag = int(fps/3) # lag between two successive frames
-            while((self.BATCH_SIZE-1)*lag>total_frames):
-                lag = lag-1 # reducing lag if video duration is less than self.BATCH_SIZE sec
             predictionallframe = np.zeros(shape=(self.BATCH_SIZE, self.nbclasses), dtype=np.float32)
             bestboxesallframe = np.zeros(shape=(self.BATCH_SIZE, 4), dtype=np.float32)
-            k = 0
-            maxcount = 0
-            for kframe in range(0, self.BATCH_SIZE*lag, lag):
-                video.set(cv2.CAP_PROP_POS_FRAMES, kframe)
-                ret,frame = video.read()
-                if not ret:
-                    pass # Corrupted or unavailable image, considered as empty
-                else:
-                    imagecv = frame
-                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.yolothreshold)
-                    bestboxesallframe[k] = box
-                    if count>maxcount:
-                        maxcount = count
-                    if category > 0: # not empty
-                        idxnonempty.append(k)
-                    if category == 1: # animal
-                        self.cropped_data[k,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                        idxanimal.append(k)
-                    if category == 2: # human
-                        predictionallframe[k,self.idxhuman] = 1.
-                    if category == 3: # vehicle
-                        predictionallframe[k,self.idxvehicle] = 1.
-                k = k+1
+            maxcount = 0            
+            video = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
+            total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+            if total_frames==0:
+                pass # corrupted video, considered as empty
+            else:
+                fps = int(video.get(5))
+                lag = int(fps/3) # lag between two successive frames
+                while((self.BATCH_SIZE-1)*lag>total_frames):
+                    lag = lag-1 # reducing lag if video duration is less than self.BATCH_SIZE sec
+                k = 0 # frame k in position kframe
+                for kframe in range(0, self.BATCH_SIZE*lag, lag): 
+                    video.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+                    ret,frame = video.read()
+                    if not ret:
+                        pass # Corrupted or unavailable image, considered as empty
+                    else:
+                        imagecv = frame
+                        croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.yolothreshold)
+                        bestboxesallframe[k] = box
+                        if count>maxcount:
+                            maxcount = count
+                        if category > 0: # not empty
+                            idxnonempty.append(k)
+                        if category == 1: # animal
+                            self.cropped_data[k,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                            idxanimal.append(k)
+                        if category == 2: # human
+                            predictionallframe[k,self.idxhuman] = 1.
+                        if category == 3: # vehicle
+                            predictionallframe[k,self.idxvehicle] = 1.
+                    k = k+1
             if len(idxanimal): # predicting species in frames with animal 
                 predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
             if len(idxnonempty): # not empty
