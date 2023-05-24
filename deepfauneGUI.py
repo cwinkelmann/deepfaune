@@ -100,6 +100,8 @@ txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID",
               'it':"Sequenza ID", 'de':"Sequenz ID"}
 txt_error = {'fr':"Erreur", 'en':"Error",
              'it':"Errore", 'de':"Fehler"}
+txt_errorclass = {'fr':"erreur", 'en':"error",
+                  'it':"errore", 'de':"Fehler"}
 txt_fileerror = {'fr':"Fichier illisible", 'en':"Unreadable file",
                  'it':"File illeggibile", 'de':"Unlesbare Datei"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'en':"Do you want to save predictions in ",
@@ -734,12 +736,11 @@ while True:
                 imagecv = np.zeros((700,933,3), np.uint8)
                 cv2.putText(imagecv, text=txt_fileerror[LANG], org=(300, 350), fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 0, 255),thickness=1)
                 if predictorready:
-                    window['-PREDICTION-'].update(value="")
+                    predictor.setPredictedClass(curridx, txt_errorclass[LANG], 0.0)
+                    window['-PREDICTION-'].update(value=txt_errorclass[LANG])
                     window['-SCORE-'].Update("   Score: 0.0")
                     if countactivated:
                         window['-COUNTER-'].Update(value=0)
-                    if not VIDEO:
-                        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
             else:
                 if predictorready:
                     predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
@@ -747,14 +748,14 @@ while True:
                     window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
                     if countactivated:
                         window['-COUNTER-'].Update(value=count_curridx)
-                    if not VIDEO:
-                        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
                 imagecv = cv2.resize(imagecv, (933,700))
             is_success, png_buffer = cv2.imencode(".png", imagecv)
             bio = BytesIO(png_buffer)
             window['-IMAGE-'].update(data=bio.getvalue())
+            if predictorready and not VIDEO:
+                window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif updatecurridxrequired == True \
          and event != '-TAB-' and event != '-PREVIOUS-' and event != '-NEXT-':
         #########################
