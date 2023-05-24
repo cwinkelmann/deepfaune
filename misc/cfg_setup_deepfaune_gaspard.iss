@@ -98,7 +98,7 @@ begin
     AddLanguage('fr', 'Français');
     AddLanguage('en', 'Anglais');
     AddLanguage('it', 'Italien');
-    AddLanguage('it', 'Allemand');
+    AddLanguage('de', 'Allemand');
   end;
   if InstallerLanguage = 'english' then
   begin
@@ -109,7 +109,7 @@ begin
     AddLanguage('fr', 'French');
     AddLanguage('en', 'English');
     AddLanguage('it', 'Italian');
-    AddLanguage('it', 'German');
+    AddLanguage('de', 'German');
   end;
   if InstallerLanguage = 'italian' then
   begin
@@ -120,7 +120,7 @@ begin
     AddLanguage('fr', 'Francese');
     AddLanguage('en', 'Inglese');
     AddLanguage('it', 'Italiano');
-    AddLanguage('it', 'Tedesco');
+    AddLanguage('de', 'Tedesco');
   end;
   if InstallerLanguage = 'german' then
   begin
@@ -131,7 +131,7 @@ begin
     AddLanguage('fr', 'Französisch');
     AddLanguage('en', 'Englisch');
     AddLanguage('it', 'Italienisch');
-    AddLanguage('it', 'Deutsch');
+    AddLanguage('de', 'Deutsch');
   end;
   LanguagePage.CheckListBox.Color := clBtnFace;
   LanguagePage.CheckListBox.WantTabs := True;
