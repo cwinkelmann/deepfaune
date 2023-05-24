@@ -626,11 +626,12 @@ while True:
                 window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
             curridx = 0
             rowidx = 0
+            subsetidx = list(range(0,len(filenames)))
             batchduration = deque(maxlen=20)
             window['-TAB-'].update(select_rows=[0])
             window['-PREDICTION-'].Update(disabled=True)
             window['-COUNTER-'].Update(disabled=True)
-            window['-RESTRICT-'].Update(disabled=True)
+            window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             predictor.setForbiddenClasses(forbiddenclasses)
             ###
             def runPredictor():
