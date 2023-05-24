@@ -171,7 +171,7 @@ class DetectorJSON:
     """
     def nextImread(self):
         try:
-            self.imagecv = cv2.imread(str(self.df_json["file"][self.k]))
+            self.imagecv = cv2.imdecode(np.fromfile(str(self.df_json["file"][self.k]), dtype=np.uint8),  cv2.IMREAD_UNCHANGED)
         except:
             self.imagecv = None
     
