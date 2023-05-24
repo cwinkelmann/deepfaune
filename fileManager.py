@@ -69,7 +69,7 @@ class FileManager:
     def __init__(self, filenames):
         self.order = getFilesOrder(filenames)
         self.filenames = filenames
-        self.seqnum = [0]*len(self.filenames)
+        self.seqnum = [1+k for k in range(0,len(self.filenames))]
         self.dates = ['']*len(self.filenames)
         self.__findDates()
 
@@ -87,8 +87,7 @@ class FileManager:
         self.seqnum = [self.seqnum[k] for k in self.order]
         self.dates = [self.dates[k] for k in self.order]
         self.order = [k for k in range(0,len(self.filenames))]
-        
-        
+                
     def findSequences(self, maxlag):
         currdir = op.dirname(self.filenames[self.order[0]])
         currseqnum = 1
