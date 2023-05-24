@@ -142,7 +142,8 @@ class PredictorBase(ABC):
         txt_classesempty_lang = txt_classes[self.LANG] + [txt_empty[self.LANG]]
         if len(self.idxforbidden):
             pred[self.idxforbidden] = 0.
-            pred = pred/np.sum(pred)
+            if np.sum(pred)>0: # possibly=0 due to forbidden classes
+                pred = pred/np.sum(pred)
         idxmax = np.argmax(pred)
         if max(pred)>self.threshold:
             return txt_classesempty_lang[idxmax], int(max(pred)*100)/100.
