@@ -100,6 +100,8 @@ txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID",
               'it':"Sequenza ID", 'de':"Sequenz ID"}
 txt_error = {'fr':"Erreur", 'en':"Error",
              'it':"Errore", 'de':"Fehler"}
+txt_fileerror = {'fr':"Fichier illisible", 'en':"Unreadable file",
+                 'it':"File illeggibile", 'de':"Unlesbare Datei"}
 txt_savepredictions = {'fr':"Voulez-vous enregistrer les prédictions dans ", 'en':"Do you want to save predictions in ",
                        'it':"Volete registrare le predizioni nel ", 'de':"Möchten Sie Vorhersagen speichern"}
 txt_destcopy = {'fr':"Copier dans des sous-dossiers de", 'en':"Copy in subfolders of",
@@ -730,6 +732,14 @@ while True:
                     imagecv = None
             if imagecv is None:
                 imagecv = np.zeros((700,933,3), np.uint8)
+                cv2.putText(imagecv, text=txt_fileerror[LANG], org=(300, 350), fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 0, 255),thickness=1)
+                if predictorready:
+                    window['-PREDICTION-'].update(value="")
+                    window['-SCORE-'].Update("   Score: 0.0")
+                    if countactivated:
+                        window['-COUNTER-'].Update(value=0)
+                    if not VIDEO:
+                        window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
             else:
                 if predictorready:
                     predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)

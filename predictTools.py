@@ -93,7 +93,7 @@ class PredictorBase(ABC):
             
     def getPredictions(self, k=None):
         if k is not None:
-            if self.predictedclass[k]=="": # correction not yet done
+            if self.predictedclass[k]=="": # prediction not ready yet
                 return self.predictedclass[k], self.predictedscore[k], None, 0
             else:
                 return self.predictedclass[k], self.predictedscore[k], self.bestboxes[k,], self.count[k]
