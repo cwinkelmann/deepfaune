@@ -36,7 +36,14 @@ import threading
 import io
 import os
 os.environ["PYTORCH_JIT"] = "0"
-
+import ctypes
+import platform
+try: # high resolution issue on Windows
+    if platform.platform().lower().startswith("windows"):
+        if int(platform.release()) >= 8:
+            ctypes.windll.shcore.SetProcessDpiAwareness(True)
+except:
+    pass
 
 ####################################################################################
 ### VERSION
