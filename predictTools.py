@@ -341,6 +341,7 @@ class PredictorVideo(PredictorBase):
                         if category == 3: # vehicle
                             predictionallframe[k,self.idxvehicle] = 1.
                     k = k+1
+            videocap.release()
             if len(idxanimal): # predicting species in frames with animal 
                 predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
             if len(idxnonempty): # not empty

@@ -739,6 +739,7 @@ while True:
                         kframe = kframe+lag
                         videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                         ret, imagecv = videocap.read()
+                videocap.release()
                 if not ret:
                     imagecv = None
             else:
