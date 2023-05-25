@@ -310,19 +310,19 @@ class PredictorVideo(PredictorBase):
             predictionallframe = np.zeros(shape=(self.BATCH_SIZE, self.nbclasses), dtype=np.float32)
             bestboxesallframe = np.zeros(shape=(self.BATCH_SIZE, 4), dtype=np.float32)
             maxcount = 0            
-            video = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
-            total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+            videocap = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
+            total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
             if total_frames==0:
                 pass # corrupted video, considered as empty
             else:
-                fps = int(video.get(5))
+                fps = int(videocap.get(5))
                 lag = int(fps/3) # lag between two successive frames
                 while((self.BATCH_SIZE-1)*lag>total_frames):
                     lag = lag-1 # reducing lag if video duration is less than self.BATCH_SIZE sec
                 k = 0 # frame k in position kframe
                 for kframe in range(0, self.BATCH_SIZE*lag, lag): 
-                    video.set(cv2.CAP_PROP_POS_FRAMES, kframe)
-                    ret,frame = video.read()
+                    videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+                    ret,frame = videocap.read()
                     if not ret:
                         pass # Corrupted or unavailable image, considered as empty
                     else:
