@@ -727,18 +727,17 @@ while True:
                 fps = int(videocap.get(5))
                 lag = int(fps/3) # lag between two successive frames
                 while ((BATCH_SIZE - 1) * lag > total_frames):
-                        lag = lag - 1 
+                    lag = lag - 1 
                 if predictorready:
-                    videocap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx)*lag)
-                    ret, imagecv = videocap.read()
+                    kframe = predictor.getKeyFrames(curridx)*lag # possibly 0 if video not treated by predictor yet
                 else:
                     kframe = 0
+                videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+                ret, imagecv = videocap.read()
+                while ret==False and (kframe+lag)<=((BATCH_SIZE-1)*lag): # ignoring corrupted frames (useless when key frame are found by predictor)
+                    kframe = kframe+lag
                     videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                     ret, imagecv = videocap.read()
-                    while ret==False and (kframe+lag)<=((BATCH_SIZE-1)*lag): # ignoring corrupted frames
-                        kframe = kframe+lag
-                        videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
-                        ret, imagecv = videocap.read()
                 videocap.release()
                 if not ret:
                     imagecv = None
