@@ -515,8 +515,10 @@ while True:
             testdir = newtestdir
             if event == txt_importimage[LANG]:
                 VIDEO = False
+                BATCH_SIZE = 8
             if event == txt_importvideo[LANG]:
-                    VIDEO = True
+                VIDEO = True
+                BATCH_SIZE = 12
             predictorready = False
             curridx = -1
             window['-RTIME-'].Update("00:00:00")
@@ -618,10 +620,8 @@ while True:
         if not configabort:            
             if VIDEO:
                 from predictTools import PredictorVideo
-                BATCH_SIZE = 12 # Batch size for predictor, in number of images
             else:
                 from predictTools import PredictorImage
-                BATCH_SIZE = 8
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
                 window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
@@ -722,16 +722,23 @@ while True:
         curridx = subsetidx[rowidx]
         if not imgmoved: 
             if VIDEO:
-                cap = cv2.VideoCapture(filenames[curridx])
-                lag = int(cap.get(5) / 3)
-                total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                videocap = cv2.VideoCapture(filenames[curridx])
+                total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
+                fps = int(videocap.get(5))
+                lag = int(fps/3) # lag between two successive frames
+                while ((BATCH_SIZE - 1) * lag > total_frames):
+                    lag = lag - 1 
                 if predictorready:
-                    while ((BATCH_SIZE - 1) * lag > total_frames):
-                        lag = lag - 1         
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, predictor.getKeyFrames(curridx) * lag)
+                    kframe = predictor.getKeyFrames(curridx)*lag # possibly 0 if video not treated by predictor yet
                 else:
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                ret, imagecv = cap.read()
+                    kframe = 0
+                videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+                ret, imagecv = videocap.read()
+                while ret==False and (kframe+lag)<=((BATCH_SIZE-1)*lag): # ignoring corrupted frames (useless when key frame are found by predictor)
+                    kframe = kframe+lag
+                    videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+                    ret, imagecv = videocap.read()
+                videocap.release()
                 if not ret:
                     imagecv = None
             else:
