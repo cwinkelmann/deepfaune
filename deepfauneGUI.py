@@ -32,6 +32,8 @@
 # knowledge of the CeCILL license and that you accept its terms.
 
 import PySimpleGUI as sg
+import cv2
+import numpy as np
 import threading
 import io
 import os
@@ -65,7 +67,7 @@ try:
     countactivated = config.getboolean('General','count')
 except configparser.NoOptionError:
     countactivated = False
-VIDEO = False 
+VIDEO = False
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
 
@@ -258,7 +260,6 @@ def StyledMenu(menu_definition, text_color, background_color, text_font, key):
         row += [button_menu]
     return(sg.Column([row], pad=(0,0), background_color=bar_bg, expand_x=True, key=key))
 
-
 ####################################################################################
 ### MAIN GUI WINDOW
 ####################################################################################
@@ -373,7 +374,7 @@ layout = [
     [
         sg.Frame('',[
             [
-                StyledButton(txt_configrun[LANG], accent_color, "gray", background_color, key='-CONFIG-', button_width=8+len(txt_configrun[LANG]), pad=(5, (7, 5))),
+                StyledButton(txt_configrun[LANG], accent_color, "gray", background_color, key='-CONFIGRUN-', button_width=8+len(txt_configrun[LANG]), pad=(5, (7, 5))),
                 sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color), sg.Text("00:00:00", background_color=background_color, text_color=text_color, key='-RTIME-')
             ],
         ], expand_x=True, background_color=background_color)
@@ -385,15 +386,16 @@ window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0),
                    resizable=True, background_color=background_color).Finalize()
 window.read(timeout=0)
 window['-PREDICTION-'].Update(disabled=True)
+window['-RESTRICT-'].Update(disabled=True)
 window['-COUNTER-'].Update(disabled=True)
 window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after return key
-window['-RESTRICT-'].Update(disabled=True)
+window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 
 from tkinter import TclError
 from contextlib import suppress
 with suppress(TclError):
     window.TKroot.tk.call('source', SUN_VALLEY_TCL)
-window.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
+window.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG- events due to internal additionnal padding
 
 
 ####################################################################################
@@ -436,19 +438,37 @@ def updatePredictionInfo(disabled):
         window['-PREDICTION-'].Update(disabled=False)
         if countactivated:
             window['-COUNTER-'].Update(disabled=False)
-    
+
+# Calculate the space between the window and the image control itself
+imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
+               window.size[1] - window['-IMAGE-'].get_size()[1])
+
+def updateImage(newcurimagecv=None):
+    global curimagecv
+    if newcurimagecv is not None:
+        curimagecv = newcurimagecv
+    curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
+    curimagecv_resized = cv2.resize(curimagecv, curimsize)
+    is_success, png_buffer = cv2.imencode(".png", curimagecv_resized)
+    bio = BytesIO(png_buffer)
+    window['-IMAGE-'].update(data=bio.getvalue())
+ 
+def resizeImage():
+    global curwindowsize
+    if window.size[0] != curwindowsize[0] or window.size[1] != curwindowsize[1]:
+        updateImage()
+    curwindowsize = window.size
+
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
 from datetime import datetime
 from io import BytesIO
-import numpy as np
 import pandas as pd
 from os import mkdir
 from os.path import join, basename
 from pathlib import Path
 import pkgutil
-import cv2
 import time
 from collections import deque
 from statistics import mean
@@ -463,10 +483,22 @@ imgmoved  = False
 batchduration = deque(maxlen=20)
 txt_new_classes_lang = []
 
+configactive = False # checks if a series of config events is in progress
+nbconfigaction = 0 # nb of series of config events
+curwindowsize = window.size # current size before config events
+curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+
 while True:
     event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    if event == '-CONFIG-': # Respond to window resize event
+        configactive = True
+    elif event != '-CONFIG-' and configactive == True:
+        nbconfigaction = nbconfigaction+1
+        configactive = False
+        if nbconfigaction>1: # the first config action is internal at starting time, not a resizing event
+            resizeImage()
     elif event in listlang:
         config.set('General', 'language', event)
         if event != LANG:
@@ -523,7 +555,7 @@ while True:
             curridx = -1
             window['-RTIME-'].Update("00:00:00")
             window['-PROGBAR-'].update_bar(0)
-            window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
+            updateImage(cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
@@ -555,7 +587,7 @@ while True:
             if nbfiles==0:
                 testdir = None
                 window['-TAB-'].Update(values=[[]])
-                window['-CONFIG-'].Update(button_color=("gray", background_color))
+                window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
                 dialog_error(txt_incorrect[LANG])
             else:
                 curridx = 0
@@ -565,8 +597,8 @@ while True:
                 window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[0])
-                window['-CONFIG-'].Update(button_color=(background_color, background_color))
-    elif event == '-CONFIG-' and testdir is not None and thread is None:
+                window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
+    elif event == '-CONFIGRUN-' and testdir is not None and thread is None:
         #########################
         ## CONFIGURE
         #########################
@@ -681,7 +713,7 @@ while True:
             thread.daemon = True
             thread.start() 
             predictorready = True
-            window['-CONFIG-'].Update(button_color=("gray", background_color))
+            window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
     elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
         #########################
         ## EXPORTING RESULTS
@@ -764,10 +796,8 @@ while True:
                         window['-COUNTER-'].Update(value=count_curridx)
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
-                imagecv = cv2.resize(imagecv, (933,700))
-            is_success, png_buffer = cv2.imencode(".png", imagecv)
-            bio = BytesIO(png_buffer)
-            window['-IMAGE-'].update(data=bio.getvalue())
+                #imagecv = cv2.resize(imagecv, (933,700))
+            updateImage(imagecv)
             if predictorready and not VIDEO:
                 window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif updatecurridxrequired == True \
@@ -892,7 +922,7 @@ while True:
         else:
             updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[])
-            window['-IMAGE-'].update(filename=r'icons/1316-black-large-933x700.png', size=(933, 700))
+            updateImage(cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED))
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
         rowidx = 0
@@ -908,6 +938,6 @@ while True:
             updateMenuSubfolders(disabled=False) 
             window['-RESTRICT-'].Update(disabled=False)
             updatePredictionInfo(disabled=False)
-            window['-CONFIG-'].Update(button_color=(background_color, background_color))
+            window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
 window.close()
 
