@@ -490,7 +490,7 @@ txt_new_classes_lang = []
 
 configactive = False # checks if a series of config events is in progress
 nbconfigseries = 0 # nb of series of config events
-curwindowsize = 0 # current size before config events
+curwindowsize = (0,0) # current size before config events
 curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
 while True:
@@ -641,9 +641,6 @@ while True:
         windowconfig = sg.Window(txt_configrun[LANG], copy.deepcopy(layoutconfig),  
                                  font = FONT_MED, margins=(0, 0),
                                  background_color=background_color, finalize=True)
-        #with suppress(TclError):
-        #    windowconfig.TKroot.tk.call('source', SUN_VALLEY_TCL)
-        #windowconfig.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
         configabort = False
         while True:
             eventconfig, valuesconfig = windowconfig.read(timeout=10)
