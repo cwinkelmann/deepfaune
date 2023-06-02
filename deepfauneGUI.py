@@ -339,7 +339,7 @@ layout = [
         [sg.Frame('',[
             [
                 sg.Column([
-                    [sg.Table(values=[], font=FONT_NORMAL,
+                    [sg.Table(values=[[]], font=FONT_NORMAL,
                               headings=[txt_filename[LANG]], justification = "l", 
                               vertical_scroll_only=False, auto_size_columns=False, col_widths=[20], expand_y=True,
                               enable_events=True, select_mode = sg.TABLE_SELECT_MODE_BROWSE,
@@ -391,12 +391,15 @@ window['-COUNTER-'].Update(disabled=True)
 window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after return key
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 
-from tkinter import TclError
-from contextlib import suppress
-with suppress(TclError):
-    window.TKroot.tk.call('source', SUN_VALLEY_TCL)
-window.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG- events due to internal additionnal padding
+#from tkinter import TclError
+#from contextlib import suppress
+#with suppress(TclError):
+#    window.TKroot.tk.call('source', SUN_VALLEY_TCL)
+#window.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG- events due to internal additionnal padding
 
+from tkinter import ttk
+from sunvalley import sv_ttk
+sv_ttk.set_theme("dark")
 
 ####################################################################################
 ### GUI UTILS (after it is created)
@@ -439,11 +442,11 @@ def updatePredictionInfo(disabled):
         if countactivated:
             window['-COUNTER-'].Update(disabled=False)
 
-# Calculate the space between the window and the image control itself
-imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
-               window.size[1] - window['-IMAGE-'].get_size()[1])
 
+imageOffset = (0,0) # space between the window and the image control itself
 def updateImage(newcurimagecv=None):
+    print("updateImage ",window.size," was ",curwindowsize)
+    print("updateImage")
     global curimagecv
     if newcurimagecv is not None:
         curimagecv = newcurimagecv
@@ -455,8 +458,11 @@ def updateImage(newcurimagecv=None):
  
 def resizeImage():
     global curwindowsize
+    print("resize ?")
     if window.size[0] != curwindowsize[0] or window.size[1] != curwindowsize[1]:
-        updateImage()
+        print("resize ",window.size," was ",curwindowsize)
+        if window.size[0] <1500:
+            updateImage()
     curwindowsize = window.size
 
 ####################################################################################
@@ -484,21 +490,29 @@ batchduration = deque(maxlen=20)
 txt_new_classes_lang = []
 
 configactive = False # checks if a series of config events is in progress
-nbconfigaction = 0 # nb of series of config events
-curwindowsize = window.size # current size before config events
+nbconfigseries = 0 # nb of series of config events
+curwindowsize = 0 # current size before config events
 curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
 while True:
     event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
-    if event == '-CONFIG-': # Respond to window resize event
+    if event != '__TIMEOUT__':
+        print(event)
+        print("winsizeevent ",window.size)
+    if event == '-CONFIG-': # respond to window resize event
         configactive = True
     elif event != '-CONFIG-' and configactive == True:
-        nbconfigaction = nbconfigaction+1
+        nbconfigseries = nbconfigseries+1
+        print(nbconfigseries)
         configactive = False
-        if nbconfigaction>1: # the first config action is internal at starting time, not a resizing event
+        if nbconfigseries>1: # the first config events are internal at starting time, not a resizing event
             resizeImage()
+        else:
+            curwindowsize = window.size # current size before other config events (resizing or moving)
+            imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
+                           window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
     elif event in listlang:
         config.set('General', 'language', event)
         if event != LANG:
@@ -553,10 +567,13 @@ while True:
                 BATCH_SIZE = 12
             predictorready = False
             curridx = -1
+            print("winsize1 ",window.size)
             window['-RTIME-'].Update("00:00:00")
             window['-PROGBAR-'].update_bar(0)
+            print("winsize2 ",window.size)
             updateImage(cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
+            print("winsize3 ",window.size)
             updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
@@ -587,8 +604,10 @@ while True:
             if nbfiles==0:
                 testdir = None
                 window['-TAB-'].Update(values=[[]])
+                print("winsize4 ",window.size)
                 window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
                 dialog_error(txt_incorrect[LANG])
+                print("winsize5 ",window.size)
             else:
                 curridx = 0
                 rowidx = 0
@@ -921,7 +940,7 @@ while True:
             window['-TAB-'].update(select_rows=[0])
         else:
             updatePredictionInfo(disabled=True)
-            window.Element('-TAB-').Update(values=[])
+            window.Element('-TAB-').Update(values=[[]])
             updateImage(cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED))
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
