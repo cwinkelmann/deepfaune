@@ -461,8 +461,7 @@ def resizeImage():
     print("resize ?")
     if window.size[0] != curwindowsize[0] or window.size[1] != curwindowsize[1]:
         print("resize ",window.size," was ",curwindowsize)
-        if window.size[0] <1500:
-            updateImage()
+        updateImage()
     curwindowsize = window.size
 
 ####################################################################################
@@ -642,9 +641,9 @@ while True:
         windowconfig = sg.Window(txt_configrun[LANG], copy.deepcopy(layoutconfig),  
                                  font = FONT_MED, margins=(0, 0),
                                  background_color=background_color, finalize=True)
-        with suppress(TclError):
-            windowconfig.TKroot.tk.call('source', SUN_VALLEY_TCL)
-        windowconfig.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
+        #with suppress(TclError):
+        #    windowconfig.TKroot.tk.call('source', SUN_VALLEY_TCL)
+        #windowconfig.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
         configabort = False
         while True:
             eventconfig, valuesconfig = windowconfig.read(timeout=10)
