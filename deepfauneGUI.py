@@ -164,8 +164,8 @@ import tkinter
 from tkinter import filedialog, messagebox
 def dialog_get_dir(title, initialdir=None):
     _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
+    #_root.tk.call('source', SUN_VALLEY_TCL)
+    #_root.tk.call('set_theme', 'light')
     _root.withdraw()
     selectdir = filedialog.askdirectory(title=title, initialdir=initialdir, parent=_root)
     if len(selectdir) == 0:
@@ -175,8 +175,8 @@ def dialog_get_dir(title, initialdir=None):
 
 def dialog_get_file(title, initialdir, initialfile, defaultextension):
     _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
+    #_root.tk.call('source', SUN_VALLEY_TCL)
+    #_root.tk.call('set_theme', 'light')
     _root.withdraw()
     selectfile = filedialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension=defaultextension, parent=_root)
     if len(selectfile) == 0:
@@ -186,8 +186,8 @@ def dialog_get_file(title, initialdir, initialfile, defaultextension):
 
 def dialog_yesno(message):
     _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
+    #_root.tk.call('source', SUN_VALLEY_TCL)
+    #_root.tk.call('set_theme', 'light')
     _root.withdraw()
     yesorno = messagebox.askquestion('', message, icon='warning', parent=_root)
     _root.destroy()
@@ -195,8 +195,8 @@ def dialog_yesno(message):
 
 def dialog_error(message):
     _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
+    #_root.tk.call('source', SUN_VALLEY_TCL)
+    #_root.tk.call('set_theme', 'light')
     _root.withdraw()
     messagebox.showerror(title=txt_error[LANG], message=message, parent=_root)
     _root.destroy()
@@ -206,10 +206,10 @@ def popup(message):
     windowpopup = sg.Window('Message', layout, no_titlebar=True, keep_on_top=True,
                             font = FONT_MED, background_color=background_color, finalize=True)
     from tkinter import TclError
-    from contextlib import suppress
-    with suppress(TclError):
-        windowpopup.TKroot.tk.call('source', SUN_VALLEY_TCL)
-    windowpopup.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
+    #from contextlib import suppress
+    #with suppress(TclError):
+    #    windowpopup.TKroot.tk.call('source', SUN_VALLEY_TCL)
+    #windowpopup.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
     return windowpopup
     
 import base64
