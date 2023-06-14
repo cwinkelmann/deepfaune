@@ -446,10 +446,11 @@ def updateImage(newcurimagecv=None):
     if newcurimagecv is not None:
         curimagecv = newcurimagecv
     curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
-    curimagecv_resized = cv2.resize(curimagecv, curimsize)
-    is_success, png_buffer = cv2.imencode(".png", curimagecv_resized)
-    bio = BytesIO(png_buffer)
-    window['-IMAGE-'].update(data=bio.getvalue())
+    if curimsize[0]>0 and curimsize[1]>0:
+        curimagecv_resized = cv2.resize(curimagecv, curimsize)
+        is_success, png_buffer = cv2.imencode(".png", curimagecv_resized)
+        bio = BytesIO(png_buffer)
+        window['-IMAGE-'].update(data=bio.getvalue())
  
 def resizeImage():
     global curwindowsize
