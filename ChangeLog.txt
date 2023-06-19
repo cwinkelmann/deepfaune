@@ -1,3 +1,8 @@
+2023-06-19  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+
+	    Version 1.0.1
+	    * The main window can be resized, solving a problem occuring on Windows.
+
 2023-05-15  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 1.0.0
