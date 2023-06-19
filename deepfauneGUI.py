@@ -473,9 +473,13 @@ from collections import deque
 from statistics import mean
 import queue
 
+#########################
+## GLOBAL VARIABLES
+#########################
+## GUI's variables
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
-updatecurridxrequired = False # do we need to refresh the prediction info for curridx
+updatecurridxrequired = False # True if necessary to refresh the prediction info for curridx
 testdir = None
 thread = None
 thread_queue = queue.Queue()
@@ -484,13 +488,14 @@ imgmoved  = False
 batchduration = deque(maxlen=20)
 txt_new_classes_lang = []
 
+## misc variables to allow resizing
 configactive = False # checks if a series of config events is in progress
 nbconfigseries = 0 # nb of series of config events
 curwindowsize = (0,0) # current size before config events
 curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
-def runPredictor():
-    global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
+def runPredictor(): # predictor in action in a separate thread
+    #global updatecurridxrequired 
     if VIDEO:
         while True:
             start = time.time()
@@ -500,40 +505,32 @@ def runPredictor():
             if k1==nbfiles: break
             rtime = time.strftime("%H:%M:%S", time.gmtime(mean(batchduration)*(nbfiles-batch)))
             progbar = batch/nbfiles
-            #window['-RTIME-'].Update(time.strftime("%H:%M:%S",
-            #                                       time.gmtime(mean(batchduration)*(nbfiles-batch))))
-            #window['-PROGBAR-'].update_bar(batch/nbfiles)
-            #window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
-            #                                          for k in range(k1, k2)))
-            if curridx>=k1 and curridx<k2: # current video must be refreshed
-                updatecurridxrequired = True
+            #if curridx>=k1 and curridx<k2: # current video must be refreshed
+            #    updatecurridxrequired = True
             thread_queue.put([rtime, progbar, k1, k2])
     else:
         while True:
             start = time.time()
-            batch, k1, k2, k1seq_batch, k2seq_batch = predictor.nextBatch()
+            batch, k1, k2, k1seq, k2seq = predictor.nextBatch()
             end = time.time()
             batchduration.append(end-start)
             if k1==nbfiles: break
             rtime = time.strftime("%H:%M:%S", time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch)))
             progbar = batch*BATCH_SIZE/nbfiles
-            #window['-RTIME-'].Update(time.strftime("%H:%M:%S",
-            #                                       time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch))))
-            #window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)     
-            #window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
-            #                                        for k in range(k1seq_batch, k2seq_batch)))
-            if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
-                updatecurridxrequired = True
-            thread_queue.put([rtime, progbar, k1seq_batch, k2seq_batch])
-    #window['-RTIME-'].Update("00:00:00")
+            #if curridx>=k1seq and curridx<k2seq: # current image must be refreshed
+            #    updatecurridxrequired = True
+            thread_queue.put([rtime, progbar, k1seq, k2seq])
     thread_queue.put(["00:00:00", 1.0, nbfiles, nbfiles])
     
 while True:
     event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    if event != "__TIMEOUT__":
+        print(event)
+        print(len(values['-TAB-']))
     #########################
-    ## WINDOW RESIZING
+    ## WINDOW RESIZING ?
     #########################
     if event == '-CONFIG-': # respond to window resize event
         configactive = True
@@ -546,7 +543,7 @@ while True:
             curwindowsize = window.size # current size before other config events (resizing or moving)
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
-    elif event in listlang:
+    if event in listlang:
         #########################
         ## SELECTING LANGUAGE
         #########################
@@ -764,6 +761,7 @@ while True:
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
          and (len(subsetidx)>0):
+        print("receiving an event")
         #########################
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
@@ -818,15 +816,15 @@ while True:
             updateImage(imagecv)
             if predictorready and not VIDEO:
                 window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
-    elif updatecurridxrequired == True \
-         and event != '-TAB-' and event != '-PREVIOUS-' and event != '-NEXT-':
-        #########################
-        ## UPDATING PREDICTION FOR CURRENT MEDIA
-        #########################
-        rowidx = values['-TAB-'][0]
-        # touching position in Table, will send an event
-        window['-TAB-'].update(select_rows=[rowidx])
-        updatecurridxrequired = False
+#    elif updatecurridxrequired == True \
+#         and event != '-TAB-' and event != '-PREVIOUS-' and event != '-NEXT-':
+#        #########################
+#        ## UPDATING PREDICTION FOR CURRENT MEDIA
+#        #########################
+#        rowidx = values['-TAB-'][0]
+#        # touching position in Table, will send an event
+#        window['-TAB-'].update(select_rows=[rowidx])
+#        updatecurridxrequired = False
     elif (testdir is not None) \
          and (event == '-PREVIOUS-' or event == '-NEXT-') \
          and (len(subsetidx)>0):
@@ -951,13 +949,22 @@ while True:
         ## UPDATING GUI FROM THREAD INFO (thread-safe)
         #########################
         try:
-            rtime, progbar, k1seq_batch, k2seq_batch = thread_queue.get(0)
+            rtime, progbar, k1, k2 = thread_queue.get(0)
             window['-RTIME-'].Update(rtime)
             window['-PROGBAR-'].update_bar(progbar)
             window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
-                                                    for k in range(k1seq_batch, k2seq_batch)))
+                                                    for k in range(k1, k2)))
+            if curridx>=k1 and curridx<k2: # current media must be refreshed
+                #########################
+                ## UPDATING PREDICTION FOR CURRENT MEDIA
+                #########################
+                rowidx = values['-TAB-'][0]
+                # touching position in Table, will send an event
+                print("sending an event")
+                window['-TAB-'].update(select_rows=[rowidx])
         except queue.Empty:
             pass
+    if thread is not None:
         #########################
         ## WORK TERMINATED IN THREAD
         #########################
