@@ -471,12 +471,14 @@ import pkgutil
 import time
 from collections import deque
 from statistics import mean
+import queue
 
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
 updatecurridxrequired = False # do we need to refresh the prediction info for curridx
 testdir = None
 thread = None
+thread_queue = queue.Queue()
 predictorready = False
 imgmoved  = False
 batchduration = deque(maxlen=20)
@@ -487,10 +489,52 @@ nbconfigseries = 0 # nb of series of config events
 curwindowsize = (0,0) # current size before config events
 curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
+def runPredictor():
+    global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
+    if VIDEO:
+        while True:
+            start = time.time()
+            batch, k1, k2 = predictor.nextBatch()
+            end = time.time()
+            batchduration.append(end-start)
+            if k1==nbfiles: break
+            rtime = time.strftime("%H:%M:%S", time.gmtime(mean(batchduration)*(nbfiles-batch)))
+            progbar = batch/nbfiles
+            #window['-RTIME-'].Update(time.strftime("%H:%M:%S",
+            #                                       time.gmtime(mean(batchduration)*(nbfiles-batch))))
+            #window['-PROGBAR-'].update_bar(batch/nbfiles)
+            #window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
+            #                                          for k in range(k1, k2)))
+            if curridx>=k1 and curridx<k2: # current video must be refreshed
+                updatecurridxrequired = True
+            thread_queue.put([rtime, progbar, k1, k2])
+    else:
+        while True:
+            start = time.time()
+            batch, k1, k2, k1seq_batch, k2seq_batch = predictor.nextBatch()
+            end = time.time()
+            batchduration.append(end-start)
+            if k1==nbfiles: break
+            rtime = time.strftime("%H:%M:%S", time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch)))
+            progbar = batch*BATCH_SIZE/nbfiles
+            #window['-RTIME-'].Update(time.strftime("%H:%M:%S",
+            #                                       time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch))))
+            #window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)     
+            #window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
+            #                                        for k in range(k1seq_batch, k2seq_batch)))
+            if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
+                updatecurridxrequired = True
+            thread_queue.put([rtime, progbar, k1seq_batch, k2seq_batch])
+    #window['-RTIME-'].Update("00:00:00")
+    thread_queue.put(["00:00:00", 1.0, nbfiles, nbfiles])
+    
 while True:
     event, values = window.read(timeout=10)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    #########################
+    ## WINDOW RESIZING
+    #########################
     if event == '-CONFIG-': # respond to window resize event
         configactive = True
     elif event != '-CONFIG-' and configactive == True:
@@ -503,6 +547,9 @@ while True:
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
     elif event in listlang:
+        #########################
+        ## SELECTING LANGUAGE
+        #########################
         config.set('General', 'language', event)
         if event != LANG:
             with open("settings.ini", "w") as inif:
@@ -680,39 +727,6 @@ while True:
             window['-COUNTER-'].Update(disabled=True)
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             predictor.setForbiddenClasses(forbiddenclasses)
-            ###
-            def runPredictor():
-                global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
-                if VIDEO:
-                    while True:
-                        start = time.time()
-                        batch, k1, k2 = predictor.nextBatch()
-                        end = time.time()
-                        batchduration.append(end-start)
-                        if k1==nbfiles: break
-                        window['-RTIME-'].Update(time.strftime("%H:%M:%S",
-                                                                 time.gmtime(mean(batchduration)*(nbfiles-batch))))
-                        window['-PROGBAR-'].update_bar(batch/nbfiles)
-                        window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
-                                                                  for k in range(k1, k2)))
-                        if curridx>=k1 and curridx<k2: # current video must be refreshed
-                            updatecurridxrequired = True
-                else:
-                    while True:
-                        start = time.time()
-                        batch, k1, k2, k1seq_batch, k2seq_batch = predictor.nextBatch()
-                        end = time.time()
-                        batchduration.append(end-start)
-                        if k1==nbfiles: break
-                        window['-RTIME-'].Update(time.strftime("%H:%M:%S",
-                                                                 time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch))))
-                        window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)     
-                        window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
-                                                                for k in range(k1seq_batch, k2seq_batch)))
-                        if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
-                            updatecurridxrequired = True
-                window['-RTIME-'].Update("00:00:00")
-            ###
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 
@@ -933,10 +947,21 @@ while True:
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
     if thread is not None:
+        #########################
+        ## UPDATING GUI FROM THREAD INFO (thread-safe)
+        #########################
+        try:
+            rtime, progbar, k1seq_batch, k2seq_batch = thread_queue.get(0)
+            window['-RTIME-'].Update(rtime)
+            window['-PROGBAR-'].update_bar(progbar)
+            window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
+                                                    for k in range(k1seq_batch, k2seq_batch)))
+        except queue.Empty:
+            pass
+        #########################
+        ## WORK TERMINATED IN THREAD
+        #########################
         if thread.is_alive() == False:
-            #########################
-            ## WORK TERMINATED IN THREAD
-            #########################
             thread = None
             updateMenuExport(disabled=False)
             updateMenuSubfolders(disabled=False) 
