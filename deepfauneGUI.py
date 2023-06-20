@@ -719,6 +719,7 @@ while True:
             rowidx = 0
             subsetidx = list(range(0,len(filenames)))
             batchduration = deque(maxlen=20)
+            window['-PROGBAR-'].update_bar(0)
             window['-TAB-'].update(select_rows=[0])
             window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                     for k in range(0, 1))) # bug, first row color need to be hard reset
@@ -945,25 +946,24 @@ while True:
         rowidx = 0
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
-    if thread is not None:
-        #########################
-        ## UPDATING GUI FROM THREAD INFO (thread-safe)
-        #########################
-        try:
-            rtime, progbar, k1, k2 = thread_queue.get(0)
-            window['-RTIME-'].Update(rtime)
-            window['-PROGBAR-'].update_bar(progbar)
-            window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
-                                                    for k in range(k1, k2)))
-            if curridx>=k1 and curridx<k2: # current media must be refreshed
-                #########################
-                ## UPDATING PREDICTION FOR CURRENT MEDIA
-                #########################
-                rowidx = values['-TAB-'][0]
-                # touching position in Table, will send a -TAB- event
-                window['-TAB-'].update(select_rows=[rowidx])
-        except queue.Empty:
-            pass
+    #########################
+    ## UPDATING GUI FROM THREAD INFO (thread-safe)
+    #########################
+    try:
+        rtime, progbar, k1, k2 = thread_queue.get(0)
+        window['-RTIME-'].Update(rtime)
+        window['-PROGBAR-'].update_bar(progbar)
+        window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
+                                                for k in range(k1, k2)))
+        if curridx>=k1 and curridx<k2: # current media must be refreshed
+            #########################
+            ## UPDATING PREDICTION FOR CURRENT MEDIA
+            #########################
+            rowidx = values['-TAB-'][0]
+            # touching position in Table, will send a -TAB- event
+            window['-TAB-'].update(select_rows=[rowidx])
+    except queue.Empty:
+        pass
     if thread is not None:
         #########################
         ## UPDATING GUI WHEN THREAD HAS TERMINATED
