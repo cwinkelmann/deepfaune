@@ -815,15 +815,6 @@ while True:
             updateImage(imagecv)
             if predictorready and not VIDEO:
                 window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
-#    elif updatecurridxrequired == True \
-#         and event != '-TAB-' and event != '-PREVIOUS-' and event != '-NEXT-':
-#        #########################
-#        ## UPDATING PREDICTION FOR CURRENT MEDIA
-#        #########################
-#        rowidx = values['-TAB-'][0]
-#        # touching position in Table, will send an event
-#        window['-TAB-'].update(select_rows=[rowidx])
-#        updatecurridxrequired = False
     elif (testdir is not None) \
          and (event == '-PREVIOUS-' or event == '-NEXT-') \
          and (len(subsetidx)>0):
