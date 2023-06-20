@@ -521,14 +521,14 @@ def runPredictor(): # predictor in action in a separate thread
             #    updatecurridxrequired = True
             thread_queue.put([rtime, progbar, k1seq, k2seq])
     thread_queue.put(["00:00:00", 1.0, nbfiles, nbfiles])
-    
+
+DEBUG = False
 while True:
     event, values = window.read(timeout=10)
+    if event != "__TIMEOUT__" and DEBUG is True:
+        print(event)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
-    if event != "__TIMEOUT__":
-        print(event)
-        print(len(values['-TAB-']))
     #########################
     ## WINDOW RESIZING ?
     #########################
@@ -720,6 +720,8 @@ while True:
             subsetidx = list(range(0,len(filenames)))
             batchduration = deque(maxlen=20)
             window['-TAB-'].update(select_rows=[0])
+            window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
+                                                    for k in range(0, 1))) # bug, first row color need to be hard reset
             window['-PREDICTION-'].Update(disabled=True)
             window['-COUNTER-'].Update(disabled=True)
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
@@ -761,7 +763,6 @@ while True:
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
          and (len(subsetidx)>0):
-        print("receiving an event")
         #########################
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
@@ -959,14 +960,13 @@ while True:
                 ## UPDATING PREDICTION FOR CURRENT MEDIA
                 #########################
                 rowidx = values['-TAB-'][0]
-                # touching position in Table, will send an event
-                print("sending an event")
+                # touching position in Table, will send a -TAB- event
                 window['-TAB-'].update(select_rows=[rowidx])
         except queue.Empty:
             pass
     if thread is not None:
         #########################
-        ## WORK TERMINATED IN THREAD
+        ## UPDATING GUI WHEN THREAD HAS TERMINATED
         #########################
         if thread.is_alive() == False:
             thread = None
