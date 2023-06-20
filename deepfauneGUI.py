@@ -479,7 +479,6 @@ import queue
 ## GUI's variables
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
-updatecurridxrequired = False # True if necessary to refresh the prediction info for curridx
 testdir = None
 thread = None
 thread_queue = queue.Queue()
@@ -495,30 +494,27 @@ curwindowsize = (0,0) # current size before config events
 curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
 def runPredictor(): # predictor in action in a separate thread
-    #global updatecurridxrequired 
     if VIDEO:
         while True:
             start = time.time()
             batch, k1, k2 = predictor.nextBatch()
             end = time.time()
+            if k1==nbfiles: # last batch done
+                break
             batchduration.append(end-start)
-            if k1==nbfiles: break
             rtime = time.strftime("%H:%M:%S", time.gmtime(mean(batchduration)*(nbfiles-batch)))
             progbar = batch/nbfiles
-            #if curridx>=k1 and curridx<k2: # current video must be refreshed
-            #    updatecurridxrequired = True
             thread_queue.put([rtime, progbar, k1, k2])
     else:
         while True:
             start = time.time()
             batch, k1, k2, k1seq, k2seq = predictor.nextBatch()
             end = time.time()
+            if k1==nbfiles:  # last batch done
+                break
             batchduration.append(end-start)
-            if k1==nbfiles: break
             rtime = time.strftime("%H:%M:%S", time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch)))
             progbar = batch*BATCH_SIZE/nbfiles
-            #if curridx>=k1seq and curridx<k2seq: # current image must be refreshed
-            #    updatecurridxrequired = True
             thread_queue.put([rtime, progbar, k1seq, k2seq])
     thread_queue.put(["00:00:00", 1.0, nbfiles, nbfiles])
 
