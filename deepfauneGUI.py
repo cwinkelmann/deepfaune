@@ -484,7 +484,6 @@ thread = None
 thread_queue = queue.Queue()
 predictorready = False
 imgmoved  = False
-batchduration = deque(maxlen=20)
 txt_new_classes_lang = []
 
 ## misc variables to allow resizing
@@ -494,6 +493,7 @@ curwindowsize = (0,0) # current size before config events
 curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
 def runPredictor(): # predictor in action in a separate thread
+    batchduration = deque(maxlen=20)
     if VIDEO:
         while True:
             start = time.time()
@@ -700,21 +700,18 @@ while True:
                 from predictTools import PredictorImage
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
-                window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
-                                                        for k in range(0, nbfiles))) # color reset is required
             else:
                 if len(filenames)>1000:
                     popup_win = popup(txt_loadingmetadata[LANG])
                 predictor = PredictorImage(filenames, threshold, maxlag, LANG, BATCH_SIZE)
                 if len(filenames)>1000:
                     popup_win.close()
-                filenames = predictor.getFilenames()
                 seqnums = predictor.getSeqnums()
-                window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
+            filenames = predictor.getFilenames()
+            window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
             curridx = 0
             rowidx = 0
             subsetidx = list(range(0,len(filenames)))
-            batchduration = deque(maxlen=20)
             window['-PROGBAR-'].update_bar(0)
             window['-TAB-'].update(select_rows=[0])
             window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
