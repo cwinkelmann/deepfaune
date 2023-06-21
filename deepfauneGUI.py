@@ -720,7 +720,6 @@ while True:
             window['-COUNTER-'].Update(disabled=True)
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             predictor.setForbiddenClasses(forbiddenclasses)
-            thread_queue = queue.Queue()
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 
