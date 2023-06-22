@@ -400,6 +400,13 @@ window.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG-
 ####################################################################################
 ### GUI UTILS (after it is created)
 ####################################################################################
+def updateMenuImport(disabled):
+    if disabled == True:
+        menu_def[0][1][0] = '!'+txt_import[LANG]
+    else:
+        menu_def[0][1][0] = '&'+txt_import[LANG]
+    window[txt_file[LANG]].Update(menu_def[0])
+
 def updateMenuExport(disabled):
     if disabled == True:
         menu_def[0][1][2] = '!'+txt_export[LANG]
@@ -675,6 +682,7 @@ while True:
             rowidx = 0
             subsetidx = list(range(0,len(filenames)))
             batchduration = deque(maxlen=20)
+            updateMenuImport(disabled=True)
             window['-TAB-'].update(select_rows=[0])
             window['-PREDICTION-'].Update(disabled=True)
             window['-COUNTER-'].Update(disabled=True)
@@ -941,6 +949,7 @@ while True:
             ## WORK TERMINATED IN THREAD
             #########################
             thread = None
+            updateMenuImport(disabled=False)
             updateMenuExport(disabled=False)
             updateMenuSubfolders(disabled=False) 
             window['-RESTRICT-'].Update(disabled=False)
