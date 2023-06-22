@@ -323,7 +323,7 @@ class PredictorVideo(PredictorBase):
                 for kframe in range(0, self.BATCH_SIZE*lag, lag): 
                     videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                     ret,frame = videocap.read()
-                    if not ret:
+                    if ret == False:
                         pass # Corrupted or unavailable image, considered as empty
                     else:
                         imagecv = frame

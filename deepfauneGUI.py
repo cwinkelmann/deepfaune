@@ -767,23 +767,26 @@ while True:
             if VIDEO:
                 videocap = cv2.VideoCapture(filenames[curridx])
                 total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
-                fps = int(videocap.get(5))
-                lag = int(fps/3) # lag between two successive frames
-                while ((BATCH_SIZE - 1) * lag > total_frames):
-                    lag = lag - 1 
-                if predictorready:
-                    kframe = predictor.getKeyFrames(curridx)*lag # possibly 0 if video not treated by predictor yet
+                if total_frames==0:
+                     imagecv = None # corrupted video, considered as empty
                 else:
-                    kframe = 0
-                videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
-                ret, imagecv = videocap.read()
-                while ret==False and (kframe+lag)<=((BATCH_SIZE-1)*lag): # ignoring corrupted frames (useless when key frame are found by predictor)
-                    kframe = kframe+lag
+                    fps = int(videocap.get(5))
+                    lag = int(fps/3) # lag between two successive frames
+                    while ((BATCH_SIZE - 1) * lag > total_frames):
+                        lag = lag - 1 
+                    if predictorready:
+                        kframe = predictor.getKeyFrames(curridx)*lag # possibly 0 if video not treated by predictor yet
+                    else:
+                        kframe = 0
                     videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                     ret, imagecv = videocap.read()
+                    while ret==False and (kframe+lag)<=((BATCH_SIZE-1)*lag): # ignoring corrupted frames (useless when key frame are found by predictor)
+                        kframe = kframe+lag
+                        videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+                        ret, imagecv = videocap.read()
+                    if ret==False:
+                        imagecv = None                        
                 videocap.release()
-                if not ret:
-                    imagecv = None
             else:
                 try:
                     imagecv = cv2.imdecode(np.fromfile(filenames[curridx], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
