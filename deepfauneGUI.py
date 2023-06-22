@@ -400,6 +400,13 @@ window.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG-
 ####################################################################################
 ### GUI UTILS (after it is created)
 ####################################################################################
+def updateMenuImport(disabled):
+    if disabled == True:
+        menu_def[0][1][0] = '!'+txt_import[LANG]
+    else:
+        menu_def[0][1][0] = '&'+txt_import[LANG]
+    window[txt_file[LANG]].Update(menu_def[0])
+
 def updateMenuExport(disabled):
     if disabled == True:
         menu_def[0][1][2] = '!'+txt_export[LANG]
@@ -713,6 +720,7 @@ while True:
             rowidx = 0
             subsetidx = list(range(0,len(filenames)))
             window['-PROGBAR-'].update_bar(0)
+            updateMenuImport(disabled=True)
             window['-TAB-'].update(select_rows=[0])
             window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                     for k in range(0, 1))) # bug, first row color need to be hard reset
@@ -957,6 +965,7 @@ while True:
         #########################
         if thread.is_alive() == False:
             thread = None
+            updateMenuImport(disabled=False)
             updateMenuExport(disabled=False)
             updateMenuSubfolders(disabled=False) 
             window['-RESTRICT-'].Update(disabled=False)
