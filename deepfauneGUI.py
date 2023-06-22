@@ -700,7 +700,13 @@ while True:
         ########################
         ## RUN
         ########################
-        if not configabort:            
+        if not configabort: 
+            window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
+            window['-PROGBAR-'].update_bar(0)
+            updateMenuImport(disabled=True)
+            window['-PREDICTION-'].Update(disabled=True)
+            window['-COUNTER-'].Update(disabled=True)
+            window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)           
             if VIDEO:
                 from predictTools import PredictorVideo
             else:
@@ -715,24 +721,18 @@ while True:
                     popup_win.close()
                 seqnums = predictor.getSeqnums()
             filenames = predictor.getFilenames()
-            window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
             curridx = 0
             rowidx = 0
             subsetidx = list(range(0,len(filenames)))
-            window['-PROGBAR-'].update_bar(0)
-            updateMenuImport(disabled=True)
+            window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
             window['-TAB-'].update(select_rows=[0])
             window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                     for k in range(0, 1))) # bug, first row color need to be hard reset
-            window['-PREDICTION-'].Update(disabled=True)
-            window['-COUNTER-'].Update(disabled=True)
-            window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             predictor.setForbiddenClasses(forbiddenclasses)
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 
             predictorready = True
-            window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
     elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
         #########################
         ## EXPORTING RESULTS
