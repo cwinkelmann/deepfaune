@@ -80,7 +80,7 @@ predictedclass, predictedscore, best_boxes, count = predictor.getPredictions()
 
 ## OUTPUT
 dates = predictor.getDates()
-seqnum = predictor.getSeqnums()1
+seqnum = predictor.getSeqnums()
 preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore, 'count':count})
 preddf.to_csv(sys.argv[2], index=False)
 print('Done, results saved in '+sys.argv[2])

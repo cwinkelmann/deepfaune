@@ -38,7 +38,7 @@ import pandas as pd
 from abc import ABC, abstractmethod
 from math import log
 
-from detectTools import Detector, DetectorJSON, YOLO_THRESH
+from detectTools import Detector, DetectorJSON, YOLO_THRES, MDV5_THRES
 from classifTools import txt_animalclasses, CROP_SIZE, Classifier
 from fileManager import FileManager
 
@@ -71,7 +71,8 @@ class PredictorBase(ABC):
         self.predictedscore = [0.]*self.fileManager.nbFiles()
         self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
         self.count = [0]*self.fileManager.nbFiles()
-        self.threshold = threshold
+        self.threshold = threshold # classification step
+        self.detectionthreshold = 0. # detection step
         self.resetBatch()    
     
     def resetBatch(self):
@@ -90,6 +91,9 @@ class PredictorBase(ABC):
 
     def setClassificationThreshold(threshold):
         self.threshold = threshold
+        
+    def setDetectionThreshold(self, threshold):
+        self.detectionthreshold = threshold
             
     def getPredictions(self, k=None):
         if k is not None:
@@ -234,7 +238,6 @@ class PredictorImageBase(PredictorBase):
         self.k2 = self.fileManager.nbFiles()
         self.correctPredictionsWithSequenceBatch()
 
-
 ####################################################################################
 ### PREDICTOR IMAGE
 ####################################################################################
@@ -242,7 +245,7 @@ class PredictorImage(PredictorImageBase):
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
         PredictorImageBase.__init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = Detector()
-        self.yolothreshold = YOLO_THRESH
+        self.setDetectionThreshold(YOLO_THRES)
 
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
@@ -257,7 +260,7 @@ class PredictorImage(PredictorImageBase):
                 if imagecv is None:
                     pass # corrupted image, considered as empty
                 else:
-                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.yolothreshold)
+                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
                     self.bestboxes[k] = box
                     self.count[k] = count
                     if category > 0: # not empty
@@ -282,9 +285,6 @@ class PredictorImage(PredictorImageBase):
             self.batch = self.batch+1
             # returning batch results
             return self.batch-1, k1_batch, k2_batch, k1seq_batch, k2seq_batch
-                    
-    def setDetectionThreshold(self, threshold):
-        self.yolothreshold = threshold
         
 ####################################################################################
 ### PREDICTOR VIDEO 
@@ -294,7 +294,7 @@ class PredictorVideo(PredictorBase):
          PredictorBase.__init__(self, filenames, threshold, LANG, BATCH_SIZE) # inherits all
          self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
-         self.yolothreshold = YOLO_THRESH
+         self.setDetectionThreshold(YOLO_THRES)
 
     def resetBatch(self):
         self.k1 = 0
@@ -327,7 +327,7 @@ class PredictorVideo(PredictorBase):
                         pass # Corrupted or unavailable image, considered as empty
                     else:
                         imagecv = frame
-                        croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.yolothreshold)
+                        croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
                         bestboxesallframe[k] = box
                         if count>maxcount:
                             maxcount = count
@@ -363,7 +363,7 @@ class PredictorVideo(PredictorBase):
             self.k1 = self.k2
             self.k2 = min(self.k1+1,self.fileManager.nbFiles())
             self.batch = self.batch+1  
-            return self.batch-1, k1_batch, k2_batch    
+            return self.batch-1, k1_batch, k2_batch
 
     def setDetectionThreshold(self, threshold):
         self.yolothreshold = threshold
@@ -377,6 +377,7 @@ class PredictorVideo(PredictorBase):
 class PredictorJSON(PredictorImageBase):    
     def __init__(self, jsonfilename, threshold, maxlag, LANG, BATCH_SIZE=8):
          self.detector = DetectorJSON(jsonfilename)
+         self.setDetectionThreshold(MDV5_THRES)
          PredictorImageBase.__init__(self, self.detector.getFilenames(), threshold, maxlag, LANG, BATCH_SIZE) # inherits all
     
     def nextBatch(self):
@@ -385,7 +386,7 @@ class PredictorJSON(PredictorImageBase):
         else:
             idxanimal = []
             for k in range(self.k1,self.k2):
-                croppedimage, category = self.detector.nextBestBoxDetection()
+                croppedimage, category = self.detector.nextBestBoxDetection(self.detectionthreshold)
                 if category > 0: # not empty
                     self.prediction[k,-1] = 0
                 if category == 1: # animal
