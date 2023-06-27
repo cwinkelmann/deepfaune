@@ -478,26 +478,63 @@ import pkgutil
 import time
 from collections import deque
 from statistics import mean
+import queue
 
+#########################
+## GLOBAL VARIABLES
+#########################
+## GUI's variables
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
-updatecurridxrequired = False # do we need to refresh the prediction info for curridx
 testdir = None
 thread = None
+thread_queue = queue.Queue()
 predictorready = False
 imgmoved  = False
-batchduration = deque(maxlen=20)
 txt_new_classes_lang = []
 
+## misc variables to allow resizing
 configactive = False # checks if a series of config events is in progress
 nbconfigseries = 0 # nb of series of config events
 curwindowsize = (0,0) # current size before config events
 curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
+def runPredictor(): # predictor in action in a separate thread
+    batchduration = deque(maxlen=20)
+    if VIDEO:
+        while True:
+            start = time.time()
+            batch, k1, k2 = predictor.nextBatch()
+            end = time.time()
+            if k1==nbfiles: # last batch done
+                break
+            batchduration.append(end-start)
+            rtime = time.strftime("%H:%M:%S", time.gmtime(mean(batchduration)*(nbfiles-batch)))
+            progbar = batch/nbfiles
+            thread_queue.put([rtime, progbar, k1, k2])
+    else:
+        while True:
+            start = time.time()
+            batch, k1, k2, k1seq, k2seq = predictor.nextBatch()
+            end = time.time()
+            if k1==nbfiles:  # last batch done
+                break
+            batchduration.append(end-start)
+            rtime = time.strftime("%H:%M:%S", time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch)))
+            progbar = batch*BATCH_SIZE/nbfiles
+            thread_queue.put([rtime, progbar, k1seq, k2seq])
+    thread_queue.put(["00:00:00", 1.0, nbfiles, nbfiles])
+
+DEBUG = False
 while True:
     event, values = window.read(timeout=10)
+    if event != "__TIMEOUT__" and DEBUG is True:
+        print(event)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    #########################
+    ## WINDOW RESIZING ?
+    #########################
     if event == '-CONFIG-': # respond to window resize event
         configactive = True
     elif event != '-CONFIG-' and configactive == True:
@@ -509,7 +546,10 @@ while True:
             curwindowsize = window.size # current size before other config events (resizing or moving)
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
-    elif event in listlang:
+    if event in listlang:
+        #########################
+        ## SELECTING LANGUAGE
+        #########################
         config.set('General', 'language', event)
         if event != LANG:
             with open("settings.ini", "w") as inif:
@@ -660,72 +700,39 @@ while True:
         ########################
         ## RUN
         ########################
-        if not configabort:            
+        if not configabort: 
+            window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
+            window['-PROGBAR-'].update_bar(0)
+            updateMenuImport(disabled=True)
+            window['-PREDICTION-'].Update(disabled=True)
+            window['-COUNTER-'].Update(disabled=True)
+            window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)           
             if VIDEO:
                 from predictTools import PredictorVideo
             else:
                 from predictTools import PredictorImage
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
-                window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
-                                                        for k in range(0, nbfiles))) # color reset is required
             else:
                 if len(filenames)>1000:
                     popup_win = popup(txt_loadingmetadata[LANG])
                 predictor = PredictorImage(filenames, threshold, maxlag, LANG, BATCH_SIZE)
                 if len(filenames)>1000:
                     popup_win.close()
-                filenames = predictor.getFilenames()
                 seqnums = predictor.getSeqnums()
-                window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
+            filenames = predictor.getFilenames()
             curridx = 0
             rowidx = 0
             subsetidx = list(range(0,len(filenames)))
-            batchduration = deque(maxlen=20)
-            updateMenuImport(disabled=True)
+            window.Element('-TAB-').Update(values=[[basename(f)] for f in filenames]) # color reset is induced
             window['-TAB-'].update(select_rows=[0])
-            window['-PREDICTION-'].Update(disabled=True)
-            window['-COUNTER-'].Update(disabled=True)
-            window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
+            window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
+                                                    for k in range(0, 1))) # bug, first row color need to be hard reset
             predictor.setForbiddenClasses(forbiddenclasses)
-            ###
-            def runPredictor():
-                global window, nbfiles, BATCH_SIZE, VIDEO, updatecurridxrequired 
-                if VIDEO:
-                    while True:
-                        start = time.time()
-                        batch, k1, k2 = predictor.nextBatch()
-                        end = time.time()
-                        batchduration.append(end-start)
-                        if k1==nbfiles: break
-                        window['-RTIME-'].Update(time.strftime("%H:%M:%S",
-                                                                 time.gmtime(mean(batchduration)*(nbfiles-batch))))
-                        window['-PROGBAR-'].update_bar(batch/nbfiles)
-                        window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
-                                                                  for k in range(k1, k2)))
-                        if curridx>=k1 and curridx<k2: # current video must be refreshed
-                            updatecurridxrequired = True
-                else:
-                    while True:
-                        start = time.time()
-                        batch, k1, k2, k1seq_batch, k2seq_batch = predictor.nextBatch()
-                        end = time.time()
-                        batchduration.append(end-start)
-                        if k1==nbfiles: break
-                        window['-RTIME-'].Update(time.strftime("%H:%M:%S",
-                                                                 time.gmtime(mean(batchduration)*(1+int(nbfiles/BATCH_SIZE)-batch))))
-                        window['-PROGBAR-'].update_bar(batch*BATCH_SIZE/nbfiles)     
-                        window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
-                                                                for k in range(k1seq_batch, k2seq_batch)))
-                        if curridx>=k1seq_batch and curridx<k2seq_batch: # current image must be refreshed
-                            updatecurridxrequired = True
-                window['-RTIME-'].Update("00:00:00")
-            ###
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 
             predictorready = True
-            window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
     elif event == txt_ascsv[LANG] or event == txt_asxlsx[LANG]:
         #########################
         ## EXPORTING RESULTS
@@ -815,15 +822,6 @@ while True:
             updateImage(imagecv)
             if predictorready and not VIDEO:
                 window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
-    elif updatecurridxrequired == True \
-         and event != '-TAB-' and event != '-PREVIOUS-' and event != '-NEXT-':
-        #########################
-        ## UPDATING PREDICTION FOR CURRENT MEDIA
-        #########################
-        rowidx = values['-TAB-'][0]
-        # touching position in Table, will send an event
-        window['-TAB-'].update(select_rows=[rowidx])
-        updatecurridxrequired = False
     elif (testdir is not None) \
          and (event == '-PREVIOUS-' or event == '-NEXT-') \
          and (len(subsetidx)>0):
@@ -943,11 +941,29 @@ while True:
         rowidx = 0
     elif event == sg.TIMEOUT_KEY:
         window.refresh()
+    #########################
+    ## UPDATING GUI FROM THREAD INFO (thread-safe)
+    #########################
+    try:
+        rtime, progbar, k1, k2 = thread_queue.get(0)
+        window['-RTIME-'].Update(rtime)
+        window['-PROGBAR-'].update_bar(progbar)
+        window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
+                                                for k in range(k1, k2)))
+        if curridx>=k1 and curridx<k2: # current media must be refreshed
+            #########################
+            ## UPDATING PREDICTION FOR CURRENT MEDIA
+            #########################
+            rowidx = values['-TAB-'][0]
+            # touching position in Table, will send a -TAB- event
+            window['-TAB-'].update(select_rows=[rowidx])
+    except queue.Empty:
+        pass
     if thread is not None:
+        #########################
+        ## UPDATING GUI WHEN THREAD HAS TERMINATED
+        #########################
         if thread.is_alive() == False:
-            #########################
-            ## WORK TERMINATED IN THREAD
-            #########################
             thread = None
             updateMenuImport(disabled=False)
             updateMenuExport(disabled=False)
