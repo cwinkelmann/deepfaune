@@ -261,6 +261,15 @@ def StyledMenu(menu_definition, text_color, background_color, text_font, key):
     return(sg.Column([row], pad=(0,0), background_color=bar_bg, expand_x=True, key=key))
 
 ####################################################################################
+### CHECKING SCREEN SIZE & RESOLUTION
+####################################################################################
+logoimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
+curimagecv = logoimagecv
+scale = 0.5
+curimagecv = cv2.resize(curimagecv, (500,350))
+
+
+####################################################################################
 ### MAIN GUI WINDOW
 ####################################################################################
 # Default selected classes
@@ -355,7 +364,7 @@ layout = [
                 ], background_color=background_color, expand_y=True),
                 sg.Column([ 
                     [sg.Frame('',
-                              [[sg.Image(filename=r'icons/1316-black-large-933x700.png', key='-IMAGE-', size=(933, 700), background_color=background_color)]]
+                              [[sg.Image(updateBytes(curimagecv), key='-IMAGE-',  background_color=background_color)]]
                               , background_color=background_color)
                      ],
                     [sg.Text(txt_prediction[LANG]+':', background_color=background_color, text_color=text_color, size=(10, 1)),
@@ -447,8 +456,8 @@ def updatePredictionInfo(disabled):
 
 
 imageOffset = (0,0) # space between the window and the image control itself
-def updateImage(newcurimagecv=None):
-    # print("updateImage now ",window.size," was ",curwindowsize)
+def updateBytes(newcurimagecv=None):
+    # print("updateBytes now ",window.size," was ",curwindowsize)
     global curimagecv
     if newcurimagecv is not None:
         curimagecv = newcurimagecv
@@ -457,12 +466,12 @@ def updateImage(newcurimagecv=None):
         curimagecv_resized = cv2.resize(curimagecv, curimsize)
         is_success, png_buffer = cv2.imencode(".png", curimagecv_resized)
         bio = BytesIO(png_buffer)
-        window['-IMAGE-'].update(data=bio.getvalue())
+        return bio.getvalue()
  
 def resizeImage():
     global curwindowsize
     if window.size[0] != curwindowsize[0] or window.size[1] != curwindowsize[1]:
-        updateImage()
+        window['-IMAGE-'].update(updateBytes())
     curwindowsize = window.size
 
 ####################################################################################
@@ -497,7 +506,6 @@ txt_new_classes_lang = []
 configactive = False # checks if a series of config events is in progress
 nbconfigseries = 0 # nb of series of config events
 curwindowsize = (0,0) # current size before config events
-curimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
 def runPredictor(): # predictor in action in a separate thread
     batchduration = deque(maxlen=20)
@@ -605,7 +613,8 @@ while True:
             curridx = -1
             window['-RTIME-'].Update("00:00:00")
             window['-PROGBAR-'].update_bar(0)
-            updateImage(cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED))
+            curimagecv = logoimagecv
+            window['-IMAGE-'].update(updateBytes(curimagecv))
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
@@ -819,7 +828,7 @@ while True:
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv,predictedbox_curridx)
                 #imagecv = cv2.resize(imagecv, (933,700))
-            updateImage(imagecv)
+            window['-IMAGE-'].update(updateBytes(imagecv))
             if predictorready and not VIDEO:
                 window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
@@ -935,7 +944,8 @@ while True:
         else:
             updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[[]])
-            updateImage(cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED))
+            curimagecv = logoimagecv
+            window['-IMAGE-'].update(updateBytes(curimagecv))
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
         rowidx = 0
