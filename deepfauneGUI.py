@@ -280,7 +280,7 @@ curimagecv = logoimagecv
 
 # Checking screen possibilities and sizing image accordinglyimport ctypes
 import platform
-DEFAULTIMGSIZE = (width,height) = (20933,20700)
+DEFAULTIMGSIZE = (width,height) = (933,700)
 try:
     if platform.platform().lower().startswith("windows"):
         root = sg.tk.Tk()
