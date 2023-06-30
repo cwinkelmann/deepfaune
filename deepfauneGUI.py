@@ -132,8 +132,7 @@ txt_restart = {'fr':"Redémarrage nécessaire pour changer la langue. Arréter l
 from b64_images import *
 
 DEFAULT_THEME = {'accent': '#00bfff', 'background': '#121212', 'text': '#d7d7d7', 'alternate_background': '#222222'}
-settings: dict = {'theme': DEFAULT_THEME.copy()}
-accent_color, text_color, background_color = settings['theme']['accent'], settings['theme']['text'], settings['theme']['background']
+accent_color, text_color, background_color = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background']
 
 SUN_VALLEY_TCL = 'theme/sun-valley.tcl'
 SUN_VALLEY_THEME = 'dark' # 'light' not coherent with DEFAULT THEME
@@ -488,7 +487,6 @@ def updatePredictionInfo(disabled):
 
 imageOffset = (0,0) # space between the window and the image control itself
 def updateImage(newcurimagecv=None):
-    # print("updateBytes now ",window.size," was ",curwindowsize)
     global curimagecv
     if newcurimagecv is not None:
         curimagecv = newcurimagecv
