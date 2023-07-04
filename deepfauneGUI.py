@@ -38,14 +38,6 @@ import threading
 import io
 import os
 os.environ["PYTORCH_JIT"] = "0"
-import ctypes
-import platform
-try: # high resolution issue on Windows
-    if platform.platform().lower().startswith("windows"):
-        if int(platform.release()) >= 8:
-            ctypes.windll.shcore.SetProcessDpiAwareness(True)
-except:
-    pass
 
 ####################################################################################
 ### VERSION
@@ -296,7 +288,8 @@ except:
 
 
 correctedimgsize = (min(DEFAULTIMGSIZE[0],int(width*0.65)),
-                    min(DEFAULTIMGSIZE[1],int(width*0.65*DEFAULTIMGSIZE[0]/DEFAULTIMGSIZE[1]), int(height*0.75)))
+                    min(DEFAULTIMGSIZE[1],int(width*0.65*DEFAULTIMGSIZE[0]/DEFAULTIMGSIZE[1]), int(height*0.75)))           
+
 curimagecv = cv2.resize(curimagecv, correctedimgsize)
 
 ####################################################################################
@@ -421,7 +414,7 @@ layout = [
 ]
 
 window = sg.Window("DeepFaune - CNRS",layout, margins=(0,0),
-                   font = FONT_MED,
+                   font = FONT_MED, location=(0, 0),
                    resizable=True, background_color=background_color).Finalize()
 window.read(timeout=0)
 window['-PREDICTION-'].Update(disabled=True)
