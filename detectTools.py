@@ -71,7 +71,7 @@ class Detector:
         image = Image.fromarray(cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB))
         imageresized, ratio = resizeaspectratio(image, YOLO_WIDTH)
         results = self.yolo(imageresized, verbose=False)
-        detection = results[0].numpy().boxes
+        detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
             return [], 0, np.zeros(4), 0
         category = detection.cls[0] + 1
