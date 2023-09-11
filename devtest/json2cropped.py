@@ -54,7 +54,7 @@ CROPPEDVEHICLEPATH = sys.argv[4]
 threshold = float(sys.argv[5])
 
 
-detector = DetectorJSON(jsonfilename, threshold)
+detector = DetectorJSON(jsonfilename)
 
 prevfilename = ''
 kbox = 0
@@ -69,7 +69,7 @@ while True:
             prevfilename = filename
             kbox = 0
         # cropping in RGB format
-        croppedimage, category = detector.nextBoxDetection()
+        croppedimage, category = detector.nextBoxDetection(threshold)
         if category>0:
             if category == 1:
                 croppedfilename = join(CROPPEDANIMALPATH,prefix+"_crop"+str(kbox)+".jpg")
