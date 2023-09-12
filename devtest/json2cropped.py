@@ -70,7 +70,7 @@ while True:
             kbox = 0
         # cropping in RGB format
         croppedimage, category = detector.nextBoxDetection(threshold)
-        if category>0:
+        if croppedimage is not None:
             if category == 1:
                 croppedfilename = join(CROPPEDANIMALPATH,prefix+"_crop"+str(kbox)+".jpg")
             if category == 2: # human
@@ -78,8 +78,7 @@ while True:
             if category == 3: # vehicle
                 croppedfilename = join(CROPPEDVEHICLEPATH,prefix+"_crop"+str(kbox)+".jpg")
             print(filename, croppedfilename, category)
-            if category>0:
-                croppedimage.save(croppedfilename)
+            croppedimage.save(croppedfilename)
     except IndexError:
         break
         

@@ -73,21 +73,25 @@ class Detector:
         results = self.yolo(imageresized, verbose=False)
         detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
-            return [], 0, np.zeros(4), 0
+            return None, 0, np.zeros(4), 0
         category = detection.cls[0] + 1
         count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
         box = detection.xyxy[0] / ratio  # xmin, ymin, xmax, ymax
         croppedimage = cropSquare(image, box.copy())
+        if croppedimage is None: # FileNotFoundError
+            category = 0
         return croppedimage, category, box, count
 
 ####################################################################################
 ### BEST BOX DETECTION WITH JSON
 ####################################################################################
 from load_api_results import load_api_results
+import json
 import contextlib
 import os
 from pandas import concat
 from numpy import argmax
+import sys
 
 MDV5_THRES = 0.5
 
@@ -101,12 +105,15 @@ class DetectorJSON:
     def __init__(self, jsonfilename):
         # getting results in a dataframe
         with contextlib.redirect_stdout(open(os.devnull, 'w')):
-            self.df_json, _ = load_api_results(jsonfilename)
-            # removing lines with Failure event
-            if 'failure' in self.df_json.keys():
-                self.df_json = self.df_json[self.df_json['failure'].isnull()]
-                self.df_json.reset_index(drop=True, inplace = True)
-                self.df_json.drop('failure', axis=1, inplace=True)
+            try:
+                self.df_json, _ = load_api_results(jsonfilename)
+                # removing lines with Failure event
+                if 'failure' in self.df_json.keys():
+                    self.df_json = self.df_json[self.df_json['failure'].isnull()]
+                    self.df_json.reset_index(drop=True, inplace = True)
+                    self.df_json.drop('failure', axis=1, inplace=True)
+            except json.decoder.JSONDecodeError:
+                self.df_json = []
         self.k = 0 # current image index
         self.kbox = 0 # current box index
         self.imagecv = None
@@ -129,11 +136,13 @@ class DetectorJSON:
             category = 0
         # is an animal detected ?
         if category != 1:
-            croppedimage = []
+            croppedimage = None
         # if yes, cropping the bounding box
         else:
             self.nextImread()
             croppedimage = self.cropCurrentBox()
+            if croppedimage is None: # FileNotFoundError
+                category = 0
         self.k += 1
         return croppedimage, category
 
@@ -154,14 +163,14 @@ class DetectorJSON:
                 croppedimage = self.cropCurrentBox()
             else: # considered as empty
                 category = 0
-                croppedimage = []
+                croppedimage = None
             self.kbox += 1
             if self.kbox >= len(self.df_json['detections'][self.k]):
                 self.k += 1
                 self.kbox = 0
         else: # is empty
             category = 0
-            croppedimage = []
+            croppedimage = None
             self.k += 1
             self.kbox = 0
         return croppedimage, category
@@ -173,7 +182,8 @@ class DetectorJSON:
     def nextImread(self):
         try:
             self.imagecv = cv2.imdecode(np.fromfile(str(self.df_json["file"][self.k]), dtype=np.uint8),  cv2.IMREAD_UNCHANGED)
-        except:
+        except FileNotFoundError as e:
+            print(e, file=sys.stderr)
             self.imagecv = None
     
     
@@ -183,7 +193,7 @@ class DetectorJSON:
     """
     def cropCurrentBox(self):
         if self.imagecv is None:
-            return []
+            return None
         image = Image.fromarray(cv2.cvtColor(self.imagecv, cv2.COLOR_BGR2RGB))
         box_norm = self.df_json['detections'][self.k][self.kbox]["bbox"]
         xmin = int(box_norm[0] * image.width)
