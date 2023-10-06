@@ -422,6 +422,7 @@ window['-RESTRICT-'].Update(disabled=True)
 window['-COUNTER-'].Update(disabled=True)
 window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after return key
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
+window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
 
 from tkinter import TclError
 from contextlib import suppress
@@ -492,6 +493,39 @@ def resizeImage():
         updateImage()
     curwindowsize = window.size
 
+def playVideoUntilOtherEvent(filename):    
+    videocap = cv2.VideoCapture(filename)
+    total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
+    if total_frames==0:
+        framecv = None # corrupted video, considered as empty
+        event, values = window.read(timeout=10)
+    else:
+        play = True
+        kframe = 0
+        while(play):
+            videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+            ret, framecv = videocap.read()
+            if ret==False:
+                framecv = None
+            curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
+            window['-IMAGE-'].update(data=cv2bytes(framecv, curimsize))
+            print("update")
+            window.refresh()
+            kframe = kframe+5
+            if kframe>=total_frames:
+                kframe = 0
+            event, values = window.read(timeout=10)
+            #if event=='-IMAGE-DOUBLECLICK-':
+            if event != '__TIMEOUT__':
+                if event != '-CONFIG-':
+                    play = False
+    videocap.release()
+    # updating position in Table, will send an event
+    if event != '-TAB-':
+        window['-TAB-'].update(select_rows=[rowidx])
+        window['-TAB-'].Widget.see(rowidx+1)
+    return event, values
+
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
@@ -550,13 +584,18 @@ def runPredictor(): # predictor in action in a separate thread
             thread_queue.put([rtime, progbar, k1seq, k2seq])
     thread_queue.put(["00:00:00", 1.0, nbfiles, nbfiles])
 
-DEBUG = False
+DEBUG = True
 while True:
     event, values = window.read(timeout=10)
     if event != "__TIMEOUT__" and DEBUG is True:
         print(event)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    #########################
+    ## PLAYING VIDEO ?
+    #########################
+    if event == '-IMAGE-DOUBLECLICK-' and VIDEO:
+        event, values = playVideoUntilOtherEvent(filenames[curridx]) # captures the window event internally
     #########################
     ## WINDOW RESIZING ?
     #########################
