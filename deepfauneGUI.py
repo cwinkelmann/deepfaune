@@ -493,39 +493,6 @@ def resizeImage():
         updateImage()
     curwindowsize = window.size
 
-def playVideoUntilOtherEvent(filename):    
-    videocap = cv2.VideoCapture(filename)
-    total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
-    if total_frames==0:
-        framecv = None # corrupted video, considered as empty
-        event, values = window.read(timeout=10)
-    else:
-        play = True
-        kframe = 0
-        while(play):
-            videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
-            ret, framecv = videocap.read()
-            if ret==False:
-                framecv = None
-            curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
-            window['-IMAGE-'].update(data=cv2bytes(framecv, curimsize))
-            print("update")
-            window.refresh()
-            kframe = kframe+5
-            if kframe>=total_frames:
-                kframe = 0
-            event, values = window.read(timeout=10)
-            #if event=='-IMAGE-DOUBLECLICK-':
-            if event != '__TIMEOUT__':
-                if event != '-CONFIG-':
-                    play = False
-    videocap.release()
-    # updating position in Table, will send an event
-    if event != '-TAB-':
-        window['-TAB-'].update(select_rows=[rowidx])
-        window['-TAB-'].Widget.see(rowidx+1)
-    return event, values
-
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
@@ -558,6 +525,9 @@ configactive = False # checks if a series of config events is in progress
 nbconfigseries = 0 # nb of series of config events
 curwindowsize = (0,0) # current size before config events
 
+#########################
+## ASYNCHRONOUS ACTIONS
+#########################
 def runPredictor(): # predictor in action in a separate thread
     batchduration = deque(maxlen=20)
     if VIDEO:
@@ -584,7 +554,69 @@ def runPredictor(): # predictor in action in a separate thread
             thread_queue.put([rtime, progbar, k1seq, k2seq])
     thread_queue.put(["00:00:00", 1.0, nbfiles, nbfiles])
 
-DEBUG = True
+def updateFromThreadQueue(): # updating GUI using info in thread queue
+    global thread
+    try:
+        rtime, progbar, k1, k2 = thread_queue.get(0)
+        window['-RTIME-'].Update(rtime)
+        window['-PROGBAR-'].update_bar(progbar)
+        window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
+                                                for k in range(k1, k2)))
+        if curridx>=k1 and curridx<k2: # current media must be refreshed
+            rowidx = values['-TAB-'][0]
+            # touching position in Table, will send a -TAB- event
+            window['-TAB-'].update(select_rows=[rowidx])
+    except queue.Empty:
+        pass
+    if thread is not None:
+        ## Enabling GUI events when thread has terminated
+        if thread.is_alive() == False:
+            thread = None
+            updateMenuImport(disabled=False)
+            updateMenuExport(disabled=False)
+            updateMenuSubfolders(disabled=False) 
+            window['-RESTRICT-'].Update(disabled=False)
+            updatePredictionInfo(disabled=False)
+            window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
+
+
+def playVideoUntilOtherEvent(filename):    
+    videocap = cv2.VideoCapture(filename)
+    total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
+    if total_frames==0:
+        framecv = None # corrupted video, considered as empty
+        event, values = window.read(timeout=10)
+    else:
+        play = True
+        kframe = 0
+        while(play):
+            videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+            ret, framecv = videocap.read()
+            if ret==False:
+                framecv = None
+            curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
+            window['-IMAGE-'].update(data=cv2bytes(framecv, curimsize))
+            window.refresh()
+            kframe = kframe+5
+            if kframe>=total_frames:
+                kframe = 0
+            event, values = window.read(timeout=10)
+            updateFromThreadQueue()
+            #if event=='-IMAGE-DOUBLECLICK-':
+            if event != '__TIMEOUT__':
+                if event != '-CONFIG-':
+                    play = False
+    videocap.release()
+    # updating position in Table, will send an event
+    if event != '-TAB-':
+        window['-TAB-'].update(select_rows=[rowidx])
+        window['-TAB-'].Widget.see(rowidx+1)
+    return event, values
+    
+#########################
+## MAIN LOOP
+#########################
+DEBUG = False
 while True:
     event, values = window.read(timeout=10)
     if event != "__TIMEOUT__" and DEBUG is True:
@@ -1007,32 +1039,6 @@ while True:
     #########################
     ## UPDATING GUI FROM THREAD INFO (thread-safe)
     #########################
-    try:
-        rtime, progbar, k1, k2 = thread_queue.get(0)
-        window['-RTIME-'].Update(rtime)
-        window['-PROGBAR-'].update_bar(progbar)
-        window['-TAB-'].Update(row_colors=tuple((k,accent_color,background_color)
-                                                for k in range(k1, k2)))
-        if curridx>=k1 and curridx<k2: # current media must be refreshed
-            #########################
-            ## UPDATING PREDICTION FOR CURRENT MEDIA
-            #########################
-            rowidx = values['-TAB-'][0]
-            # touching position in Table, will send a -TAB- event
-            window['-TAB-'].update(select_rows=[rowidx])
-    except queue.Empty:
-        pass
-    if thread is not None:
-        #########################
-        ## UPDATING GUI WHEN THREAD HAS TERMINATED
-        #########################
-        if thread.is_alive() == False:
-            thread = None
-            updateMenuImport(disabled=False)
-            updateMenuExport(disabled=False)
-            updateMenuSubfolders(disabled=False) 
-            window['-RESTRICT-'].Update(disabled=False)
-            updatePredictionInfo(disabled=False)
-            window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
+    updateFromThreadQueue()
 window.close()
 
