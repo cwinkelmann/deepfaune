@@ -40,7 +40,7 @@ import torch.nn as nn
 from torchvision.transforms import InterpolationMode, transforms
 
 CROP_SIZE = 224
-BACKBONE = "convnext_base_in22k"
+BACKBONE = "convnext_base.fb_in22k"
 weight_path = "deepfaune-convnextbasein22k.pt"
 
 txt_animalclasses = {
@@ -128,9 +128,6 @@ class Model(nn.Module):
         try:
             params = torch.load(path, map_location=device)
             args = params['args']
-            if self.backbone != args['backbone']:
-                raise Exception("You load a model ({}) that does not have the same architecture as the initial model "
-                                "({})".format(args['backbone'], self.backbone))
             if self.nbclasses != args['num_classes']:
                 raise Exception("You load a model ({}) that does not have the same number of class"
                                 "({})".format(args['num_classes'], self.nbclasses))
