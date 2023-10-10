@@ -513,6 +513,7 @@ import queue
 ## GUI's variables
 curridx = -1 # current filenames index
 rowidx = -1 # current tab row index
+subsetidx = [] # current subset of filenames
 testdir = None
 thread = None
 thread_queue = queue.Queue()
@@ -626,7 +627,7 @@ while True:
     #########################
     ## PLAYING VIDEO ?
     #########################
-    if event == '-IMAGE-DOUBLECLICK-' and VIDEO:
+    if event == '-IMAGE-DOUBLECLICK-' and VIDEO and (len(subsetidx)>0):
         event, values = playVideoUntilOtherEvent(filenames[curridx]) # captures the window event internally
     #########################
     ## WINDOW RESIZING ?
