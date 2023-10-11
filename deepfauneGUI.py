@@ -556,7 +556,7 @@ def runPredictor(): # predictor in action in a separate thread
     thread_queue.put(["00:00:00", 1.0, nbfiles, nbfiles])
 
 def updateFromThreadQueue(): # updating GUI using info in thread queue
-    global thread
+    global thread, thread_queue
     try:
         rtime, progbar, k1, k2 = thread_queue.get(0)
         window['-RTIME-'].Update(rtime)
@@ -570,7 +570,7 @@ def updateFromThreadQueue(): # updating GUI using info in thread queue
     except queue.Empty:
         pass
     if thread is not None:
-        ## Enabling GUI events when thread has terminated
+        ## enabling GUI events when thread has terminated
         if thread.is_alive() == False:
             thread = None
             updateMenuImport(disabled=False)
@@ -579,7 +579,6 @@ def updateFromThreadQueue(): # updating GUI using info in thread queue
             window['-RESTRICT-'].Update(disabled=False)
             updatePredictionInfo(disabled=False)
             window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
-
 
 def playVideoUntilOtherEvent(filename):    
     videocap = cv2.VideoCapture(filename)
@@ -610,6 +609,7 @@ def playVideoUntilOtherEvent(filename):
     videocap.release()
     # updating position in Table, will send an event
     if event != '-TAB-':
+        rowidx = values['-TAB-'][0]
         window['-TAB-'].update(select_rows=[rowidx])
         window['-TAB-'].Widget.see(rowidx+1)
     return event, values
