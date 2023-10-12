@@ -593,11 +593,10 @@ def playVideoUntilOtherEvent(filename):
         while(play):
             videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
             ret, framecv = videocap.read()
-            if ret==False:
-                framecv = None
-            curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
-            window['-IMAGE-'].update(data=cv2bytes(framecv, curimsize))
-            window.refresh()
+            if ret==True: # uncorrupted frame
+                curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
+                window['-IMAGE-'].update(data=cv2bytes(framecv, curimsize))
+                window.refresh()
             kframe = kframe+5
             if kframe>=total_frames:
                 kframe = 0
