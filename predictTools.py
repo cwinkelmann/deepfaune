@@ -168,7 +168,19 @@ class PredictorBase(ABC):
             majorityclass = majority.index[best]
             majorityscore = meanscore[best] # overall score as the mean for this class
             return majorityclass, int(majorityscore*100)/100.    
-    
+        
+    def __averageLogitInSequence(self, predinseq):
+        notempty = ((predinseq[:,-1]==1.)!=True)
+        if sum(notempty)==0.: # testing all image are empty
+            return txt_empty[self.LANG], 1.
+        else:
+            predinseq = predinseq[notempty,]
+            averagelogits = np.sum(predinseq,axis=0)
+            best = np.argmax(averagelogits) # selecting class with best average logit
+            bestclass = txt_classes[self.LANG][best]
+            bestscore = np.exp(averagelogits[best])/sum(np.exp(averagelogits))# softmax(average logit)
+            return bestclass, int(bestscore*100)/100.
+                         
 ####################################################################################
 ### PREDICTOR IMAGE BASE
 ####################################################################################
@@ -225,12 +237,10 @@ class PredictorImageBase(PredictorBase):
         if len(subseqnum)>0:
             for num in range(min(subseqnum), max(subseqnum)+1):
                 idx4num = k1seq + np.nonzero(subseqnum==num)[0]
-                df_prediction = pd.DataFrame({'prediction':[self.predictedclass_base[k] for k in idx4num],
-                                              'score':[self.predictedscore_base[k] for k in idx4num]})
-                majorityclass, meanscore = self._PredictorBase__majorityVotingInSequence(df_prediction)
+                bestclass, bestscore = self._PredictorBase__averageLogitInSequence(self.prediction[idx4num,])
                 for k in idx4num:
-                    self.predictedclass[k] = majorityclass
-                    self.predictedscore[k] = meanscore
+                    self.predictedclass[k] = bestclass
+                    self.predictedscore[k] = bestscore
         return k1seq, k2seq
                 
     def correctPredictionsWithSequence(self):
@@ -273,7 +283,7 @@ class PredictorImage(PredictorImageBase):
                     if category == 3: # vehicle
                         self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal): # predicting species in images with animal 
-                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])            
+                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
             for k in range(self.k1,self.k2):
                 self.predictedclass_base[k], self.predictedscore_base[k] = self._PredictorBase__score2class(self.prediction[k,])
             k1_batch = self.k1
@@ -343,7 +353,8 @@ class PredictorVideo(PredictorBase):
                     k = k+1
             videocap.release()
             if len(idxanimal): # predicting species in frames with animal 
-                predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:])
+                predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:], withsoftmax=False)
+            self.predictedclass[self.k1], self.predictedscore[self.k1] = self._PredictorBase__averageLogitInSequence(predictionallframe)
             if len(idxnonempty): # not empty
                 self.prediction[self.k1,-1] = 0.
                 # print((predictionallframe[idxnonempty,:]*100).astype(int))
@@ -397,7 +408,7 @@ class PredictorJSON(PredictorImageBase):
                 if category == 3: # vehicle
                      self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal):
-                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])            
+                self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
             for k in range(self.k1,self.k2):
                 self.predictedclass_base[k], self.predictedscore_base[k] = self._PredictorBase__score2class(self.prediction[k,])
             k1seq_batch, k2seq_batch = self.correctPredictionsWithSequenceBatch()
@@ -409,12 +420,6 @@ class PredictorJSON(PredictorImageBase):
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch
         
-    def getPredictionsBase(self, k=None):
-        if k is not None:
-            return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
-        else:            
-            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
-
     def merge(self, predictor):
         PredictorImageBase.merge(predictor)
         self.detector.merge(predictor.detector)
