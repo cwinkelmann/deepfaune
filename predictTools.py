@@ -152,30 +152,19 @@ class PredictorBase(ABC):
         if max(pred)>self.threshold:
             return txt_classesempty_lang[idxmax], int(max(pred)*100)/100.
         else:
-            return txt_undefined[self.LANG], int(max(pred)*100)/100.            
-
-    def __majorityVotingInSequence(self, df_prediction):
-        txt_empty_lang = txt_empty[self.LANG]
-        majority = df_prediction.groupby(['prediction']).sum()
-        meanscore = df_prediction.groupby(['prediction']).mean()['score']
-        if list(majority.index) == [txt_empty_lang]:
-            return txt_empty_lang, 1.
-        else:
-            notempty = (majority.index != txt_empty_lang) # skipping empty images in sequence
-            majority = majority[notempty]
-            meanscore = meanscore[notempty]
-            best = np.argmax(majority['score']) # selecting class with best total score
-            majorityclass = majority.index[best]
-            majorityscore = meanscore[best] # overall score as the mean for this class
-            return majorityclass, int(majorityscore*100)/100.    
+            return txt_undefined[self.LANG], int(max(pred)*100)/100.  
         
     def __averageLogitInSequence(self, predinseq):
         notempty = ((predinseq[:,-1]==1.)!=True)
         if sum(notempty)==0.: # testing all image are empty
             return txt_empty[self.LANG], 1.
         else:
-            predinseq = predinseq[notempty,]
-            averagelogits = np.sum(predinseq,axis=0)
+            predinseq = predinseq[notempty,:]
+            if len(self.idxforbidden):
+                predinseq[:,self.idxforbidden] = 0.
+            print(predinseq)
+            averagelogits = np.mean(predinseq,axis=0)
+            print(averagelogits)
             best = np.argmax(averagelogits) # selecting class with best average logit
             bestclass = txt_classes[self.LANG][best]
             bestscore = np.exp(averagelogits[best])/sum(np.exp(averagelogits))# softmax(average logit)
@@ -318,6 +307,7 @@ class PredictorVideo(PredictorBase):
             idxanimal = []
             idxnonempty = []
             predictionallframe = np.zeros(shape=(self.BATCH_SIZE, self.nbclasses), dtype=np.float32)
+            predictionallframe[:,-1] = 1. # by default, predicted as empty
             bestboxesallframe = np.zeros(shape=(self.BATCH_SIZE, 4), dtype=np.float32)
             maxcount = 0            
             videocap = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
@@ -343,6 +333,7 @@ class PredictorVideo(PredictorBase):
                             maxcount = count
                         if category > 0: # not empty
                             idxnonempty.append(k)
+                            predictionallframe[k,-1] = 0.
                         if category == 1: # animal
                             self.cropped_data[k,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                             idxanimal.append(k)
@@ -356,17 +347,9 @@ class PredictorVideo(PredictorBase):
                 predictionallframe[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx for idx in idxanimal],:,:,:], withsoftmax=False)
             self.predictedclass[self.k1], self.predictedscore[self.k1] = self._PredictorBase__averageLogitInSequence(predictionallframe)
             if len(idxnonempty): # not empty
-                self.prediction[self.k1,-1] = 0.
-                # print((predictionallframe[idxnonempty,:]*100).astype(int))
-                # max score in frames with animal/human/vehicle
+                self.prediction[self.k1,-1] = 0.# using max score to select key frame
                 tidxmax = np.unravel_index(np.argmax(predictionallframe[idxnonempty,:], axis=None), predictionallframe[idxnonempty,:].shape)
                 self.keyframes[self.k1] = idxnonempty[tidxmax[0]]
-                # using max score as video score
-                self.prediction[self.k1,tidxmax[1]] = predictionallframe[idxnonempty,:][tidxmax[0],tidxmax[1]]
-                # or using average score of this class when predicted as video score
-                # idxmax4all = np.argmax(predictionallframe[idxnonempty,:], axis=1)
-                # self.prediction[self.k1,tidxmax[1]] = np.sum(predictionallframe[idxnonempty,:][np.where(idxmax4all==tidxmax[1])[0],tidxmax[1]],axis=0)/len(np.where(idxmax4all==tidxmax[1])[0])
-            self.predictedclass[self.k1], self.predictedscore[self.k1] = self._PredictorBase__score2class(self.prediction[self.k1,])
             self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
             self.count[self.k1] = maxcount
             k1_batch = self.k1
