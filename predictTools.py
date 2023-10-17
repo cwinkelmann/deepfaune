@@ -176,16 +176,18 @@ class PredictorBase(ABC):
 class PredictorImageBase(PredictorBase):    
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
         PredictorBase.__init__(self, filenames, threshold, LANG, BATCH_SIZE) # inherits all
-        self.predictedclass_base = [""]*self.fileManager.nbFiles()
-        self.predictedscore_base = [0.]*self.fileManager.nbFiles()
         self.fileManager.findSequences(maxlag)
         self.fileManager.reorderBySeqnum()
 
     def getPredictionsBase(self, k=None):
         if k is not None:
-            return self.predictedclass_base[k], self.predictedscore_base[k], self.bestboxes[k,], self.count[k]
-        else:            
-            return self.predictedclass_base, self.predictedscore_base, self.bestboxes, self.count
+            return self._PredictorBase__score2class(self.prediction[k,]), self.bestboxes[k,], self.count[k]
+        else:   
+            predictedclass_base = [""]*self.fileManager.nbFiles()
+            predictedscore_base = [0.]*self.fileManager.nbFiles()
+            for k in range(0,self.fileManager.nbFiles()):
+                predictedclass_base[k], predictedscore_base[k] = self._PredictorBase__score2class(self.prediction[k,])   
+            return predictedclass_base, predictedscore_base, self.bestboxes, self.count
 
     def setPredictedClassInSequence(self, k, label, score=1.0):
         self.setPredictedClass(k, label, score)
@@ -198,17 +200,6 @@ class PredictorImageBase(PredictorBase):
             k2seq = k2seq+1
             self.setPredictedClass(k2seq, label, score)
 
-    def merge(self, predictor):
-        PredictorBase.merge(predictor)
-        if self.predictedclass_base == [] or predictor.predictedclass_base == []:
-            self.predictedclass_base = []
-        else:
-            self.predictedclass_base += predictor.predictedclass_base
-        if self.predictedscore_base == [] or predictor.predictedscore_base == []:
-             self.predictedscore_base = []
-        else:            
-            self.predictedscore_base += predictor.predictedscore_base
-        
     def correctPredictionsWithSequenceBatch(self):
         seqnum = self.fileManager.getSeqnums()
         k1seq = self.k1 # first sequence in batch
@@ -273,8 +264,6 @@ class PredictorImage(PredictorImageBase):
                         self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal): # predicting species in images with animal 
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
-            for k in range(self.k1,self.k2):
-                self.predictedclass_base[k], self.predictedscore_base[k] = self._PredictorBase__score2class(self.prediction[k,])
             k1_batch = self.k1
             k2_batch = self.k2
             k1seq_batch, k2seq_batch = self.correctPredictionsWithSequenceBatch()
@@ -392,8 +381,6 @@ class PredictorJSON(PredictorImageBase):
                      self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal):
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
-            for k in range(self.k1,self.k2):
-                self.predictedclass_base[k], self.predictedscore_base[k] = self._PredictorBase__score2class(self.prediction[k,])
             k1seq_batch, k2seq_batch = self.correctPredictionsWithSequenceBatch()
             # switching to next batch
             k1_batch = self.k1
