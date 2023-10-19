@@ -188,7 +188,7 @@ class PredictorImageBase(PredictorBase):
             k2seq = k2seq+1
             self.setPredictedClass(k2seq, label, score)
 
-    def correctPredictionsWithSequenceBatch(self):
+    def correctPredictionsInSequenceBatch(self):
         seqnum = self.fileManager.getSeqnums()
         k1seq = self.k1 # first sequence in batch
         k2seq = self.k2 ## last sequence in batch
@@ -211,10 +211,10 @@ class PredictorImageBase(PredictorBase):
                     self.predictedscore[k] = bestscore
         return k1seq, k2seq
                 
-    def correctPredictionsWithSequence(self):
+    def correctPredictionsInSequence(self):
         self.k1 = 0 # batch start
         self.k2 = self.fileManager.nbFiles()
-        self.correctPredictionsWithSequenceBatch()
+        self.correctPredictionsInSequenceBatch()
 
 ####################################################################################
 ### PREDICTOR IMAGE
@@ -254,7 +254,7 @@ class PredictorImage(PredictorImageBase):
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
             k1_batch = self.k1
             k2_batch = self.k2
-            k1seq_batch, k2seq_batch = self.correctPredictionsWithSequenceBatch()
+            k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
             # switching to next batch
             self.k1 = self.k2
             self.k2 = min(self.k1+self.BATCH_SIZE,self.fileManager.nbFiles())
@@ -369,7 +369,7 @@ class PredictorJSON(PredictorImageBase):
                      self.prediction[k,self.idxvehicle] = 1.
             if len(idxanimal):
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
-            k1seq_batch, k2seq_batch = self.correctPredictionsWithSequenceBatch()
+            k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
             # switching to next batch
             k1_batch = self.k1
             k2_batch = self.k2
