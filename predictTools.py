@@ -50,6 +50,7 @@ txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
 txt_empty = {'fr':"vide", 'en':"empty", 'it':"vuoto", 'de':"Leer"}
 txt_undefined = {'fr':"indéfini", 'en':"undefined", 'it':"indeterminato", 'de':"Undefiniert"}
 
+MAXLOGIT = 15. # arbitrary maximal logit value, used for classes human/vehicule/empty
 
 ####################################################################################
 ### PREDICTOR BASE
@@ -65,8 +66,8 @@ class PredictorBase(ABC):
         self.idxhuman = len(txt_animalclasses[self.LANG]) # idx of 'human' class in prediction
         self.idxvehicle = self.idxhuman+1 # idx of 'vehicle' class in prediction
         self.idxforbidden = [] # idx of forbidden classes
-        self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32)
-        self.prediction[:,-1] = 1. # by default, predicted as empty
+        self.prediction = np.zeros(shape=(self.fileManager.nbFiles(), self.nbclasses+1), dtype=np.float32) # logit score
+        self.prediction[:,-1] = MAXLOGIT # by default, predicted as empty
         self.predictedclass = [""]*self.fileManager.nbFiles()
         self.predictedscore = [0.]*self.fileManager.nbFiles()
         self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
@@ -107,7 +108,7 @@ class PredictorBase(ABC):
     def getPredictedClass(self, k):
         return self.predictedclass[k]
         
-    def setPredictedClass(self, k, label, score=1.0):
+    def setPredictedClass(self, k, label, score=MAXLOGIT):
         self.predictedclass[k] = label
         self.predictedscore[k] = score
 
@@ -143,19 +144,29 @@ class PredictorBase(ABC):
         self.resetBatch()        
         
     def __averageLogitInSequence(self, predinseq):
-        notempty = ((predinseq[:,-1]==1.)!=True)
-        if sum(notempty)==0.: # testing all image are empty
+        isempty = (predinseq[:,-1]>0)
+        ishuman = (predinseq[:,self.idxhuman]>0)
+        isvehicle = (predinseq[:,self.idxvehicle]>0)
+        isanimal = ((isempty+ishuman+isvehicle)==False)
+        if sum(isempty)==predinseq.shape[0]: # testing all image are empty
             return txt_empty[self.LANG], 1.
         else:
-            predinseq = predinseq[notempty,:]
-            if len(self.idxforbidden):
-                predinseq[:,self.idxforbidden] = 0.
-            print(predinseq)
-            averagelogits = np.mean(predinseq,axis=0)
-            print(averagelogits)
-            best = np.argmax(averagelogits) # selecting class with best average logit
-            bestclass = txt_classes[self.LANG][best]
-            bestscore = np.exp(averagelogits[best])/sum(np.exp(averagelogits))# softmax(average logit)
+            mostfrequent = np.argsort([sum(isanimal), sum(ishuman), sum(isvehicle)])[-1]
+            if mostfrequent==0: # animal                
+                predinseq = predinseq[isanimal,:]
+                if len(self.idxforbidden):
+                    predinseq[:,self.idxforbidden] = 0.
+                averagelogits = np.mean(predinseq,axis=0)
+                best = np.argmax(averagelogits) # selecting class with best average logit
+                bestclass = txt_classes[self.LANG][best]
+                bestscore = np.exp(averagelogits[best])/sum(np.exp(averagelogits))# softmax(average logit)
+            else:
+                if mostfrequent==1: # human
+                    bestclass = txt_classes[self.LANG][self.idxhuman]
+                    bestscore = 1.
+                else: # vehicle
+                    bestclass = txt_classes[self.LANG][self.idxvehicle]
+                    bestscore = 1.
             return bestclass, int(bestscore*100)/100.
                          
 ####################################################################################
@@ -177,7 +188,7 @@ class PredictorImageBase(PredictorBase):
                 predictedclass_base[k], predictedscore_base[k] = self._PredictorBase__averageLogitInSequence(self.prediction[k:(k+1),])   
             return predictedclass_base, predictedscore_base, self.bestboxes, self.count
 
-    def setPredictedClassInSequence(self, k, label, score=1.0):
+    def setPredictedClassInSequence(self, k, label, score=MAXLOGIT):
         self.setPredictedClass(k, label, score)
         seqnum = self.fileManager.getSeqnums()
         k1seq = k2seq = k
@@ -247,9 +258,9 @@ class PredictorImage(PredictorImageBase):
                         self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                         idxanimal.append(k)
                     if category == 2: # human
-                        self.prediction[k,self.idxhuman] = 1.
+                        self.prediction[k,self.idxhuman] = MAXLOGIT
                     if category == 3: # vehicle
-                        self.prediction[k,self.idxvehicle] = 1.
+                        self.prediction[k,self.idxvehicle] = MAXLOGIT
             if len(idxanimal): # predicting species in images with animal 
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
             k1_batch = self.k1
@@ -284,7 +295,7 @@ class PredictorVideo(PredictorBase):
             idxanimal = []
             idxnonempty = []
             predictionallframe = np.zeros(shape=(self.BATCH_SIZE, self.nbclasses), dtype=np.float32)
-            predictionallframe[:,-1] = 1. # by default, predicted as empty
+            predictionallframe[:,-1] = MAXLOGIT # by default, predicted as empty
             bestboxesallframe = np.zeros(shape=(self.BATCH_SIZE, 4), dtype=np.float32)
             maxcount = 0            
             videocap = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
@@ -315,9 +326,9 @@ class PredictorVideo(PredictorBase):
                             self.cropped_data[k,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                             idxanimal.append(k)
                         if category == 2: # human
-                            predictionallframe[k,self.idxhuman] = 1.
+                            predictionallframe[k,self.idxhuman] = MAXLOGIT
                         if category == 3: # vehicle
-                            predictionallframe[k,self.idxvehicle] = 1.
+                            predictionallframe[k,self.idxvehicle] = MAXLOGIT
                     k = k+1
             videocap.release()
             if len(idxanimal): # predicting species in frames with animal 
@@ -364,9 +375,9 @@ class PredictorJSON(PredictorImageBase):
                     self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                     idxanimal.append(k)
                 if category == 2: # human
-                     self.prediction[k,self.idxhuman] = 1.
+                     self.prediction[k,self.idxhuman] = MAXLOGIT
                 if category == 3: # vehicle
-                     self.prediction[k,self.idxvehicle] = 1.
+                     self.prediction[k,self.idxvehicle] = MAXLOGIT
             if len(idxanimal):
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
             k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
