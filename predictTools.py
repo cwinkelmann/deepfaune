@@ -151,7 +151,7 @@ class PredictorBase(ABC):
         if sum(isempty)==predinseq.shape[0]: # testing all image are empty
             return txt_empty[self.LANG], 1.
         else:
-            mostfrequent = np.argsort([sum(isanimal), sum(ishuman), sum(isvehicle)])[-1]
+            mostfrequent = np.argsort([sum(isanimal), sum(ishuman), sum(isvehicle)])[-1] # discarding empty images
             if mostfrequent==0: # animal                
                 predinseq = predinseq[isanimal,1:(len(txt_animalclasses[self.LANG])+1)]
                 if len(self.idxforbidden):
