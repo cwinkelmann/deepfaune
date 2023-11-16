@@ -153,7 +153,7 @@ class PredictorBase(ABC):
         else:
             mostfrequent = np.argsort([sum(isanimal), sum(ishuman), sum(isvehicle)])[-1]
             if mostfrequent==0: # animal                
-                predinseq = predinseq[isanimal,:]
+                predinseq = predinseq[isanimal,1:(len(txt_animalclasses[self.LANG])+1)]
                 if len(self.idxforbidden):
                     predinseq[:,self.idxforbidden] = 0.
                 averagelogits = np.mean(predinseq,axis=0)
