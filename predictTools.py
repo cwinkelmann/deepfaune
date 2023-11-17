@@ -90,7 +90,7 @@ class PredictorBase(ABC):
     def nextBatch(self):
         pass
 
-    def setClassificationThreshold(threshold):
+    def setClassificationThreshold(self, threshold):
         self.threshold = threshold
         
     def setDetectionThreshold(self, threshold):
@@ -153,20 +153,25 @@ class PredictorBase(ABC):
         else:
             mostfrequent = np.argsort([sum(isanimal), sum(ishuman), sum(isvehicle)])[-1] # discarding empty images
             if mostfrequent==0: # animal                
-                predinseq = predinseq[isanimal,1:(len(txt_animalclasses[self.LANG])+1)]
-                if len(self.idxforbidden):
-                    predinseq[:,self.idxforbidden] = 0.
+                predinseq = predinseq[isanimal,0:(len(txt_animalclasses[self.LANG])+1)]
                 averagelogits = np.mean(predinseq,axis=0)
-                best = np.argmax(averagelogits) # selecting class with best average logit
-                bestclass = txt_classes[self.LANG][best]
-                bestscore = np.exp(averagelogits[best])/sum(np.exp(averagelogits))# softmax(average logit)
+                bestidx = np.argmax(averagelogits) # selecting class with best average logit
+                bestscore = np.exp(averagelogits[bestidx])/sum(np.exp(averagelogits))# softmax(average logit)
             else:
                 if mostfrequent==1: # human
-                    bestclass = txt_classes[self.LANG][self.idxhuman]
+                    bestidx = self.idxhuman
                     bestscore = 1.
                 else: # vehicle
-                    bestclass = txt_classes[self.LANG][self.idxvehicle]
+                    bestidx = self.idxvehicle
                     bestscore = 1.
+            if bestidx in self.idxforbidden:
+                bestclass = txt_undefined[self.LANG]
+                bestscore = 1-bestscore
+            else:
+                if bestscore<self.threshold: # convert to undefined, if necessary
+                    bestclass = txt_undefined[self.LANG]
+                else:
+                    bestclass = txt_classes[self.LANG][bestidx]
             return bestclass, int(bestscore*100)/100.
                          
 ####################################################################################
