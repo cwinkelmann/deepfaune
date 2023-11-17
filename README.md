@@ -33,27 +33,32 @@ The latest versions are available at:
 `Deepfaune` sofware is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html).
 
 ### 1. Get the source code of the latest release, directly from this site. 
-First of all, get the `zip` archive by clicking on the button ![button](img/button.jpg) on the top right of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
-This will open the following window where you can download the whole directory as a `zip` file (warning, it's a huge file):
-
-![button](img/buttonzip.jpg)
-
+Option1 (latest stable version):  get the `zip` archive by clicking on the button `Download` (next to "Create release") on the last row of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
 Then, uncompress the zip file.
+
+Option2 (latest version): clone the repository by clicking on the blue button above.
 
 ###  2. Download and unzip the model parameters
 The model parameters are protected by the [CC BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0/) (Attribution-NonCommercial-ShareAlike 4.0 International).
 
 Download the model parameters *inside the deepfaune folder* where you can find `deepfauneGUI.py`:
 
-- Animal detector parameters: for version 0.6.x [deepfaune-yolov8s.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v0.6/)
+- Animal detector parameters: for version 1.0.x [deepfaune-yolov8s.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.0/)
 
-- Classifier parameters: for version 0.6.x [deepfaune-convnextbasein22k.pt.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v0.6/)
+- Classifier parameters: for version 1.0.x [deepfaune-convnextbasein22k.pt.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.0/)
 
 ### 3. Install the dependencies
 
-On Linux or Windows **with PyPi (pip)**:
+We need Python 3.x and `pip` 
 
-- Python 3.x (and `pip` which might be called `pip3` on your system)
+WARNING: on Linux it is not mandatory to create a virtual environement with:
+```
+python3 -m venv envdeepfaune
+source env/bin/activatedeepfaune
+pip install XXX
+```
+
+Then, the dependencies
 - PyTorch: `pip install torch torchvision`
 - Yolov8: `pip install ultralytics`
 - Timm: `pip install timm`
