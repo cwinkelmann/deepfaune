@@ -39,9 +39,9 @@ from torch import tensor
 import torch.nn as nn
 from torchvision.transforms import InterpolationMode, transforms
 
-CROP_SIZE = 224
-BACKBONE = "convnext_base.fb_in22k"
-weight_path = "deepfaune-convnextbasein22k.pt"
+CROP_SIZE = 182
+BACKBONE = "vit_large_patch14_dinov2.lvd142m"
+weight_path = "vit_large_patch14_dinov2.lvd142m_21-11-23.pt"
 
 txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "ecureuil", "equide", "genette",
@@ -92,7 +92,9 @@ class Model(nn.Module):
         Constructor of model classifier
         """
         super().__init__()
-        self.base_model = timm.create_model(BACKBONE, pretrained=False, num_classes=len(txt_animalclasses['fr']))
+        self.base_model = timm.create_model(BACKBONE, pretrained=False, num_classes=len(txt_animalclasses['fr']),
+                                            dynamic_img_size=True)
+        print(f"Using {BACKBONE} with weights at {weight_path}, in resolution {CROP_SIZE}x{CROP_SIZE}")
         self.backbone = BACKBONE
         self.nbclasses = len(txt_animalclasses['fr'])
 
