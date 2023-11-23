@@ -37,8 +37,9 @@ from PIL import Image
 from ultralytics import YOLO
 
 YOLO_WIDTH = 1280 # image width
-YOLO_THRES = 0.6
-YOLOCOUNT_THRES = 0.6
+YOLO_THRES = 0.6 # boxes above this threshold are considered for image classification
+YOLOHUMAN_THRES = 0.6 # boxes with human above this threshold are saved
+YOLOCOUNT_THRES = 0.6 # boxes above this threshold are counted as a number of individuals
 model = 'deepfaune-yolov8s.pt'
 
 ####################################################################################
@@ -242,3 +243,22 @@ def cropSquare(image, box):
     croppedimage = image.crop((max(0,box[0]), max(0,box[1]), min(box[2],image.width), min(box[3],image.height)))
     # croppedimage.show()
     return croppedimage
+
+
+class HumanBoxes:
+    def __init__(self, threshold=YOLOHUMAN_THRES):
+        self.humanboxes = dict()
+        self.threshold = threshold
+
+    def insert(detection, filename, ratio):
+        ishuman = (detection.cls==1) & (detection.conf>=self.threshold)
+        if any(ishuman==True):
+            self.humanboxes[filename] = detection.xyxy[ishuman,] # where
+
+    def get(filename):
+        try:
+            return(self.humanboxes[filename])
+        except KeyError:
+            return None
+            
+                    
