@@ -246,6 +246,7 @@ class PredictorImage(PredictorImageBase):
         PredictorImageBase.__init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = Detector()
         self.setDetectionThreshold(YOLO_THRES)
+        self.humanboxes = dict()
 
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
@@ -260,7 +261,7 @@ class PredictorImage(PredictorImageBase):
                 if imagecv is None:
                     pass # corrupted image, considered as empty
                 else:
-                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
+                    croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
                     self.bestboxes[k] = box
                     self.count[k] = count
                     if category > 0: # not empty
@@ -272,6 +273,8 @@ class PredictorImage(PredictorImageBase):
                         self.prediction[k,self.idxhuman] = 1.
                     if category == 3: # vehicle
                         self.prediction[k,self.idxvehicle] = 1.
+                    if humanboxes.shape[0]>0: # humans
+                        self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
             if len(idxanimal): # predicting species in images with animal 
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])            
             for k in range(self.k1,self.k2):
@@ -285,6 +288,13 @@ class PredictorImage(PredictorImageBase):
             self.batch = self.batch+1
             # returning batch results
             return self.batch-1, k1_batch, k2_batch, k1seq_batch, k2seq_batch
+
+        
+    def getHumanBoxes(filename):
+        try:
+            return(self.humanboxes[filename])
+        except KeyError:
+            return None
         
 ####################################################################################
 ### PREDICTOR VIDEO 

@@ -41,17 +41,6 @@ YOLO_THRES = 0.6 # boxes above this threshold are considered for image classific
 YOLOHUMAN_THRES = 0.6 # boxes with human above this threshold are saved
 YOLOCOUNT_THRES = 0.6 # boxes above this threshold are counted as a number of individuals
 model = 'deepfaune-yolov8s.pt'
-
-####################################################################################
-from math import inf
-def resizeaspectratio(image, width=inf):
-    (w, h) = image.size
-    if w < width:
-        return image, 1.
-    ratio = width / float(w)
-    new_size = (width, int(h * ratio))
-    resized_image = image.resize(new_size)
-    return resized_image, ratio
        
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -70,18 +59,22 @@ class Detector:
         in/out as numpy int array (0-255) in BGR
         '''
         image = Image.fromarray(cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB))
-        imageresized, ratio = resizeaspectratio(image, YOLO_WIDTH)
-        results = self.yolo(imageresized, verbose=False)
+        results = self.yolo(image, verbose=False)
         detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
             return None, 0, np.zeros(4), 0
+        ## best box
         category = detection.cls[0] + 1
-        count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
-        box = detection.xyxy[0] / ratio  # xmin, ymin, xmax, ymax
+        box = detection.xyxy[0]  # xmin, ymin, xmax, ymax
         croppedimage = cropSquare(image, box.copy())
         if croppedimage is None: # FileNotFoundError
             category = 0
-        return croppedimage, category, box, count
+        ## count
+        count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
+        ## human boxes
+        ishuman = (detection.cls==1) & (detection.conf>=YOLOHUMAN_THRES)
+        humanboxes = detection.xyxy[ishuman,]
+        return croppedimage, category, box, count, humanboxes
 
 ####################################################################################
 ### BEST BOX DETECTION WITH JSON
@@ -243,22 +236,5 @@ def cropSquare(image, box):
     croppedimage = image.crop((max(0,box[0]), max(0,box[1]), min(box[2],image.width), min(box[3],image.height)))
     # croppedimage.show()
     return croppedimage
-
-
-class HumanBoxes:
-    def __init__(self, threshold=YOLOHUMAN_THRES):
-        self.humanboxes = dict()
-        self.threshold = threshold
-
-    def insert(detection, filename, ratio):
-        ishuman = (detection.cls==1) & (detection.conf>=self.threshold)
-        if any(ishuman==True):
-            self.humanboxes[filename] = detection.xyxy[ishuman,] # where
-
-    def get(filename):
-        try:
-            return(self.humanboxes[filename])
-        except KeyError:
-            return None
-            
+       
                     
