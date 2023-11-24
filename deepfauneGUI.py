@@ -151,6 +151,14 @@ def draw_boxes(imagecv, box=None):
         if np.count_nonzero(box)>0: # is not default empty box
             cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
 
+def blur_boxes(imagecv, boxes=None):
+    if boxes is not None:
+        for box in boxes:
+            if np.count_nonzero(box)>0: # is not default empty box
+                ROI = imagecv[int(box[1]):int(box[3]),int(box[0]):int(box[2])]
+                blur = cv2.GaussianBlur(ROI, (51,51), 0) 
+                imagecv[int(box[1]):int(box[3]),int(box[0]):int(box[2])] = blur
+
 import tkinter
 from tkinter import filedialog, messagebox
 def dialog_get_dir(title, initialdir=None):
@@ -913,7 +921,8 @@ while True:
                     if countactivated:
                         window['-COUNTER-'].Update(value=count_curridx)
                     if predictedclass_curridx is not txt_empty[LANG]:
-                        draw_boxes(imagecv,predictedbox_curridx)
+                        draw_boxes(imagecv, predictedbox_curridx)
+                    blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
             updateImage(imagecv)
             if predictorready and not VIDEO:
                 window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))

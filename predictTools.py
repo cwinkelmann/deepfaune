@@ -273,7 +273,8 @@ class PredictorImage(PredictorImageBase):
                         self.prediction[k,self.idxhuman] = 1.
                     if category == 3: # vehicle
                         self.prediction[k,self.idxvehicle] = 1.
-                    if humanboxes.shape[0]>0: # humans
+                    if humanboxes is not None: # humans
+                        print("storing ",humanboxes)
                         self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
             if len(idxanimal): # predicting species in images with animal 
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])            
@@ -288,9 +289,8 @@ class PredictorImage(PredictorImageBase):
             self.batch = self.batch+1
             # returning batch results
             return self.batch-1, k1_batch, k2_batch, k1seq_batch, k2seq_batch
-
         
-    def getHumanBoxes(filename):
+    def getHumanBoxes(self, filename):
         try:
             return(self.humanboxes[filename])
         except KeyError:
@@ -337,7 +337,7 @@ class PredictorVideo(PredictorBase):
                         pass # Corrupted or unavailable image, considered as empty
                     else:
                         imagecv = frame
-                        croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
+                        croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
                         bestboxesallframe[k] = box
                         if count>maxcount:
                             maxcount = count

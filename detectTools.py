@@ -62,7 +62,7 @@ class Detector:
         results = self.yolo(image, verbose=False)
         detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
-            return None, 0, np.zeros(4), 0
+            return None, 0, np.zeros(4), 0, None
         ## best box
         category = detection.cls[0] + 1
         box = detection.xyxy[0]  # xmin, ymin, xmax, ymax
@@ -73,8 +73,11 @@ class Detector:
         count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
         ## human boxes
         ishuman = (detection.cls==1) & (detection.conf>=YOLOHUMAN_THRES)
-        humanboxes = detection.xyxy[ishuman,]
-        return croppedimage, category, box, count, humanboxes
+        if any(ishuman==True):
+            humanboxes = detection.xyxy[ishuman,]
+            return croppedimage, category, box, count, humanboxes
+        else:
+            return croppedimage, category, box, count, None
 
 ####################################################################################
 ### BEST BOX DETECTION WITH JSON
