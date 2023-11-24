@@ -274,7 +274,6 @@ class PredictorImage(PredictorImageBase):
                     if category == 3: # vehicle
                         self.prediction[k,self.idxvehicle] = 1.
                     if humanboxes is not None: # humans
-                        print("storing ",humanboxes)
                         self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
             if len(idxanimal): # predicting species in images with animal 
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:])            
