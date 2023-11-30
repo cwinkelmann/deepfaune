@@ -922,7 +922,8 @@ while True:
                         window['-COUNTER-'].Update(value=count_curridx)
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv, predictedbox_curridx)
-                    blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
+                    if not VIDEO:
+                        blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
             updateImage(imagecv)
             if predictorready and not VIDEO:
                 window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
