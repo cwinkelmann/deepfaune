@@ -40,17 +40,6 @@ YOLO_WIDTH = 1280 # image width
 YOLO_THRES = 0.6
 YOLOCOUNT_THRES = 0.6
 model = 'deepfaune-yolov8s.pt'
-
-####################################################################################
-from math import inf
-def resizeaspectratio(image, width=inf):
-    (w, h) = image.size
-    if w < width:
-        return image, 1.
-    ratio = width / float(w)
-    new_size = (width, int(h * ratio))
-    resized_image = image.resize(new_size)
-    return resized_image, ratio
        
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -68,7 +57,6 @@ class Detector:
         results = self.yolo(filename_or_imagecv, verbose=False)
         # orig_img a numpy array (cv2) in BGR
         imagecv = results[0].cpu().orig_img
-        # image = Image.fromarray(imagecv[:,:,(2,1,0)]) # converted to PIL BGR image
         detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
             return None, 0, np.zeros(4), 0
@@ -255,5 +243,6 @@ def cropSquareCV(imagecv, box):
     if ysize>xsize:
         x1 = x1-int((ysize-xsize)/2)
         x2 = x2+int((ysize-xsize)/2)
-    croppedimagecv = imagecv[max(0,int(y1)):min(int(y2),image.height),max(0,int(x1)):min(int(x2),image.width)]
+    height, width, _ = imagecv.shape
+    croppedimagecv = imagecv[max(0,int(y1)):min(int(y2),height),max(0,int(x1)):min(int(x2),width)]
     return croppedimagecv
