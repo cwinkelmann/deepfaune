@@ -54,7 +54,13 @@ class Detector:
     :rtype: PIL image
     """
     def bestBoxDetection(self, filename_or_imagecv, threshold=YOLO_THRES):
-        results = self.yolo(filename_or_imagecv, verbose=False)
+        try:
+            results = self.yolo(filename_or_imagecv, verbose=False)            
+        except FileNotFoundError:
+            return None, 0, np.zeros(4), 0
+        except Exception as err:
+            print(f"Unexpected {err=}, {type(err)=}")
+            #raise
         # orig_img a numpy array (cv2) in BGR
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
