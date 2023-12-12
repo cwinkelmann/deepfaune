@@ -253,13 +253,6 @@ class PredictorImage(PredictorImageBase):
         else:
             idxanimal = []
             for k in range(self.k1,self.k2):
-                #try:
-                #    imagecv = cv2.imdecode(np.fromfile(self.fileManager.getFilename(k), dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-                #except:
-                #    imagecv = None
-                #if imagecv is None:
-                #    pass # corrupted image, considered as empty
-                #else:
                 croppedimage, category, box, count = self.detector.bestBoxDetection(self.fileManager.getFilename(k), self.detectionthreshold)
                 self.bestboxes[k] = box
                 self.count[k] = count
