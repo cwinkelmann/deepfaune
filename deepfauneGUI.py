@@ -156,8 +156,16 @@ def blur_boxes(imagecv, boxes=None):
         for box in boxes:
             if np.count_nonzero(box)>0: # is not default empty box
                 ROI = imagecv[int(box[1]):int(box[3]),int(box[0]):int(box[2])]
-                blur = cv2.GaussianBlur(ROI, (51,51), 0) 
+                blur = cv2.blur(ROI, (51,51)) 
                 imagecv[int(box[1]):int(box[3]),int(box[0]):int(box[2])] = blur
+
+def copyfile_blur(src, dst, boxes=None):
+    if boxes is None:
+        shutil.copyfile(src, dst)
+    else:
+        imagecv = cv2.imdecode(np.fromfile(src, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        blur_boxes(imagecv, boxes)
+        cv2.imwrite(dst, imagecv)
 
 import tkinter
 from tkinter import filedialog, messagebox
@@ -980,8 +988,13 @@ while True:
             for subfolder in set(predictedclass):
                 mkdir(join(destdir,"deepfaune_"+now,subfolder))
             if event == txt_copy[LANG]:
-                for k in range(nbfiles):
-                    shutil.copyfile(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))
+                if VIDEO:
+                    for k in range(nbfiles):
+                        shutil.copyfile(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))
+                else:
+                    for k in range(nbfiles):
+                        copyfile_blur(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])),
+                                      predictor.getHumanBoxes(filenames[k]))
             if event == txt_move[LANG]:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))

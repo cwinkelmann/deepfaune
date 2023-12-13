@@ -38,7 +38,7 @@ from ultralytics import YOLO
 
 YOLO_WIDTH = 1280 # image width
 YOLO_THRES = 0.6 # boxes above this threshold are considered for image classification
-YOLOHUMAN_THRES = 0.6 # boxes with human above this threshold are saved
+YOLOHUMAN_THRES = 0.4 # boxes with human above this threshold are saved
 YOLOCOUNT_THRES = 0.6 # boxes above this threshold are counted as a number of individuals
 model = 'deepfaune-yolov8s.pt'
        
