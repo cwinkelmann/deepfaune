@@ -153,10 +153,10 @@ class PredictorBase(ABC):
         else:
             mostfrequent = np.argsort([sum(isanimal), sum(ishuman), sum(isvehicle)])[-1] # discarding empty images
             if mostfrequent==0: # animal                
-                predinseq = predinseq[isanimal,0:(len(txt_animalclasses[self.LANG])+1)]
+                predinseq = predinseq[isanimal,0:(len(txt_animalclasses[self.LANG])+1)] # only animal classes
                 averagelogits = np.mean(predinseq,axis=0)
                 bestidx = np.argmax(averagelogits) # selecting class with best average logit
-                bestscore = np.exp(averagelogits[bestidx])/sum(np.exp(averagelogits))# softmax(average logit)
+                bestscore = np.exp(averagelogits[bestidx])/sum(np.exp(averagelogits)) # softmax(average logit)
             else:
                 if mostfrequent==1: # human
                     bestidx = self.idxhuman
@@ -256,7 +256,7 @@ class PredictorImage(PredictorImageBase):
                     self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
                     idxanimal.append(k)
                 if category == 2: # human
-                    self.prediction[k,self.idxhuman] = MAXLOGI
+                    self.prediction[k,self.idxhuman] = MAXLOGIT
                 if category == 3: # vehicle
                     self.prediction[k,self.idxvehicle] = MAXLOGIT
             if len(idxanimal): # predicting species in images with animal 
