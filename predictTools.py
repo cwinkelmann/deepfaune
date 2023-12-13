@@ -247,25 +247,18 @@ class PredictorImage(PredictorImageBase):
         else:
             idxanimal = []
             for k in range(self.k1,self.k2):
-                try:
-                    imagecv = cv2.imdecode(np.fromfile(self.fileManager.getFilename(k), dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-                except:
-                    imagecv = None
-                if imagecv is None:
-                    pass # corrupted image, considered as empty
-                else:
-                    croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
-                    self.bestboxes[k] = box
-                    self.count[k] = count
-                    if category > 0: # not empty
-                        self.prediction[k,-1] = 0.
-                    if category == 1: # animal
-                        self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                        idxanimal.append(k)
-                    if category == 2: # human
-                        self.prediction[k,self.idxhuman] = MAXLOGIT
-                    if category == 3: # vehicle
-                        self.prediction[k,self.idxvehicle] = MAXLOGIT
+                croppedimage, category, box, count = self.detector.bestBoxDetection(self.fileManager.getFilename(k), self.detectionthreshold)
+                self.bestboxes[k] = box
+                self.count[k] = count
+                if category > 0: # not empty
+                    self.prediction[k,-1] = 0.
+                if category == 1: # animal
+                    self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                    idxanimal.append(k)
+                if category == 2: # human
+                    self.prediction[k,self.idxhuman] = MAXLOGI
+                if category == 3: # vehicle
+                    self.prediction[k,self.idxvehicle] = MAXLOGIT
             if len(idxanimal): # predicting species in images with animal 
                 self.prediction[idxanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[idx-self.k1 for idx in idxanimal],:,:,:], withsoftmax=False)            
             k1_batch = self.k1
