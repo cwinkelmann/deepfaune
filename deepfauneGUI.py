@@ -67,6 +67,7 @@ maxlag = maxlag_default = 10 # seconds
 ### GUI TEXT
 ####################################################################################
 from predictTools import txt_undefined, txt_empty, txt_classes
+from classifTools import txt_animalclasses
 txt_other =  {'fr':"autre", 'en':"other",
               'it':"altro", 'de':"andere Klasse"}
 txt_browse = {'fr':"Choisir", 'en':"Select",
