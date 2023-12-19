@@ -788,13 +788,13 @@ while True:
             threshold = float(valuesconfig['-THRESHOLD-'])
             if not VIDEO:
                 maxlag = float(valuesconfig['-LAG-'])
-            forbiddenclasses = []
+            forbiddenanimalclasses = []
             for label in sorted_txt_animalclasses_lang:
                 if not valuesconfig[label]:
-                    forbiddenclasses += [label]
-            if len(forbiddenclasses):
+                    forbiddenanimalclasses += [label]
+            if len(forbiddenanimalclasses):
                 debugprint("Classes non selectionnées : ", "Unselected classes: ", end="")
-                print(forbiddenclasses)
+                print(forbiddenanimalclasses)
         ########################
         ## RUN
         ########################
@@ -826,7 +826,7 @@ while True:
             window['-TAB-'].update(select_rows=[0])
             window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                     for k in range(0, 1))) # bug, first row color need to be hard reset
-            predictor.setForbiddenClasses(forbiddenclasses)
+            predictor.setForbiddenAnimalclasses(forbiddenanimalclasses)
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 

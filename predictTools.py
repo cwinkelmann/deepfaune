@@ -124,9 +124,11 @@ class PredictorBase(ABC):
     def getDates(self):
         return self.fileManager.getDates()
 
-    def setForbiddenClasses(self, forbiddenclasses):
-        self.idxforbidden = [idx for idx in range(0,len(txt_classes[self.LANG]))
-                             if txt_classes[self.LANG][idx] in forbiddenclasses]
+    def setForbiddenAnimalClasses(self, forbiddenanimalclasses):
+        # index of fobidden classes, only animal classes
+        # that are at the beginning of the classes list
+        self.idxforbidden = [idx for idx in range(0,len(txt_animalclasses[self.LANG]))
+                             if txt_animalclasses[self.LANG][idx] in forbiddenanimalclasses]
         
     def merge(self, predictor):
         if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
