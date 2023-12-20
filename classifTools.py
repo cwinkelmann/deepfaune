@@ -41,7 +41,7 @@ from torchvision.transforms import InterpolationMode, transforms
 
 CROP_SIZE = 182
 BACKBONE = "vit_large_patch14_dinov2.lvd142m"
-weight_path = "vit_large_patch14_dinov2.lvd142m_21-11-23.pt"
+weight_path = "deepfaune-vit_large_patch14_dinov2.lvd142m.pt"
 
 txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "ecureuil", "equide", "genette",
