@@ -156,7 +156,8 @@ class PredictorBase(ABC):
             mostfrequent = np.argsort([sum(isanimal), sum(ishuman), sum(isvehicle)])[-1] # discarding empty images
             if mostfrequent==0: # animal
                 idxanimal = list(range(0,len(txt_animalclasses[self.LANG])))
-                predinseq = predinseq[isanimal,] # only animal classes
+                predinseq = predinseq[isanimal,] # only images with animals
+                predinseq = predinseq[:, idxanimal] # only animal classes
                 if len(self.idxforbidden):
                     idxanimal = np.delete(idxanimal, self.idxforbidden)
                     predinseq = np.delete(predinseq, self.idxforbidden, axis=1)
