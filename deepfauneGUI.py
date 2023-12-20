@@ -59,6 +59,15 @@ try:
     countactivated = config.getboolean('General','count')
 except configparser.NoOptionError:
     countactivated = False
+
+try:
+    checkupdate = config.getboolean('General','checkupdate')
+except configparser.NoOptionError:
+    checkupdate = True
+    config.set('General', 'checkupdate', 'True')
+    with open("settings.ini", "w") as inif:
+        config.write(inif)    
+
 VIDEO = False
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
@@ -619,6 +628,26 @@ def playVideoUntilOtherEvent(filename):
 ## MAIN LOOP
 #########################
 DEBUG = False
+
+draw_popup_update = False
+if checkupdate:
+    import urllib
+    from versions import parse_version
+    try:
+        html = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/', timeout=1).read().decode()
+    except:
+        html = None
+    if html:
+        deepfaune_zipfiles = [href.split('"')[0] for href in html.split('href="') if ".zip" in href and "latest" not in href]
+        versions_available = [zipfile.split("-")[1] for zipfile in deepfaune_zipfiles] + ["1.2.0"]
+        installed = parse_version(VERSION)
+    
+        for version in versions_available:
+            new_version = parse_version(version)
+            if new_version > installed:
+                draw_popup_update = True
+                break
+
 while True:
     event, values = window.read(timeout=10)
     if event != "__TIMEOUT__" and DEBUG is True:
@@ -644,6 +673,40 @@ while True:
             curwindowsize = window.size # current size before other config events (resizing or moving)
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
+    #########################
+    ## CHECK UPDATE
+    #########################
+    if draw_popup_update:
+        layoutupdate = [
+            [sg.Text(f"New DeepFaune {new_version.to_string()} update available", expand_x=True, background_color=background_color, text_color=text_color)], 
+            [
+            StyledButton("GO UPDATE", accent_color, background_color, background_color,
+                         button_width=8+len("GO UPDATE"), key='-GO_UPDATE-'),
+            StyledButton("DISABLE UPDATE CHECK", accent_color, background_color, background_color,
+                         button_width=12+len("DISABLE UPDATE CHECK"), key='-DISABLE_UPDATECHECK-')]]
+
+        windowupdate = sg.Window("New update", layoutupdate,  
+                                 font = FONT_MED, margins=(0, 0),
+                                 background_color=background_color, finalize=True)
+        with suppress(TclError):
+            windowupdate.TKroot.tk.call('source', SUN_VALLEY_TCL)
+        windowupdate.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG- events due to internal additionnal padding
+
+        while draw_popup_update:
+            eventconfig, valuesconfig = windowupdate.read(timeout=10)
+            if eventconfig == '-GO_UPDATE-':
+                import webbrowser
+                webbrowser.open("https://www.deepfaune.cnrs.fr")
+                draw_popup_update = False
+            if eventconfig == '-DISABLE_UPDATECHECK-':
+                config.set('General', 'checkupdate', 'False')
+                with open("settings.ini", "w") as inif:
+                    config.write(inif)    
+                draw_popup_update = False
+            elif eventconfig in (sg.WIN_CLOSED, 'Exit'):
+                draw_popup_update = False
+        windowupdate.close()
+
     if event in listlang:
         #########################
         ## SELECTING LANGUAGE
