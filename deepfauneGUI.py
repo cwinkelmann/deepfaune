@@ -127,7 +127,14 @@ txt_restart = {'fr':"Redémarrage nécessaire pour changer la langue. Arréter l
                'en':"Restart required to change the language. Stopping the software?",
                'it':"Per cambiare la lingua è necessario un riavvio. Arresto del software ?",
                'de':"Neustart erforderlich, um die Sprache zu ändern. Wollen Sie die Software stoppen?"}
-
+txt_goupdate = {'fr': "Aller sur le site",
+                'en': 'Go to the website'}
+txt_newupdate = {'fr': "Nouvelle mise à jour",
+                'en': 'New update'}
+txt_newupdatelong = {'fr': "Une nouvelle mise à jour est disponible sur le site",
+                     'en': 'A new update is available on the website'}
+txt_disablecheckupdate = {'fr': "Ne plus me rapeller",
+                          'en': "Do not remind me"}
 ####################################################################################
 ### THEME SETTINGS
 ####################################################################################
@@ -678,14 +685,14 @@ while True:
     #########################
     if draw_popup_update:
         layoutupdate = [
-            [sg.Text(f"New DeepFaune {new_version.to_string()} update available", expand_x=True, background_color=background_color, text_color=text_color)], 
+            [sg.Text(txt_newupdatelong[LANG] + f" (version {new_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
             [
-            StyledButton("GO UPDATE", accent_color, background_color, background_color,
-                         button_width=8+len("GO UPDATE"), key='-GO_UPDATE-'),
-            StyledButton("DISABLE UPDATE CHECK", accent_color, background_color, background_color,
-                         button_width=12+len("DISABLE UPDATE CHECK"), key='-DISABLE_UPDATECHECK-')]]
+            StyledButton(txt_goupdate[LANG], accent_color, background_color, background_color,
+                         button_width=12+len(txt_goupdate[LANG]), key='-GO_UPDATE-'),
+            StyledButton(txt_disablecheckupdate[LANG], accent_color, background_color, background_color,
+                         button_width=12+len(txt_disablecheckupdate[LANG]), key='-DISABLE_UPDATECHECK-')]]
 
-        windowupdate = sg.Window("New update", layoutupdate,  
+        windowupdate = sg.Window(txt_newupdate[LANG], layoutupdate,  
                                  font = FONT_MED, margins=(0, 0),
                                  background_color=background_color, finalize=True)
         with suppress(TclError):
