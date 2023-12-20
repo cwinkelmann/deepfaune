@@ -360,10 +360,10 @@ txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate 
                      'it':"Attivare il conto (sperimentale)", 'de':"Zählung aktivieren (experimentell)"}
 txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Deactivate count (experimental)",
                        'it':"Disattivare il conto (sperimentale)", 'de':"Zählung desaktivieren (experimentell)"}
-txt_activatehumanblur = {'fr':"Activer le floutage des humains (médias imagesXXX)", 'en':"Activate XXXhuman blur (image only)",
-                         'it':"Attivare il XXX (YYY)", 'de':"XXXZählung aktivieren (YYY)"}
-txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains (médias imagesXXX)", 'en':"Deactivate XXXhuman blur",
-                           'it':"Disattivare il XXX", 'de':"XXXZählung desaktivieren"}
+txt_activatehumanblur = {'fr':"Activer le floutage des humains (médias images seulement)", 'en':"Activate human blurring (image media only)",
+                         'it':"Attivare la sfocatura degli umani (solo immagini)", 'de':"Die Unschärfe von Menschen aktivieren (nur die Bilder)"}
+txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains", 'en':"Deactivate human blurring",
+                           'it':"Disattivare la sfocatura degli umani", 'de':"die Unschärfe von Menschen desaktivieren"}
 txt_credits = {'fr':"A propos", 'en':"About DeepFaune",
                'it':"A proposito", 'de':"Über DeepFaune"}
 if countactivated:
