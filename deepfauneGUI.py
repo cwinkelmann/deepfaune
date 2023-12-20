@@ -59,6 +59,10 @@ try:
     countactivated = config.getboolean('General','count')
 except configparser.NoOptionError:
     countactivated = False
+try:
+    humanbluractivated = config.getboolean('General','humanblur')
+except configparser.NoOptionError:
+    humanbluractivated = False   
 VIDEO = False
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
@@ -356,12 +360,20 @@ txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate 
                      'it':"Attivare il conto (sperimentale)", 'de':"Zählung aktivieren (experimentell)"}
 txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Deactivate count (experimental)",
                        'it':"Disattivare il conto (sperimentale)", 'de':"Zählung desaktivieren (experimentell)"}
+txt_activatehumanblur = {'fr':"Activer le floutage des humains (médias imagesXXX)", 'en':"Activate XXXhuman blur (image only)",
+                         'it':"Attivare il XXX (YYY)", 'de':"XXXZählung aktivieren (YYY)"}
+txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains (médias imagesXXX)", 'en':"Deactivate XXXhuman blur",
+                           'it':"Disattivare il XXX", 'de':"XXXZählung desaktivieren"}
 txt_credits = {'fr':"A propos", 'en':"About DeepFaune",
                'it':"A proposito", 'de':"Über DeepFaune"}
 if countactivated:
     txt_statuscount = txt_deactivatecount[LANG]
 else:
     txt_statuscount = txt_activatecount[LANG]
+if humanbluractivated:
+    txt_statushumanblur = txt_deactivatehumanblur[LANG]
+else:
+    txt_statushumanblur = txt_activatehumanblur[LANG]
     
 menu_def = [
     ['&'+txt_file[LANG], [
@@ -371,7 +383,8 @@ menu_def = [
     ]],
     ['&'+txt_pref[LANG], [
         txt_language[LANG], listlang,
-        txt_statuscount
+        txt_statuscount,
+        txt_statushumanblur
     ]],
     ['&'+txt_help[LANG], [
         '&Version', [VERSION],
@@ -475,6 +488,13 @@ def updateMenuActivateCount():
         menu_def[1][1][2] = txt_deactivatecount[LANG]
     else:
         menu_def[1][1][2] = txt_activatecount[LANG]
+    window[txt_pref[LANG]].Update(menu_def[1])
+    
+def updateMenuActivateHumanBlur():
+    if menu_def[1][1][3] == txt_activatehumanblur[LANG]:
+        menu_def[1][1][3] = txt_deactivatehumanblur[LANG]
+    else:
+        menu_def[1][1][3] = txt_activatehumanblur[LANG]
     window[txt_pref[LANG]].Update(menu_def[1])
             
 def updatePredictionInfo(disabled):
@@ -693,6 +713,27 @@ while True:
         with open("settings.ini", "w") as inif:
             config.write(inif)
         updateMenuActivateCount()
+    elif event == txt_activatehumanblur[LANG]:
+        #########################
+        ## (DE)ACTIVATING HUMAN BLUR
+        #########################
+        humanbluractivated = True
+        config.set('General', 'humanblur', 'True')
+        with open("settings.ini", "w") as inif:
+            config.write(inif)
+        updateMenuActivateHumanBlur()
+        # refresh current view; touching position in Table, will send a -TAB- event
+        if testdir is not None:
+            window['-TAB-'].update(select_rows=[rowidx])
+    elif event == txt_deactivatehumanblur[LANG]:
+        humanbluractivated = False
+        config.set('General', 'humanblur', 'False')
+        with open("settings.ini", "w") as inif:
+            config.write(inif)
+        updateMenuActivateHumanBlur()
+        # refresh current view; touching position in Table, will send a -TAB- event
+        if testdir is not None:
+            window['-TAB-'].update(select_rows=[rowidx])
     elif event == txt_credits[LANG]:
         #########################
         ## CREDITS
@@ -928,8 +969,9 @@ while True:
                     window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
                     if countactivated:
                         window['-COUNTER-'].Update(value=count_curridx)
-                    if not VIDEO:
-                        blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
+                    if humanbluractivated:
+                        if not VIDEO:
+                            blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                     if predictedclass_curridx is not txt_empty[LANG]:
                         draw_boxes(imagecv, predictedbox_curridx)
             updateImage(imagecv)
