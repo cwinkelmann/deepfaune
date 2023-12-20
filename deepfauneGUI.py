@@ -160,7 +160,7 @@ def blur_boxes(imagecv, boxes=None):
         for box in boxes:
             if np.count_nonzero(box)>0: # is not default empty box
                 ROI = imagecv[int(box[1]):int(box[3]),int(box[0]):int(box[2])]
-                blur = cv2.blur(ROI, (51,51)) 
+                blur = cv2.blur(ROI, (151,151)) 
                 imagecv[int(box[1]):int(box[3]),int(box[0]):int(box[2])] = blur
 
 def copyfile_blur(src, dst, boxes=None):
@@ -360,7 +360,7 @@ txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate 
                      'it':"Attivare il conto (sperimentale)", 'de':"Zählung aktivieren (experimentell)"}
 txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Deactivate count (experimental)",
                        'it':"Disattivare il conto (sperimentale)", 'de':"Zählung desaktivieren (experimentell)"}
-txt_activatehumanblur = {'fr':"Activer le floutage des humains (médias images seulement)", 'en':"Activate human blurring (image media only)",
+txt_activatehumanblur = {'fr':"Activer le floutage des humains (images seulement)", 'en':"Activate human blurring (image only)",
                          'it':"Attivare la sfocatura degli umani (solo immagini)", 'de':"Die Unschärfe von Menschen aktivieren (nur die Bilder)"}
 txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains", 'en':"Deactivate human blurring",
                            'it':"Disattivare la sfocatura degli umani", 'de':"die Unschärfe von Menschen desaktivieren"}
@@ -493,9 +493,14 @@ def updateMenuActivateCount():
 def updateMenuActivateHumanBlur():
     if menu_def[1][1][3] == txt_activatehumanblur[LANG]:
         menu_def[1][1][3] = txt_deactivatehumanblur[LANG]
+        if not VIDEO:
+            menu_def[0][1][5].append(menu_def[0][1][5][0]+" XXX ") EN FAIT IL FAUT CA DIRECT SI HUMANBLURACTIVATED
     else:
         menu_def[1][1][3] = txt_activatehumanblur[LANG]
+        #if not VIDEO:
+        #menu_def[0][1][5] = XXX
     window[txt_pref[LANG]].Update(menu_def[1])
+    window[txt_file[LANG]].Update(menu_def[0])
             
 def updatePredictionInfo(disabled):
     if disabled is True:
@@ -891,6 +896,7 @@ while True:
         ## EXPORTING RESULTS
         #########################
         predictedclass, predictedscore, _, count = predictor.getPredictions()
+        XXX humanpresence = presenza umana human presence menschliche Präsenz
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
