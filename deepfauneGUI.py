@@ -826,7 +826,7 @@ while True:
             window['-TAB-'].update(select_rows=[0])
             window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                     for k in range(0, 1))) # bug, first row color need to be hard reset
-            predictor.setForbiddenAnimalclasses(forbiddenanimalclasses)
+            predictor.setForbiddenAnimalClasses(forbiddenanimalclasses)
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 

@@ -159,10 +159,10 @@ class PredictorBase(ABC):
                 predinseq = predinseq[isanimal,] # only animal classes
                 if len(self.idxforbidden):
                     idxanimal = np.delete(idxanimal, self.idxforbidden)
-                    predinseq = np.delete(predinseq, self.idxforbidden)
+                    predinseq = np.delete(predinseq, self.idxforbidden, axis=1)
                 averagelogits = np.mean(predinseq,axis=0)
                 bestidx = idxanimal[np.argmax(averagelogits)] # selecting class with best average logit
-                bestscore = np.exp(averagelogits[bestidx])/sum(np.exp(averagelogits)) # softmax(average logit)
+                bestscore = np.exp(averagelogits[np.argmax(averagelogits)])/sum(np.exp(averagelogits)) # softmax(average logit)
             else:
                 if mostfrequent==1: # human
                     bestidx = self.idxhuman
@@ -294,7 +294,7 @@ class PredictorVideo(PredictorBase):
         else:   
             rangeanimal = []
             rangenonempty = []
-            predictionallframe = np.zeros(shape=(self.BATCH_SIZE, self.nbclasses+1), dtype=np.float32)
+            predictionallframe = np.zeros(shape=(self.BATCH_SIZE, self.nbclasses+1), dtype=np.float32) # nbclasses+empty
             predictionallframe[:,-1] = DEFAULTLOGIT # by default, predicted as empty
             bestboxesallframe = np.zeros(shape=(self.BATCH_SIZE, 4), dtype=np.float32)
             maxcount = 0            
@@ -334,11 +334,18 @@ class PredictorVideo(PredictorBase):
             if len(rangeanimal): # predicting species in frames with animal 
                 predictionallframe[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k for k in rangeanimal],:,:,:], withsoftmax=False)
             self.predictedclass[self.k1], self.predictedscore[self.k1] = self._PredictorBase__averageLogitInSequence(predictionallframe)
-            if len(rangenonempty): # not empty
+            if len(rangenonempty): # selecting key frame to display when not empty
                 self.prediction[self.k1,-1] = 0.
-                # using max score to select key frame
-                kmax = np.unravel_index(np.argmax(predictionallframe[rangenonempty,:], axis=None), predictionallframe[rangenonempty,:].shape)
-                self.keyframes[self.k1] = rangenonempty[kmax[0]]
+                # using max score
+                if self.predictedclass[self.k1] == txt_classes[self.LANG][self.idxhuman]: # human
+                    kmax = np.argmax(predictionallframe[rangenonempty,self.idxhuman])
+                else:
+                    if self.predictedclass[self.k1] == txt_classes[self.LANG][self.idxvehicle]: # vehicle
+                        kmax = np.argmax(predictionallframe[rangenonempty,self.idxvehicle])
+                    else: # animal
+                        predictionallframeanimal = predictionallframe[rangenonempty,0:len(txt_animalclasses[self.LANG])]
+                        kmax = np.unravel_index(np.argmax(predictionallframeanimal , axis=None), predictionallframeanimal.shape)[0]
+                self.keyframes[self.k1] = rangenonempty[kmax]
             self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
             self.count[self.k1] = maxcount
             k1_batch = self.k1
