@@ -42,7 +42,7 @@ os.environ["PYTORCH_JIT"] = "0"
 ####################################################################################
 ### VERSION
 ####################################################################################
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 
 ####################################################################################
 ### PARAMETERS
@@ -67,6 +67,7 @@ maxlag = maxlag_default = 10 # seconds
 ### GUI TEXT
 ####################################################################################
 from predictTools import txt_undefined, txt_empty, txt_classes
+from classifTools import txt_animalclasses
 txt_other =  {'fr':"autre", 'en':"other",
               'it':"altro", 'de':"andere Klasse"}
 txt_browse = {'fr':"Choisir", 'en':"Select",
@@ -85,8 +86,8 @@ txt_run = {'fr':"Lancer", 'en':"Run",
            'it':"Inviare", 'de':"Starten"}
 txt_paramframe = {'fr':"Paramètres", 'en':"Parameters",
                   'it':"Parametri", 'de':"Parameter"}
-txt_selectclasses = {'fr':"Sélection des classes", 'en':"Classes selection",
-                     'it':"Selezione delle classi", 'de':"Auswahl der Klassen"}
+txt_selectclasses = {'fr':"Sélection des classes animales", 'en':"Animal classes selection",
+                     'it':"Selezione delle animale classi", 'de':"Auswahl der Animal Klassen"}
 txt_all = {'fr':"toutes", 'en':"all",
            'it':"tutte", 'de':"Alles"}
 txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found for this class",
@@ -295,12 +296,13 @@ curimagecv = cv2.resize(curimagecv, correctedimgsize)
 ####################################################################################
 ### MAIN GUI WINDOW
 ####################################################################################
-# Default selected classes
+sorted_txt_classes_lang = sorted(txt_classes[LANG])
+sorted_txt_animalclasses_lang = sorted(txt_animalclasses[LANG])
+# Default selected classes, ONLY ANIMAL CLASSES
 listCB = []
 lineCB = []
-sorted_txt_classes_lang = sorted(txt_classes[LANG])
-for k in range(0,len(sorted_txt_classes_lang)):
-    lineCB = lineCB+[sg.CB(sorted_txt_classes_lang[k], key=sorted_txt_classes_lang[k], size=(12,1), default=True, background_color=background_color, text_color=text_color)]
+for k in range(0,len(sorted_txt_animalclasses_lang)):
+    lineCB = lineCB+[sg.CB(sorted_txt_animalclasses_lang[k], key=sorted_txt_animalclasses_lang[k], size=(12,1), default=True, background_color=background_color, text_color=text_color)]
     if k%3==2:
         listCB = listCB+[lineCB]
         lineCB = []
@@ -786,13 +788,13 @@ while True:
             threshold = float(valuesconfig['-THRESHOLD-'])
             if not VIDEO:
                 maxlag = float(valuesconfig['-LAG-'])
-            forbiddenclasses = []
-            for label in sorted_txt_classes_lang:
+            forbiddenanimalclasses = []
+            for label in sorted_txt_animalclasses_lang:
                 if not valuesconfig[label]:
-                    forbiddenclasses += [label]
-            if len(forbiddenclasses):
+                    forbiddenanimalclasses += [label]
+            if len(forbiddenanimalclasses):
                 debugprint("Classes non selectionnées : ", "Unselected classes: ", end="")
-                print(forbiddenclasses)
+                print(forbiddenanimalclasses)
         ########################
         ## RUN
         ########################
@@ -824,7 +826,7 @@ while True:
             window['-TAB-'].update(select_rows=[0])
             window['-TAB-'].Update(row_colors=tuple((k,text_color,background_color)
                                                     for k in range(0, 1))) # bug, first row color need to be hard reset
-            predictor.setForbiddenClasses(forbiddenclasses)
+            predictor.setForbiddenAnimalClasses(forbiddenanimalclasses)
             thread = threading.Thread(target=runPredictor)
             thread.daemon = True
             thread.start() 

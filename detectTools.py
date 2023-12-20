@@ -40,17 +40,6 @@ YOLO_WIDTH = 1280 # image width
 YOLO_THRES = 0.6
 YOLOCOUNT_THRES = 0.6
 model = 'deepfaune-yolov8s.pt'
-
-####################################################################################
-from math import inf
-def resizeaspectratio(image, width=inf):
-    (w, h) = image.size
-    if w < width:
-        return image, 1.
-    ratio = width / float(w)
-    new_size = (width, int(h * ratio))
-    resized_image = image.resize(new_size)
-    return resized_image, ratio
        
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -64,20 +53,24 @@ class Detector:
     :return: cropped image, possibly None
     :rtype: PIL image
     """
-    def bestBoxDetection(self, imagecv, threshold=YOLO_THRES):
-        '''
-        in/out as numpy int array (0-255) in BGR
-        '''
-        image = Image.fromarray(cv2.cvtColor(imagecv, cv2.COLOR_BGR2RGB))
-        imageresized, ratio = resizeaspectratio(image, YOLO_WIDTH)
-        results = self.yolo(imageresized, verbose=False)
+    def bestBoxDetection(self, filename_or_imagecv, threshold=YOLO_THRES):
+        try:
+            results = self.yolo(filename_or_imagecv, verbose=False)            
+        except FileNotFoundError:
+            return None, 0, np.zeros(4), 0
+        except Exception as err:
+            print(f"Unexpected {err=}, {type(err)=}")
+            #raise
+        # orig_img a numpy array (cv2) in BGR
+        imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
             return None, 0, np.zeros(4), 0
         category = detection.cls[0] + 1
         count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
-        box = detection.xyxy[0] / ratio  # xmin, ymin, xmax, ymax
-        croppedimage = cropSquare(image, box.copy())
+        box = detection.xyxy[0] # xmin, ymin, xmax, ymax
+        croppedimagecv = cropSquareCV(imagecv, box.copy())
+        croppedimage = Image.fromarray(croppedimagecv[:,:,(2,1,0)]) # converted to PIL BGR image
         if croppedimage is None: # FileNotFoundError
             category = 0
         return croppedimage, category, box, count
@@ -228,17 +221,34 @@ class DetectorJSON:
 ### TOOLS
 ####################################################################################      
 '''
-:return: cropped image, as squared as possible (rectangle if close to the borders)
+:return: cropped PIL image, as squared as possible (rectangle if close to the borders)
 '''
 def cropSquare(image, box):
-    xsize = (box[2]-box[0])
-    ysize = (box[3]-box[1])
+    x1, y1, x2, y2 = box
+    xsize = (x2-x1)
+    ysize = (y2-y1)
     if xsize>ysize:
-        box[1] = box[1]-int((xsize-ysize)/2)
-        box[3] = box[3]+int((xsize-ysize)/2)
+        y1 = y1-int((xsize-ysize)/2)
+        y2 = y2+int((xsize-ysize)/2)
     if ysize>xsize:
-        box[0] = box[0]-int((ysize-xsize)/2)
-        box[2] = box[2]+int((ysize-xsize)/2)
-    croppedimage = image.crop((max(0,box[0]), max(0,box[1]), min(box[2],image.width), min(box[3],image.height)))
-    # croppedimage.show()
+        x1 = x1-int((ysize-xsize)/2)
+        x2 = x2+int((ysize-xsize)/2)
+    croppedimage = image.crop((max(0,x1), max(0,y1), min(x2,image.width), min(y2,image.height)))
     return croppedimage
+
+'''
+:return: cropped cv2 image, as squared as possible (rectangle if close to the borders)
+'''
+def cropSquareCV(imagecv, box):
+    x1, y1, x2, y2 = box
+    xsize = (x2-x1)
+    ysize = (y2-y1)
+    if xsize>ysize:
+        y1 = y1-int((xsize-ysize)/2)
+        y2 = y2+int((xsize-ysize)/2)
+    if ysize>xsize:
+        x1 = x1-int((ysize-xsize)/2)
+        x2 = x2+int((ysize-xsize)/2)
+    height, width, _ = imagecv.shape
+    croppedimagecv = imagecv[max(0,int(y1)):min(int(y2),height),max(0,int(x1)):min(int(x2),width)]
+    return croppedimagecv

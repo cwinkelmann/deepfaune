@@ -73,8 +73,8 @@ class Classifier:
             transforms.ToTensor(),
             transforms.Normalize(mean=tensor([0.4850, 0.4560, 0.4060]), std=tensor([0.2290, 0.2240, 0.2250]))])
 
-    def predictOnBatch(self, batchtensor):
-        return self.model.predict(batchtensor)
+    def predictOnBatch(self, batchtensor, withsoftmax=True):
+        return self.model.predict(batchtensor, withsoftmax)
 
     # croppedimage loaded by PIL
     def preprocessImage(self, croppedimage):
@@ -102,7 +102,7 @@ class Model(nn.Module):
         x = self.base_model(input)
         return x
 
-    def predict(self, data):
+    def predict(self, data, withsoftmax=True):
         """
         Predict on test DataLoader
         :param test_loader: test dataloader: torch.utils.data.DataLoader
@@ -114,7 +114,10 @@ class Model(nn.Module):
         total_output = []
         with torch.no_grad():
             x = data.to(device)
-            output = self.forward(x).softmax(dim=1)
+            if withsoftmax:
+                output = self.forward(x).softmax(dim=1)
+            else:
+                output = self.forward(x)
             total_output += output.tolist()
 
         return np.array(total_output)
