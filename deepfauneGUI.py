@@ -493,8 +493,8 @@ def updateMenuActivateCount():
 def updateMenuActivateHumanBlur():
     if menu_def[1][1][3] == txt_activatehumanblur[LANG]:
         menu_def[1][1][3] = txt_deactivatehumanblur[LANG]
-        if not VIDEO:
-            menu_def[0][1][5].append(menu_def[0][1][5][0]+" XXX ") EN FAIT IL FAUT CA DIRECT SI HUMANBLURACTIVATED
+        #if not VIDEO:
+        #    menu_def[0][1][5].append(menu_def[0][1][5][0]+" XXX ") EN FAIT IL FAUT CA DIRECT SI HUMANBLURACTIVATED
     else:
         menu_def[1][1][3] = txt_activatehumanblur[LANG]
         #if not VIDEO:
@@ -896,7 +896,7 @@ while True:
         ## EXPORTING RESULTS
         #########################
         predictedclass, predictedscore, _, count = predictor.getPredictions()
-        XXX humanpresence = presenza umana human presence menschliche Präsenz
+        #XXX humanpresence = presenza umana human presence menschliche Präsenz
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
