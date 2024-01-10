@@ -36,10 +36,10 @@ import numpy as np
 from PIL import Image
 from ultralytics import YOLO
 
-YOLO_WIDTH = 1280 # image width
+YOLO_WIDTH = 960 # 1280 # image width
 YOLO_THRES = 0.6
 YOLOCOUNT_THRES = 0.6
-model = 'deepfaune-yolov8s.pt'
+model = 'yolov8small_960_b64m2.pt' #deepfaune-yolov8s.pt'
        
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -55,7 +55,7 @@ class Detector:
     """
     def bestBoxDetection(self, filename_or_imagecv, threshold=YOLO_THRES):
         try:
-            results = self.yolo(filename_or_imagecv, verbose=False)            
+            results = self.yolo(filename_or_imagecv, verbose=False, imgsz=YOLO_WIDTH)
         except FileNotFoundError:
             return None, 0, np.zeros(4), 0
         except Exception as err:
