@@ -358,9 +358,6 @@ class PredictorVideo(PredictorBase):
             self.batch = self.batch+1  
             return self.batch-1, k1_batch, k2_batch
 
-    def setDetectionThreshold(self, threshold):
-        self.yolothreshold = threshold
-
     def getKeyFrames(self, index):
         return self.keyframes[index]
 
