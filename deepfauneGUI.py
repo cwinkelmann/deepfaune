@@ -901,7 +901,6 @@ while True:
         ## EXPORTING RESULTS
         #########################
         predictedclass, predictedscore, _, count = predictor.getPredictions()
-        #XXX humanpresence = presenza umana human presence menschliche Präsenz
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
