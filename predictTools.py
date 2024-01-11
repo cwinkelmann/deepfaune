@@ -113,7 +113,7 @@ class PredictorBase(ABC):
 
     def setPredictedCount(self, k, count):
         self.count[k] = count
-        
+            
     def getFilenames(self):
         return self.fileManager.getFilenames()
     
@@ -287,10 +287,13 @@ class PredictorImage(PredictorImageBase):
             return(self.humanboxes[filename])
         except KeyError:
             return None
-
-    def getHumanPresence(self):
-        return [self.getHumanBoxes(filename) is not None for filename in elf.fileManager.getFilenames()]
         
+    def getHumanPresence(self, k=None):
+        if k == None:
+            return [self.getHumanBoxes(filename) is not None for filename in self.fileManager.getFilenames()]
+        else:
+            return (self.getHumanBoxes(filename) is not None)
+
         
 ####################################################################################
 ### PREDICTOR VIDEO 
@@ -301,6 +304,7 @@ class PredictorVideo(PredictorBase):
          self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.setDetectionThreshold(YOLO_THRES)
+         self.humanpresence = [False]*self.fileManager.nbFiles()
 
     def resetBatch(self):
         self.k1 = 0
@@ -346,6 +350,8 @@ class PredictorVideo(PredictorBase):
                             predictionallframe[k,self.idxhuman] = 1.
                         if category == 3: # vehicle
                             predictionallframe[k,self.idxvehicle] = 1.
+                        if humanboxes is not None: # humans in at least one frame
+                            self.humanpresence[self.k1] = True
                     k = k+1
             videocap.release()
             if len(idxanimal): # predicting species in frames with animal 
@@ -376,6 +382,12 @@ class PredictorVideo(PredictorBase):
 
     def getKeyFrames(self, index):
         return self.keyframes[index]
+        
+    def getHumanPresence(self, k=None):
+        if k == None:
+            return self.humanpresence
+        else:
+            return self.humanpresence[k]
 
 ####################################################################################
 ### PREDICTOR IMAGE FROM JSON
