@@ -36,10 +36,10 @@ import numpy as np
 from PIL import Image
 from ultralytics import YOLO
 
-YOLO_WIDTH = 960 # 1280 # image width
+YOLO_WIDTH = 960 # 1280 # imagDILe width
 YOLO_THRES = 0.6
 YOLOCOUNT_THRES = 0.6
-model = 'yolov8small_960_b64m2.pt' #deepfaune-yolov8s.pt'
+model = 'yolov8s960-121223.pt' #deepfaune-yolov8s.pt'
        
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -64,6 +64,8 @@ class Detector:
         # orig_img a numpy array (cv2) in BGR
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
+        if len(detection.cls):
+            print(detection.conf[0] )
         if not len(detection.cls) or detection.conf[0] < threshold:
             return None, 0, np.zeros(4), 0
         category = detection.cls[0] + 1
