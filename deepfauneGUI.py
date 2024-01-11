@@ -352,6 +352,10 @@ txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'en':"Create subfolders
                         'it':"Creare dei sotto file", 'de':"Unterordner erstellen"}
 txt_copy = {'fr':"Copier les fichiers", 'en':"Copy files",
             'it':"Copiare i file", 'de':"Dateien kopieren"}
+txt_copywithhumanblur = {'fr':"Copier les fichiers (avec floutage des humains)",
+                         'en':"Copy files (with human blurring)",
+                         'it':"Copiare i file (con la sfocatura degli umani)",
+                         'de':"Dateien kopieren (mit Die Unschärfe von Menschen)"}
 txt_move = {'fr':"Déplacer les fichiers", 'en':"Move files",
             'it':"Spostare i file", 'de':"Dateien verschieben"}
 txt_language = {'fr':"Langue", 'en':"Language",
@@ -362,8 +366,8 @@ txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Dea
                        'it':"Disattivare il conto (sperimentale)", 'de':"Zählung desaktivieren (experimentell)"}
 txt_activatehumanblur = {'fr':"Activer le floutage des humains (images seulement)", 'en':"Activate human blurring (image only)",
                          'it':"Attivare la sfocatura degli umani (solo immagini)", 'de':"Die Unschärfe von Menschen aktivieren (nur die Bilder)"}
-txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains", 'en':"Deactivate human blurring",
-                           'it':"Disattivare la sfocatura degli umani", 'de':"die Unschärfe von Menschen desaktivieren"}
+txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains  (images seulement)", 'en':"Deactivate human blurring  (image only)",
+                           'it':"Disattivare la sfocatura degli umani (solo immagini)", 'de':"die Unschärfe von Menschen desaktivieren (nur die Bilder)"}
 txt_credits = {'fr':"A propos", 'en':"About DeepFaune",
                'it':"A proposito", 'de':"Über DeepFaune"}
 if countactivated:
@@ -372,19 +376,21 @@ else:
     txt_statuscount = txt_activatecount[LANG]
 if humanbluractivated:
     txt_statushumanblur = txt_deactivatehumanblur[LANG]
+    txt_subfoldersoptions = [txt_copy[LANG], txt_copywithhumanblur[LANG], txt_move[LANG]]
 else:
     txt_statushumanblur = txt_activatehumanblur[LANG]
+    txt_subfoldersoptions = [txt_copy[LANG], txt_move[LANG]]
     
 menu_def = [
     ['&'+txt_file[LANG], [
         '&'+txt_import[LANG],[txt_importimage[LANG],txt_importvideo[LANG]],
         '!'+txt_export[LANG],[txt_ascsv[LANG],txt_asxlsx[LANG]],
-        '!'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
+        '!'+txt_createsubfolders[LANG], txt_subfoldersoptions
     ]],
     ['&'+txt_pref[LANG], [
         txt_language[LANG], listlang,
         txt_statuscount,
-        txt_statushumanblur
+        '!'+txt_statushumanblur
     ]],
     ['&'+txt_help[LANG], [
         '&Version', [VERSION],
@@ -493,12 +499,11 @@ def updateMenuActivateCount():
 def updateMenuActivateHumanBlur():
     if menu_def[1][1][3] == txt_activatehumanblur[LANG]:
         menu_def[1][1][3] = txt_deactivatehumanblur[LANG]
-        #if not VIDEO:
-        #    menu_def[0][1][5].append(menu_def[0][1][5][0]+" XXX ") EN FAIT IL FAUT CA DIRECT SI HUMANBLURACTIVATED
+        if not VIDEO:
+            menu_def[0][1][5] = [txt_copy[LANG], txt_copywithhumanblur[LANG], txt_move[LANG]]
     else:
         menu_def[1][1][3] = txt_activatehumanblur[LANG]
-        #if not VIDEO:
-        #menu_def[0][1][5] = XXX
+        menu_def[0][1][5] = [txt_copy[LANG], txt_move[LANG]]
     window[txt_pref[LANG]].Update(menu_def[1])
     window[txt_file[LANG]].Update(menu_def[0])
             
@@ -905,11 +910,12 @@ while True:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                     'prediction':predictedclass, 'score':predictedscore,
-                                    'count':count})
+                                    'count':count, 'humanpresence':predictor.getHumanPresence()})
         else:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                    'prediction':predictedclass, 'score':predictedscore})
+                                    'prediction':predictedclass, 'score':predictedscore,
+                                    'humanpresence':predictor.getHumanPresence()})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         if event == txt_ascsv[LANG]:
             csvpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.csv", defaultextension=".csv")
@@ -1002,7 +1008,7 @@ while True:
         # updating position in Table, will send an event
         window['-TAB-'].update(select_rows=[rowidx])
         window['-TAB-'].Widget.see(rowidx+1)
-    elif event == txt_copy[LANG] or event == txt_move[LANG]:
+    elif event == txt_copy[LANG] or event == txt_copywithhumanblur[LANG] or event == txt_move[LANG]:
         #########################
         ## CREATING SUBFOLDERS
         #########################
@@ -1020,7 +1026,7 @@ while True:
 
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         destdir = None
-        if event == txt_copy[LANG]:
+        if event == txt_copy[LANG] or event == txt_copywithhumanblur[LANG]:
             destdir = dialog_get_dir(txt_destcopy[LANG], initialdir=testdir)
             if destdir is not None:
                 debugprint("Copie vers "+join(destdir,"deepfaune_"+now), "Copying to "+join(destdir,"deepfaune_"+now))
@@ -1036,13 +1042,12 @@ while True:
             for subfolder in set(predictedclass):
                 mkdir(join(destdir,"deepfaune_"+now,subfolder))
             if event == txt_copy[LANG]:
-                if VIDEO:
-                    for k in range(nbfiles):
-                        shutil.copyfile(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))
-                else:
-                    for k in range(nbfiles):
-                        copyfile_blur(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])),
-                                      predictor.getHumanBoxes(filenames[k]))
+                for k in range(nbfiles):
+                    shutil.copyfile(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))
+            if event == txt_copywithhumanblur[LANG] and not VIDEO:
+                for k in range(nbfiles):
+                    copyfile_blur(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])),
+                                  predictor.getHumanBoxes(filenames[k]))
             if event == txt_move[LANG]:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))

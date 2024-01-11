@@ -287,6 +287,10 @@ class PredictorImage(PredictorImageBase):
             return(self.humanboxes[filename])
         except KeyError:
             return None
+
+    def getHumanPresence(self):
+        return [self.getHumanBoxes(filename) is not None for filename in elf.fileManager.getFilenames()]
+        
         
 ####################################################################################
 ### PREDICTOR VIDEO 
