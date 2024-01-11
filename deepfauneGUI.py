@@ -489,20 +489,27 @@ def updateMenuSubfolders(disabled):
         menu_def[0][1][4] = '&'+txt_createsubfolders[LANG]
     window[txt_file[LANG]].Update(menu_def[0])
 
-def updateMenuActivateCount():
-    if menu_def[1][1][2] == txt_activatecount[LANG]:
+def updateMenuCount(activated):
+    if activated == True:
         menu_def[1][1][2] = txt_deactivatecount[LANG]
     else:
         menu_def[1][1][2] = txt_activatecount[LANG]
     window[txt_pref[LANG]].Update(menu_def[1])
     
-def updateMenuActivateHumanBlur():
-    if menu_def[1][1][3] == txt_activatehumanblur[LANG]:
-        menu_def[1][1][3] = txt_deactivatehumanblur[LANG]
+def updateMenuHumanBlur(activated):
+    if activated == True:
         if not VIDEO:
+            menu_def[1][1][3] = txt_deactivatehumanblur[LANG]
             menu_def[0][1][5] = [txt_copy[LANG], txt_copywithhumanblur[LANG], txt_move[LANG]]
+        else:
+            menu_def[1][1][3] = '!'+txt_deactivatehumanblur[LANG]
+            menu_def[0][1][5] = [txt_copy[LANG], txt_move[LANG]]
+            
     else:
-        menu_def[1][1][3] = txt_activatehumanblur[LANG]
+        if not VIDEO:
+            menu_def[1][1][3] = txt_activatehumanblur[LANG]
+        else:
+            menu_def[1][1][3] = '!'+txt_activatehumanblur[LANG]
         menu_def[0][1][5] = [txt_copy[LANG], txt_move[LANG]]
     window[txt_pref[LANG]].Update(menu_def[1])
     window[txt_file[LANG]].Update(menu_def[0])
@@ -714,7 +721,7 @@ while True:
         config.set('General', 'count', 'True')
         with open("settings.ini", "w") as inif:
             config.write(inif)
-        updateMenuActivateCount()
+        updateMenuCount(activated=True)
     elif event == txt_deactivatecount[LANG]:
         countactivated = False
         window['-COUNT-'].Update(visible=False)
@@ -722,7 +729,7 @@ while True:
         config.set('General', 'count', 'False')
         with open("settings.ini", "w") as inif:
             config.write(inif)
-        updateMenuActivateCount()
+        updateMenuCount(activated=False)
     elif event == txt_activatehumanblur[LANG]:
         #########################
         ## (DE)ACTIVATING HUMAN BLUR
@@ -731,7 +738,7 @@ while True:
         config.set('General', 'humanblur', 'True')
         with open("settings.ini", "w") as inif:
             config.write(inif)
-        updateMenuActivateHumanBlur()
+        updateMenuHumanBlur(activated=True)
         # refresh current view; touching position in Table, will send a -TAB- event
         if testdir is not None:
             window['-TAB-'].update(select_rows=[rowidx])
@@ -740,7 +747,7 @@ while True:
         config.set('General', 'humanblur', 'False')
         with open("settings.ini", "w") as inif:
             config.write(inif)
-        updateMenuActivateHumanBlur()
+        updateMenuHumanBlur(activated=False)
         # refresh current view; touching position in Table, will send a -TAB- event
         if testdir is not None:
             window['-TAB-'].update(select_rows=[rowidx])
@@ -773,6 +780,7 @@ while True:
             updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
+            updateMenuHumanBlur(activated=humanbluractivated)
             debugprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
             if VIDEO:
