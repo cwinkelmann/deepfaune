@@ -10,7 +10,7 @@
 # NEWS
 ---
 
-Release v1.0 is available. 
+Release v1.1 is available on Linux. 
 
 Supported categories/species : BADGER, BEAR, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, REDDEER, ROEDEER, SHEEP, SQUIRREL, WILDBOAR, WOLF + HUMAN, VEHICULE + EMPTY 
 
@@ -43,9 +43,9 @@ The model parameters are protected by the [CC BY-NC-SA 4.0 license](https://crea
 
 Download the model parameters *inside the deepfaune folder* where you can find `deepfauneGUI.py`:
 
-- Animal detector parameters: for version 1.0.x [deepfaune-yolov8s.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.0/)
+- Animal detector parameters: for version 1.0.x and 1.1.x [deepfaune-yolov8s.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.0/)
 
-- Classifier parameters: for version 1.0.x [deepfaune-convnextbasein22k.pt.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.0/)
+- Classifier parameters: for version 1.1.x [deepfaune-vit_large_patch14_dinov2.lvd142m.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.1/)
 
 ### 3. Install the dependencies
 

@@ -39,9 +39,9 @@ from torch import tensor
 import torch.nn as nn
 from torchvision.transforms import InterpolationMode, transforms
 
-CROP_SIZE = 224
-BACKBONE = "convnext_base.fb_in22k"
-weight_path = "deepfaune-convnextbasein22k.pt"
+CROP_SIZE = 182
+BACKBONE = "vit_large_patch14_dinov2.lvd142m"
+weight_path = "deepfaune-vit_large_patch14_dinov2.lvd142m.pt"
 
 txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "ecureuil", "equide", "genette",
@@ -73,8 +73,8 @@ class Classifier:
             transforms.ToTensor(),
             transforms.Normalize(mean=tensor([0.4850, 0.4560, 0.4060]), std=tensor([0.2290, 0.2240, 0.2250]))])
 
-    def predictOnBatch(self, batchtensor):
-        return self.model.predict(batchtensor)
+    def predictOnBatch(self, batchtensor, withsoftmax=True):
+        return self.model.predict(batchtensor, withsoftmax)
 
     # croppedimage loaded by PIL
     def preprocessImage(self, croppedimage):
@@ -92,7 +92,9 @@ class Model(nn.Module):
         Constructor of model classifier
         """
         super().__init__()
-        self.base_model = timm.create_model(BACKBONE, pretrained=False, num_classes=len(txt_animalclasses['fr']))
+        self.base_model = timm.create_model(BACKBONE, pretrained=False, num_classes=len(txt_animalclasses['fr']),
+                                            dynamic_img_size=True)
+        print(f"Using {BACKBONE} with weights at {weight_path}, in resolution {CROP_SIZE}x{CROP_SIZE}")
         self.backbone = BACKBONE
         self.nbclasses = len(txt_animalclasses['fr'])
 
@@ -100,7 +102,7 @@ class Model(nn.Module):
         x = self.base_model(input)
         return x
 
-    def predict(self, data):
+    def predict(self, data, withsoftmax=True):
         """
         Predict on test DataLoader
         :param test_loader: test dataloader: torch.utils.data.DataLoader
@@ -112,7 +114,10 @@ class Model(nn.Module):
         total_output = []
         with torch.no_grad():
             x = data.to(device)
-            output = self.forward(x).softmax(dim=1)
+            if withsoftmax:
+                output = self.forward(x).softmax(dim=1)
+            else:
+                output = self.forward(x)
             total_output += output.tolist()
 
         return np.array(total_output)
