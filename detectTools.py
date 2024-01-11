@@ -36,10 +36,10 @@ import numpy as np
 from PIL import Image
 from ultralytics import YOLO
 
-YOLO_WIDTH = 960 # 1280 # imagDILe width
+YOLO_WIDTH = 960 # image width
 YOLO_THRES = 0.6
 YOLOCOUNT_THRES = 0.6
-model = 'yolov8s960-121223.pt' #deepfaune-yolov8s.pt'
+model = 'deepfaune-yolov8s_960.pt'
        
 ####################################################################################
 ### BEST BOX DETECTION 
