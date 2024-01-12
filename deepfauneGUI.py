@@ -64,7 +64,7 @@ def configget(option, defaultvalue):
         else:
             value = config.get('General',option)
     except configparser.NoOptionError:
-        value = defaultvalue
+        value = defaultvalue == 'True'  # convert string to bool
     return(value)
             
 def configsetsave(option, value):
