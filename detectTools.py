@@ -37,8 +37,9 @@ from PIL import Image
 from ultralytics import YOLO
 
 YOLO_WIDTH = 1280 # image width
-YOLO_THRES = 0.6
-YOLOCOUNT_THRES = 0.6
+YOLO_THRES = 0.6 # boxes above this threshold are considered for image classification
+YOLOHUMAN_THRES = 0.4 # boxes with human above this threshold are saved
+YOLOCOUNT_THRES = 0.6 # boxes above this threshold are counted as a number of individuals
 model = 'deepfaune-yolov8s.pt'
        
 ####################################################################################
@@ -65,7 +66,8 @@ class Detector:
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
-            return None, 0, np.zeros(4), 0
+            return None, 0, np.zeros(4), 0, None
+        ## best box
         category = detection.cls[0] + 1
         count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
         box = detection.xyxy[0] # xmin, ymin, xmax, ymax
@@ -73,7 +75,15 @@ class Detector:
         croppedimage = Image.fromarray(croppedimagecv[:,:,(2,1,0)]) # converted to PIL BGR image
         if croppedimage is None: # FileNotFoundError
             category = 0
-        return croppedimage, category, box, count
+        ## count
+        count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
+        ## human boxes
+        ishuman = (detection.cls==1) & (detection.conf>=YOLOHUMAN_THRES)
+        if any(ishuman==True):
+            humanboxes = detection.xyxy[ishuman,]
+            return croppedimage, category, box, count, humanboxes
+        else:
+            return croppedimage, category, box, count, None
 
 ####################################################################################
 ### BEST BOX DETECTION WITH JSON
