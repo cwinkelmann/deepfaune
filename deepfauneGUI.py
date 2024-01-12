@@ -50,28 +50,31 @@ VERSION = "1.1.0"
 VIDEO = False # by default
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
-
 listlang = ['fr', 'en', 'it', 'de']
+
+## From settings.ini
 import configparser
 config = configparser.ConfigParser()
-config.read('settings.ini')
-try:
-    LANG = config.get('General','language')
-except configparser.NoOptionError:
-    LANG = "fr"
-try:
-    countactivated = config.getboolean('General','count')
-except configparser.NoOptionError:
-    countactivated = False
-try:
-    humanbluractivated = config.getboolean('General','humanblur')
-except configparser.NoOptionError:
-    humanbluractivated = False 
 
+def configget(option, defaultvalue):
+    config.read('settings.ini')
+    try:
+        if defaultvalue  in ['True','False']:
+            value = config.getboolean('General',option)
+        else:
+            value = config.get('General',option)
+    except configparser.NoOptionError:
+        value = defaultvalue
+    return(value)
+            
 def configsetsave(option, value):
     config.set('General', option, value)
     with open("settings.ini", "w") as inif:
         config.write(inif)
+
+LANG = configget('language', 'fr')
+countactivated = configget('count', 'False')
+humanbluractivated = configget('humanblur', 'False')
         
 ####################################################################################
 ### GUI TEXT
