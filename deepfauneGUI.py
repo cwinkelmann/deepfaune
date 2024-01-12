@@ -47,6 +47,10 @@ VERSION = "1.1.0"
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
+VIDEO = False # by default
+threshold = threshold_default = 0.8
+maxlag = maxlag_default = 10 # seconds
+
 listlang = ['fr', 'en', 'it', 'de']
 import configparser
 config = configparser.ConfigParser()
@@ -62,11 +66,13 @@ except configparser.NoOptionError:
 try:
     humanbluractivated = config.getboolean('General','humanblur')
 except configparser.NoOptionError:
-    humanbluractivated = False   
-VIDEO = False
-threshold = threshold_default = 0.8
-maxlag = maxlag_default = 10 # seconds
+    humanbluractivated = False 
 
+def configsetsave(option, value):
+    config.set('General', option, value)
+    with open("settings.ini", "w") as inif:
+        config.write(inif)
+        
 ####################################################################################
 ### GUI TEXT
 ####################################################################################
@@ -701,10 +707,8 @@ while True:
         #########################
         ## SELECTING LANGUAGE
         #########################
-        config.set('General', 'language', event)
+        configsetsave('language', event)
         if event != LANG:
-            with open("settings.ini", "w") as inif:
-                config.write(inif)
             yesorno = dialog_yesno(txt_restart[LANG])
             if yesorno == 'yes':
                 break
@@ -720,35 +724,27 @@ while True:
             window['-COUNTER-'].Update(value=0)
         window['-COUNT-'].Update(visible=True)
         window['-COUNTER-'].Update(visible=True)
-        config.set('General', 'count', 'True')
-        with open("settings.ini", "w") as inif:
-            config.write(inif)
+        configsetsave('count', 'True')
         updateMenuCount(activated=True)
     elif event == txt_deactivatecount[LANG]:
         countactivated = False
         window['-COUNT-'].Update(visible=False)
         window['-COUNTER-'].Update(visible=False)
-        config.set('General', 'count', 'False')
-        with open("settings.ini", "w") as inif:
-            config.write(inif)
+        configsetsave('count', 'False')
         updateMenuCount(activated=False)
     elif event == txt_activatehumanblur[LANG]:
         #########################
         ## (DE)ACTIVATING HUMAN BLUR
         #########################
         humanbluractivated = True
-        config.set('General', 'humanblur', 'True')
-        with open("settings.ini", "w") as inif:
-            config.write(inif)
+        configsetsave('humanblur', 'True')
         updateMenuHumanBlur(activated=True)
         # refresh current view; touching position in Table, will send a -TAB- event
         if testdir is not None:
             window['-TAB-'].update(select_rows=[rowidx])
     elif event == txt_deactivatehumanblur[LANG]:
         humanbluractivated = False
-        config.set('General', 'humanblur', 'False')
-        with open("settings.ini", "w") as inif:
-            config.write(inif)
+        configsetsave('humanblur', 'False')
         updateMenuHumanBlur(activated=False)
         # refresh current view; touching position in Table, will send a -TAB- event
         if testdir is not None:
