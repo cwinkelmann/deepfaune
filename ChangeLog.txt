@@ -1,9 +1,11 @@
-2023-12-20  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2024-01-12  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 1.1.0
 	    * Moving to vit_large_patch14_dinov2 architecture for classification, with large number of parameters but improved performance.
-	    * New confidence scores with better calibration, using average logit method. 
+	    * New confidence scores with better calibration, using average logit method and temperature scaling. 
 	    * Playing video is now possible, with a double-click on the video frame in the graphical interface.
+	    * Human blurring is now available, for images only.
+	    # Human presence is now recorded in CSV/XLSX files, for both images and videos.
 	    
 2023-06-19  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
