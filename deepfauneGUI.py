@@ -694,19 +694,15 @@ if checkupdate:
     import urllib
     from versions import parse_version
     try:
-        html = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/', timeout=1).read().decode()
+        online_version = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/.version', timeout=1)
+        online_version = online_version.read().decode().replace("\n", "")
+        online_version = parse_version(online_version)
     except:
-        html = None
-    if html:
-        deepfaune_zipfiles = [href.split('"')[0] for href in html.split('href="') if ".zip" in href and "latest" not in href]
-        versions_available = [zipfile.split("-")[1] for zipfile in deepfaune_zipfiles] + ["1.2.0"]
-        installed = parse_version(VERSION)
-    
-        for version in versions_available:
-            new_version = parse_version(version)
-            if new_version > installed:
-                draw_popup_update = True
-                break
+        online_version = None
+    if online_version:
+        installed_version = parse_version(VERSION)
+        if online_version > installed_version:
+            draw_popup_update = True
 
 while True:
     event, values = window.read(timeout=10)
@@ -738,7 +734,7 @@ while True:
     #########################
     if draw_popup_update:
         layoutupdate = [
-            [sg.Text(txt_newupdatelong[LANG] + f" (version {new_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
+            [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
             [
             StyledButton(txt_goupdate[LANG], accent_color, background_color, background_color,
                          button_width=12+len(txt_goupdate[LANG]), key='-GO_UPDATE-'),
