@@ -755,9 +755,7 @@ while True:
                 webbrowser.open("https://www.deepfaune.cnrs.fr")
                 draw_popup_update = False
             if eventconfig == '-DISABLE_UPDATECHECK-':
-                config.set('General', 'checkupdate', 'False')
-                with open("settings.ini", "w") as inif:
-                    config.write(inif)    
+                configsetsave('checkupdate', 'False')
                 draw_popup_update = False
             elif eventconfig in (sg.WIN_CLOSED, 'Exit'):
                 draw_popup_update = False
