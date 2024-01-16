@@ -35,6 +35,8 @@ import numpy as np
 from PIL import Image
 from datetime import datetime, timedelta
 import os.path as op
+import ffmpeg
+from datetime import datetime
 
 def getFilesOrder(filenames):
     nbfiles = len(filenames)
@@ -55,11 +57,20 @@ def getFilesOrder(filenames):
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
-def getDateFromExif(filename):
+def getDateFromMetadata(filename):
+    date = "NA" # default
+    # Image file
     try:
         date = Image.open(filename)._getexif()[36867]
-    except:
-        date = ''
+    except: # TypeError
+        pass
+    # Video file
+    try:
+        # works for MOV/MP4/MKV files
+        creation_time = ffmpeg.probe(filename)["streams"][0]['tags']['creation_time']
+        date = str(datetime.strptime(creation_time.replace(".000000Z", ""), '%Y-%m-%dT%H:%M:%S'))
+    except: # KeyError
+        pass
     return date
 
 
@@ -74,7 +85,7 @@ class FileManager:
         self.__findDates()
 
     def __findDates(self):
-        self.dates = [getDateFromExif(file) for file in self.filenames]
+        self.dates = [getDateFromMetadata(file) for file in self.filenames]
 
     def reorderBySeqnum(self):
         idx = 0
