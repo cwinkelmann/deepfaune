@@ -52,6 +52,26 @@ txt_undefined = {'fr':"indéfini", 'en':"undefined", 'it':"indeterminato", 'de':
 
 DEFAULTLOGIT = 15. # arbitrary default logit value, used for classes human/vehicule/empty
 
+
+def get_kframetotal(total_frames, fps, batch_size):
+    # lag between two successive frames,
+    # first 2/3*BATCH_SIZE spaced with a small lag for the video beginning
+    # next 1/3*BATCH_SIZE spaced with a large lag for the remaining video
+    nbframebegin = int(batch_size*2/3+0.5)
+    nbframeremain = batch_size - nbframebegin
+    lagbegin = int(fps/3)
+    while((nbframebegin - 1) * lagbegin > total_frames):
+        lagbegin = lagbegin - 1  # reducing lagbegin if video duration is small
+    kframebegin = [k * lagbegin for k in range(0, nbframebegin)]
+    lagremain = int((total_frames - kframebegin[-1]) / nbframeremain)
+    if lagremain > 0:
+        kframeremain = [kframebegin[-1] + (k + 1) * lagremain for k in range(0, nbframeremain)]
+    else:
+        kframeremain = []
+    kframetotal = kframebegin+kframeremain
+    return kframetotal
+
+
 ####################################################################################
 ### PREDICTOR BASE
 ####################################################################################
@@ -324,22 +344,7 @@ class PredictorVideo(PredictorBase):
                 pass # corrupted video, considered as empty
             else:
                 fps = int(videocap.get(5))
-                # lag between two successive frames,
-                # first 2/3*BATCH_SIZE spaced with a small lag for the video beginning
-                # next 1/3*BATCH_SIZE spaced with a large lag for the remaining video
-                nbframebegin = int(self.BATCH_SIZE*2/3+0.5)
-                nbframeremain = self.BATCH_SIZE-nbframebegin 
-                lagbegin = int(fps/3)
-                while((nbframebegin-1)*lagbegin>total_frames):
-                    lagbegin = lagbegin-1 # reducing lagbegin if video duration is small
-                kframebegin = [k*lagbegin for k in range(0,nbframebegin)]
-                lagremain = int( (total_frames-kframebegin[-1])/nbframeremain )
-                if lagremain>0:
-                    kframeremain = [kframebegin[-1]+(k+1)*lagremain for k in range(0,nbframeremain)]
-                else:
-                    kframeremain = []
-                print(kframebegin, kframeremain)
-                kframetotal = kframebegin+kframeremain
+                kframetotal = get_kframetotal(total_frames, fps, self.BATCH_SIZE)
                 k = 0 # frame k in position kframe
                 for kframe in kframetotal: 
                     videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
