@@ -132,13 +132,21 @@ txt_restart = {'fr':"Redémarrage nécessaire pour changer la langue. Arréter l
                'it':"Per cambiare la lingua è necessario un riavvio. Arresto del software ?",
                'de':"Neustart erforderlich, um die Sprache zu ändern. Wollen Sie die Software stoppen?"}
 txt_goupdate = {'fr': "Aller sur le site",
-                'en': 'Go to the website'}
+                'en': 'Visit the website',
+                'it': 'Vai al sito web',
+                'de': 'Auf die Website gehen'}
 txt_newupdate = {'fr': "Nouvelle mise à jour",
-                'en': 'New update'}
+                'en': 'New update',
+                'it': 'Nuovo aggiornamento',
+                'de': 'Neues Update'}
 txt_newupdatelong = {'fr': "Une nouvelle mise à jour est disponible sur le site",
-                     'en': 'A new update is available on the website'}
-txt_disablecheckupdate = {'fr': "Ne plus me rapeller",
-                          'en': "Do not remind me"}
+                     'en': 'A new update is available on the website',
+       		     'it': 'Un nuovo aggiornamento è disponibile sul sito web',
+                     'de': 'Ein neues Update ist auf der Website verfügbar'}
+txt_disablecheckupdate = {'fr': "Ne plus me le rapeller",
+                          'en': "Do not remind me again",
+       		          'it': 'Non ricordarmelo più',
+                          'de': 'Erinnern Sie mich nicht mehr daran'}
 ####################################################################################
 ### THEME SETTINGS
 ####################################################################################
