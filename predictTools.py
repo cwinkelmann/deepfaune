@@ -339,7 +339,6 @@ class PredictorVideo(PredictorBase):
                     kframeremain = [kframebegin[-1]+(k+1)*lagremain for k in range(0,nbframeremain)]
                 else:
                     kframeremain = []
-                print(kframebegin, kframeremain)
                 kframetotal = kframebegin+kframeremain
                 k = 0 # frame k in position kframe
                 for kframe in kframetotal: 
@@ -382,7 +381,6 @@ class PredictorVideo(PredictorBase):
                         predictionallframeanimal = predictionallframe[rangenonempty,0:len(txt_animalclasses[self.LANG])]
                         kmax = np.unravel_index(np.argmax(predictionallframeanimal , axis=None), predictionallframeanimal.shape)[0]
                 self.keyframes[self.k1] = kframetotal[rangenonempty[kmax]]
-                print(self.keyframes[self.k1])
                 self.bestboxes[self.k1] = bestboxesallframe[rangenonempty[kmax]]
             self.count[self.k1] = maxcount
             k1_batch = self.k1
