@@ -58,7 +58,7 @@ class Detector:
         try:
             results = self.yolo(filename_or_imagecv, verbose=False)            
         except FileNotFoundError:
-            return None, 0, np.zeros(4), 0
+            return None, 0, np.zeros(4), 0, None
         except Exception as err:
             print(f"Unexpected {err=}, {type(err)=}")
             #raise
