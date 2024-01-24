@@ -47,22 +47,35 @@ VERSION = "1.1.0"
 ####################################################################################
 ### PARAMETERS
 ####################################################################################
-listlang = ['fr', 'en', 'it', 'de']
-import configparser
-config = configparser.ConfigParser()
-config.read('settings.ini')
-try:
-    LANG = config.get('General','language')
-except configparser.NoOptionError:
-    LANG = "fr"
-try:
-    countactivated = config.getboolean('General','count')
-except configparser.NoOptionError:
-    countactivated = False
-VIDEO = False
+VIDEO = False # by default
 threshold = threshold_default = 0.8
 maxlag = maxlag_default = 10 # seconds
+listlang = ['fr', 'en', 'it', 'de']
 
+## From settings.ini
+import configparser
+config = configparser.ConfigParser()
+
+def configget(option, defaultvalue):
+    config.read('settings.ini')
+    try:
+        if defaultvalue  in ['True','False']:
+            value = config.getboolean('General',option)
+        else:
+            value = config.get('General',option)
+    except configparser.NoOptionError:
+        value = defaultvalue == 'True' if defaultvalue  in ['True','False'] else defaultvalue
+    return(value)
+            
+def configsetsave(option, value):
+    config.set('General', option, value)
+    with open("settings.ini", "w") as inif:
+        config.write(inif)
+
+LANG = configget('language', 'fr')
+countactivated = configget('count', 'False')
+humanbluractivated = configget('humanblur', 'False')
+        
 ####################################################################################
 ### GUI TEXT
 ####################################################################################
@@ -151,6 +164,22 @@ def draw_boxes(imagecv, box=None):
     if box is not None:
         if np.count_nonzero(box)>0: # is not default empty box
             cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
+
+def blur_boxes(imagecv, boxes=None):
+    if boxes is not None:
+        for box in boxes:
+            if np.count_nonzero(box)>0: # is not default empty box
+                ROI = imagecv[int(box[1]):int(box[3]),int(box[0]):int(box[2])]
+                blur = cv2.blur(ROI, (151,151)) 
+                imagecv[int(box[1]):int(box[3]),int(box[0]):int(box[2])] = blur
+
+def copyfile_blur(src, dst, boxes=None):
+    if boxes is None:
+        shutil.copyfile(src, dst)
+    else:
+        imagecv = cv2.imdecode(np.fromfile(src, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        blur_boxes(imagecv, boxes)
+        cv2.imwrite(dst, imagecv)
 
 import tkinter
 from tkinter import filedialog, messagebox
@@ -334,6 +363,10 @@ txt_createsubfolders = {'fr':"Créer des sous-dossiers", 'en':"Create subfolders
                         'it':"Creare dei sotto file", 'de':"Unterordner erstellen"}
 txt_copy = {'fr':"Copier les fichiers", 'en':"Copy files",
             'it':"Copiare i file", 'de':"Dateien kopieren"}
+txt_copywithhumanblur = {'fr':"Copier les fichiers (avec floutage des humains)",
+                         'en':"Copy files (with human blurring)",
+                         'it':"Copiare i file (con la sfocatura degli umani)",
+                         'de':"Dateien kopieren (mit Die Unschärfe von Menschen)"}
 txt_move = {'fr':"Déplacer les fichiers", 'en':"Move files",
             'it':"Spostare i file", 'de':"Dateien verschieben"}
 txt_language = {'fr':"Langue", 'en':"Language",
@@ -342,22 +375,33 @@ txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate 
                      'it':"Attivare il conto (sperimentale)", 'de':"Zählung aktivieren (experimentell)"}
 txt_deactivatecount = {'fr':"Désactiver le comptage (expérimental)", 'en':"Deactivate count (experimental)",
                        'it':"Disattivare il conto (sperimentale)", 'de':"Zählung desaktivieren (experimentell)"}
+txt_activatehumanblur = {'fr':"Activer le floutage des humains (images seulement)", 'en':"Activate human blurring (image only)",
+                         'it':"Attivare la sfocatura degli umani (solo immagini)", 'de':"Die Unschärfe von Menschen aktivieren (nur die Bilder)"}
+txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains  (images seulement)", 'en':"Deactivate human blurring  (image only)",
+                           'it':"Disattivare la sfocatura degli umani (solo immagini)", 'de':"die Unschärfe von Menschen desaktivieren (nur die Bilder)"}
 txt_credits = {'fr':"A propos", 'en':"About DeepFaune",
                'it':"A proposito", 'de':"Über DeepFaune"}
 if countactivated:
     txt_statuscount = txt_deactivatecount[LANG]
 else:
     txt_statuscount = txt_activatecount[LANG]
+if humanbluractivated:
+    txt_statushumanblur = txt_deactivatehumanblur[LANG]
+    txt_subfoldersoptions = [txt_copy[LANG], txt_copywithhumanblur[LANG], txt_move[LANG]]
+else:
+    txt_statushumanblur = txt_activatehumanblur[LANG]
+    txt_subfoldersoptions = [txt_copy[LANG], txt_move[LANG]]
     
 menu_def = [
     ['&'+txt_file[LANG], [
         '&'+txt_import[LANG],[txt_importimage[LANG],txt_importvideo[LANG]],
         '!'+txt_export[LANG],[txt_ascsv[LANG],txt_asxlsx[LANG]],
-        '!'+txt_createsubfolders[LANG], [txt_copy[LANG],txt_move[LANG]]
+        '!'+txt_createsubfolders[LANG], txt_subfoldersoptions
     ]],
     ['&'+txt_pref[LANG], [
         txt_language[LANG], listlang,
-        txt_statuscount
+        txt_statuscount,
+        '!'+txt_statushumanblur
     ]],
     ['&'+txt_help[LANG], [
         '&Version', [VERSION],
@@ -456,12 +500,30 @@ def updateMenuSubfolders(disabled):
         menu_def[0][1][4] = '&'+txt_createsubfolders[LANG]
     window[txt_file[LANG]].Update(menu_def[0])
 
-def updateMenuActivateCount():
-    if menu_def[1][1][2] == txt_activatecount[LANG]:
+def updateMenuCount(activated):
+    if activated == True:
         menu_def[1][1][2] = txt_deactivatecount[LANG]
     else:
         menu_def[1][1][2] = txt_activatecount[LANG]
     window[txt_pref[LANG]].Update(menu_def[1])
+    
+def updateMenuHumanBlur(activated):
+    if activated == True:
+        if not VIDEO:
+            menu_def[1][1][3] = txt_deactivatehumanblur[LANG]
+            menu_def[0][1][5] = [txt_copy[LANG], txt_copywithhumanblur[LANG], txt_move[LANG]]
+        else:
+            menu_def[1][1][3] = '!'+txt_deactivatehumanblur[LANG]
+            menu_def[0][1][5] = [txt_copy[LANG], txt_move[LANG]]
+            
+    else:
+        if not VIDEO:
+            menu_def[1][1][3] = txt_activatehumanblur[LANG]
+        else:
+            menu_def[1][1][3] = '!'+txt_activatehumanblur[LANG]
+        menu_def[0][1][5] = [txt_copy[LANG], txt_move[LANG]]
+    window[txt_pref[LANG]].Update(menu_def[1])
+    window[txt_file[LANG]].Update(menu_def[0])
             
 def updatePredictionInfo(disabled):
     if disabled is True:
@@ -648,10 +710,8 @@ while True:
         #########################
         ## SELECTING LANGUAGE
         #########################
-        config.set('General', 'language', event)
+        configsetsave('language', event)
         if event != LANG:
-            with open("settings.ini", "w") as inif:
-                config.write(inif)
             yesorno = dialog_yesno(txt_restart[LANG])
             if yesorno == 'yes':
                 break
@@ -667,18 +727,31 @@ while True:
             window['-COUNTER-'].Update(value=0)
         window['-COUNT-'].Update(visible=True)
         window['-COUNTER-'].Update(visible=True)
-        config.set('General', 'count', 'True')
-        with open("settings.ini", "w") as inif:
-            config.write(inif)
-        updateMenuActivateCount()
+        configsetsave('count', 'True')
+        updateMenuCount(activated=True)
     elif event == txt_deactivatecount[LANG]:
         countactivated = False
         window['-COUNT-'].Update(visible=False)
         window['-COUNTER-'].Update(visible=False)
-        config.set('General', 'count', 'False')
-        with open("settings.ini", "w") as inif:
-            config.write(inif)
-        updateMenuActivateCount()
+        configsetsave('count', 'False')
+        updateMenuCount(activated=False)
+    elif event == txt_activatehumanblur[LANG]:
+        #########################
+        ## (DE)ACTIVATING HUMAN BLUR
+        #########################
+        humanbluractivated = True
+        configsetsave('humanblur', 'True')
+        updateMenuHumanBlur(activated=True)
+        # refresh current view; touching position in Table, will send a -TAB- event
+        if testdir is not None:
+            window['-TAB-'].update(select_rows=[rowidx])
+    elif event == txt_deactivatehumanblur[LANG]:
+        humanbluractivated = False
+        configsetsave('humanblur', 'False')
+        updateMenuHumanBlur(activated=False)
+        # refresh current view; touching position in Table, will send a -TAB- event
+        if testdir is not None:
+            window['-TAB-'].update(select_rows=[rowidx])
     elif event == txt_credits[LANG]:
         #########################
         ## CREDITS
@@ -708,6 +781,7 @@ while True:
             updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
             updateMenuSubfolders(disabled=True)
+            updateMenuHumanBlur(activated=humanbluractivated)
             debugprint("Dossier sélectionné : "+testdir, "Selected folder: "+testdir)
             ### GENERATOR
             if VIDEO:
@@ -844,11 +918,12 @@ while True:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                     'prediction':predictedclass, 'score':predictedscore,
-                                    'count':count})
+                                    'count':count, 'humanpresence':predictor.getHumanPresence()})
         else:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                    'prediction':predictedclass, 'score':predictedscore})
+                                    'prediction':predictedclass, 'score':predictedscore,
+                                    'humanpresence':predictor.getHumanPresence()})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         if event == txt_ascsv[LANG]:
             csvpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.csv", defaultextension=".csv")
@@ -876,12 +951,8 @@ while True:
                 if total_frames==0:
                      imagecv = None # corrupted video, considered as empty
                 else:
-                    fps = int(videocap.get(5))
-                    lag = int(fps/3) # lag between two successive frames
-                    while ((BATCH_SIZE - 1) * lag > total_frames):
-                        lag = lag - 1 
                     if predictorready:
-                        kframe = predictor.getKeyFrames(curridx)*lag # possibly 0 if video not treated by predictor yet
+                        kframe = predictor.getKeyFrames(curridx) # possibly 0 if video not treated by predictor yet
                     else:
                         kframe = 0
                     videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
@@ -914,8 +985,11 @@ while True:
                     window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
                     if countactivated:
                         window['-COUNTER-'].Update(value=count_curridx)
+                    if humanbluractivated:
+                        if not VIDEO:
+                            blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                     if predictedclass_curridx is not txt_empty[LANG]:
-                        draw_boxes(imagecv,predictedbox_curridx)
+                        draw_boxes(imagecv, predictedbox_curridx)
             updateImage(imagecv)
             if predictorready and not VIDEO:
                 window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
@@ -938,7 +1012,7 @@ while True:
         # updating position in Table, will send an event
         window['-TAB-'].update(select_rows=[rowidx])
         window['-TAB-'].Widget.see(rowidx+1)
-    elif event == txt_copy[LANG] or event == txt_move[LANG]:
+    elif event == txt_copy[LANG] or event == txt_copywithhumanblur[LANG] or event == txt_move[LANG]:
         #########################
         ## CREATING SUBFOLDERS
         #########################
@@ -956,7 +1030,7 @@ while True:
 
         now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
         destdir = None
-        if event == txt_copy[LANG]:
+        if event == txt_copy[LANG] or event == txt_copywithhumanblur[LANG]:
             destdir = dialog_get_dir(txt_destcopy[LANG], initialdir=testdir)
             if destdir is not None:
                 debugprint("Copie vers "+join(destdir,"deepfaune_"+now), "Copying to "+join(destdir,"deepfaune_"+now))
@@ -974,6 +1048,10 @@ while True:
             if event == txt_copy[LANG]:
                 for k in range(nbfiles):
                     shutil.copyfile(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))
+            if event == txt_copywithhumanblur[LANG] and not VIDEO:
+                for k in range(nbfiles):
+                    copyfile_blur(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])),
+                                  predictor.getHumanBoxes(filenames[k]))
             if event == txt_move[LANG]:
                 for k in range(nbfiles):
                     shutil.move(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))

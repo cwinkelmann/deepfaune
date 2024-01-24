@@ -114,7 +114,7 @@ class PredictorBase(ABC):
 
     def setPredictedCount(self, k, count):
         self.count[k] = count
-        
+            
     def getFilenames(self):
         return self.fileManager.getFilenames()
     
@@ -245,6 +245,7 @@ class PredictorImage(PredictorImageBase):
         PredictorImageBase.__init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = Detector()
         self.setDetectionThreshold(YOLO_THRES)
+        self.humanboxes = dict()
 
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
@@ -252,7 +253,7 @@ class PredictorImage(PredictorImageBase):
         else:
             rangeanimal = []
             for k in range(self.k1,self.k2):
-                croppedimage, category, box, count = self.detector.bestBoxDetection(self.fileManager.getFilename(k), self.detectionthreshold)
+                croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(self.fileManager.getFilename(k), self.detectionthreshold)
                 self.bestboxes[k] = box
                 self.count[k] = count
                 if category > 0: # not empty
@@ -264,8 +265,10 @@ class PredictorImage(PredictorImageBase):
                     self.prediction[k,self.idxhuman] = DEFAULTLOGIT
                 if category == 3: # vehicle
                     self.prediction[k,self.idxvehicle] = DEFAULTLOGIT
+                if humanboxes is not None: # humans
+                    self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
             if len(rangeanimal): # predicting species in images with animal 
-                self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)            
+                self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
             k1_batch = self.k1
             k2_batch = self.k2
             k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
@@ -276,6 +279,19 @@ class PredictorImage(PredictorImageBase):
             # returning batch results
             return self.batch-1, k1_batch, k2_batch, k1seq_batch, k2seq_batch
         
+    def getHumanBoxes(self, filename):
+        try:
+            return(self.humanboxes[filename])
+        except KeyError:
+            return None
+        
+    def getHumanPresence(self, k=None):
+        if k == None:
+            return [self.getHumanBoxes(filename) is not None for filename in self.fileManager.getFilenames()]
+        else:
+            return (self.getHumanBoxes(filename) is not None)
+
+        
 ####################################################################################
 ### PREDICTOR VIDEO 
 ####################################################################################
@@ -285,6 +301,7 @@ class PredictorVideo(PredictorBase):
          self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.setDetectionThreshold(YOLO_THRES)
+         self.humanpresence = [False]*self.fileManager.nbFiles()
 
     def resetBatch(self):
         self.k1 = 0
@@ -303,22 +320,35 @@ class PredictorVideo(PredictorBase):
             maxcount = 0            
             videocap = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
             total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
+            kframetotal = []
             if total_frames==0:
                 pass # corrupted video, considered as empty
             else:
                 fps = int(videocap.get(5))
-                lag = int(fps/3) # lag between two successive frames
-                while((self.BATCH_SIZE-1)*lag>total_frames):
-                    lag = lag-1 # reducing lag if video duration is less than self.BATCH_SIZE sec
+                # lag between two successive frames,
+                # first 2/3*BATCH_SIZE spaced with a small lag for the video beginning
+                # next 1/3*BATCH_SIZE spaced with a large lag for the remaining video
+                nbframebegin = int(self.BATCH_SIZE*2/3+0.5)
+                nbframeremain = self.BATCH_SIZE-nbframebegin 
+                lagbegin = int(fps/3)
+                while((nbframebegin-1)*lagbegin>total_frames):
+                    lagbegin = lagbegin-1 # reducing lagbegin if video duration is small
+                kframebegin = [k*lagbegin for k in range(0,nbframebegin)]
+                lagremain = int( (total_frames-kframebegin[-1])/nbframeremain )
+                if lagremain>0:
+                    kframeremain = [kframebegin[-1]+(k+1)*lagremain for k in range(0,nbframeremain)]
+                else:
+                    kframeremain = []
+                kframetotal = kframebegin+kframeremain
                 k = 0 # frame k in position kframe
-                for kframe in range(0, self.BATCH_SIZE*lag, lag): 
+                for kframe in kframetotal: 
                     videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                     ret,frame = videocap.read()
                     if ret == False:
                         pass # Corrupted or unavailable image, considered as empty
                     else:
                         imagecv = frame
-                        croppedimage, category, box, count = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
+                        croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
                         bestboxesallframe[k] = box
                         if count>maxcount:
                             maxcount = count
@@ -332,6 +362,8 @@ class PredictorVideo(PredictorBase):
                             predictionallframe[k,self.idxhuman] = DEFAULTLOGIT
                         if category == 3: # vehicle
                             predictionallframe[k,self.idxvehicle] = DEFAULTLOGIT
+                        if humanboxes is not None: # humans in at least one frame
+                            self.humanpresence[self.k1] = True
                     k = k+1
             videocap.release()
             if len(rangeanimal): # predicting species in frames with animal 
@@ -348,8 +380,8 @@ class PredictorVideo(PredictorBase):
                     else: # animal
                         predictionallframeanimal = predictionallframe[rangenonempty,0:len(txt_animalclasses[self.LANG])]
                         kmax = np.unravel_index(np.argmax(predictionallframeanimal , axis=None), predictionallframeanimal.shape)[0]
-                self.keyframes[self.k1] = rangenonempty[kmax]
-            self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
+                self.keyframes[self.k1] = kframetotal[rangenonempty[kmax]]
+                self.bestboxes[self.k1] = bestboxesallframe[rangenonempty[kmax]]
             self.count[self.k1] = maxcount
             k1_batch = self.k1
             k2_batch = self.k2
@@ -360,6 +392,12 @@ class PredictorVideo(PredictorBase):
 
     def getKeyFrames(self, index):
         return self.keyframes[index]
+        
+    def getHumanPresence(self, k=None):
+        if k == None:
+            return self.humanpresence
+        else:
+            return self.humanpresence[k]
 
 ####################################################################################
 ### PREDICTOR IMAGE FROM JSON
