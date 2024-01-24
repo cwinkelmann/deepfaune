@@ -135,15 +135,15 @@ txt_goupdate = {'fr': "Aller sur le site",
                 'en': 'Visit the website',
                 'it': 'Vai al sito web',
                 'de': 'Auf die Website gehen'}
-txt_newupdate = {'fr': "Nouvelle mise à jour",
-                'en': 'New update',
-                'it': 'Nuovo aggiornamento',
-                'de': 'Neues Update'}
+txt_newupdate = {'fr': "Mise à jour du logiciel",
+                'en': 'Software update',
+                'it': 'Aggiornamento software',
+                'de': 'Software-Update'}
 txt_newupdatelong = {'fr': "Une nouvelle mise à jour est disponible sur le site",
                      'en': 'A new update is available on the website',
        		     'it': 'Un nuovo aggiornamento è disponibile sul sito web',
                      'de': 'Ein neues Update ist auf der Website verfügbar'}
-txt_disablecheckupdate = {'fr': "Ne plus me le rapeller",
+txt_disablecheckupdate = {'fr': "Ne plus me le rappeler",
                           'en': "Do not remind me again",
        		          'it': 'Non ricordarmelo più',
                           'de': 'Erinnern Sie mich nicht mehr daran'}
@@ -745,9 +745,9 @@ while True:
             [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
             [
             StyledButton(txt_goupdate[LANG], accent_color, background_color, background_color,
-                         button_width=12+len(txt_goupdate[LANG]), key='-GO_UPDATE-'),
+                         button_width=12+len(txt_goupdate[LANG]), key='-UPDATE-'),
             StyledButton(txt_disablecheckupdate[LANG], accent_color, background_color, background_color,
-                         button_width=12+len(txt_disablecheckupdate[LANG]), key='-DISABLE_UPDATECHECK-')]]
+                         button_width=12+len(txt_disablecheckupdate[LANG]), key='-NOUPDATECHECK-')]]
 
         windowupdate = sg.Window(txt_newupdate[LANG], layoutupdate,  
                                  font = FONT_MED, margins=(0, 0),
@@ -758,11 +758,11 @@ while True:
 
         while draw_popup_update:
             eventconfig, valuesconfig = windowupdate.read(timeout=10)
-            if eventconfig == '-GO_UPDATE-':
+            if eventconfig == '-UPDATE-':
                 import webbrowser
                 webbrowser.open("https://www.deepfaune.cnrs.fr")
                 draw_popup_update = False
-            if eventconfig == '-DISABLE_UPDATECHECK-':
+            if eventconfig == '-NOUPDATECHECK-':
                 configsetsave('checkupdate', 'False')
                 draw_popup_update = False
             elif eventconfig in (sg.WIN_CLOSED, 'Exit'):
