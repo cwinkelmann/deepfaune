@@ -131,10 +131,10 @@ txt_restart = {'fr':"Redémarrage nécessaire pour changer la langue. Arréter l
                'en':"Restart required to change the language. Stopping the software?",
                'it':"Per cambiare la lingua è necessario un riavvio. Arresto del software ?",
                'de':"Neustart erforderlich, um die Sprache zu ändern. Wollen Sie die Software stoppen?"}
-txt_goupdate = {'fr': "Aller sur le site",
-                'en': 'Visit the website',
-                'it': 'Vai al sito web',
-                'de': 'Auf die Website gehen'}
+txt_visitwebsite = {'fr': "Aller sur le site",
+                    'en': 'Visit the website',
+                    'it': 'Vai al sito web',
+                    'de': 'Auf die Website gehen'}
 txt_newupdate = {'fr': "Mise à jour du logiciel",
                 'en': 'Software update',
                 'it': 'Aggiornamento software',
@@ -747,7 +747,7 @@ while True:
     if draw_popup_update:
         layoutupdate = [
             [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
-            [StyledButton(txt_goupdate[LANG], accent_color, background_color, background_color,
+            [StyledButton(txt_visitwebsite[LANG], accent_color, background_color, background_color,
                           button_width=12+len(txt_goupdate[LANG]), key='-UPDATE-'),
             StyledButton(txt_enablecheckupdate[LANG], accent_color, background_color, background_color,
                          button_width=12+len(txt_enablecheckupdate[LANG]), key='-UPDATECHECK-'),
