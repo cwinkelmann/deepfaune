@@ -292,7 +292,6 @@ class PredictorVideo(PredictorBase):
         self.batch = 1
     
     def nextBatch(self):
-        print("Next video")
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k1
         else:   

@@ -2,6 +2,7 @@
 
 	    Version 1.1.0
 	    * Moving to vit_large_patch14_dinov2 architecture for classification, with large number of parameters but improved performance.
+	    * Moving to resolution 960 in yolov8s architecture for detection, with improved performance.
 	    * New confidence scores with better calibration, using average logit method and temperature scaling. 
 	    * Playing video is now possible, with a double-click on the video frame in the graphical interface.
 	    

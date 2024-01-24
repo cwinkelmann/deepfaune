@@ -64,8 +64,6 @@ class Detector:
         # orig_img a numpy array (cv2) in BGR
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
-        if len(detection.cls):
-            print(detection.conf[0] )
         if not len(detection.cls) or detection.conf[0] < threshold:
             return None, 0, np.zeros(4), 0
         category = detection.cls[0] + 1
