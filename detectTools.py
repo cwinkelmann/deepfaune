@@ -36,11 +36,11 @@ import numpy as np
 from PIL import Image
 from ultralytics import YOLO
 
-YOLO_WIDTH = 1280 # image width
-YOLO_THRES = 0.6 # boxes above this threshold are considered for image classification
+YOLO_WIDTH = 960 # image width
+YOLO_THRES = 0.6
 YOLOHUMAN_THRES = 0.4 # boxes with human above this threshold are saved
-YOLOCOUNT_THRES = 0.6 # boxes above this threshold are counted as a number of individuals
-model = 'deepfaune-yolov8s.pt'
+YOLOCOUNT_THRES = 0.6
+model = 'deepfaune-yolov8s_960.pt'
 
 ####################################################################################
 ### BEST BOX DETECTION 
@@ -56,7 +56,7 @@ class Detector:
     """
     def bestBoxDetection(self, filename_or_imagecv, threshold=YOLO_THRES):
         try:
-            results = self.yolo(filename_or_imagecv, verbose=False)            
+            results = self.yolo(filename_or_imagecv, verbose=False, imgsz=YOLO_WIDTH)
         except FileNotFoundError:
             return None, 0, np.zeros(4), 0, None
         except Exception as err:

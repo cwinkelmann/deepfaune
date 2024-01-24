@@ -66,6 +66,7 @@ Then, the dependencies
 - Numpy: `pip install numpy`
 - OpenCV: `pip install opencv-python`
 - PIL: `pip install pillow`
+- DILL: `pip install dill`
 - ffmpeg: `pip install ffmpeg-python` (but not `ffmpeg`)
 - (optional, for Excel users only) openpyxl: `pip install openpyxl`
 
