@@ -748,7 +748,7 @@ while True:
         layoutupdate = [
             [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
             [StyledButton(txt_visitwebsite[LANG], accent_color, background_color, background_color,
-                          button_width=12+len(txt_goupdate[LANG]), key='-UPDATE-'),
+                          button_width=12+len(txt_visitwebsite[LANG]), key='-UPDATE-'),
             StyledButton(txt_enablecheckupdate[LANG], accent_color, background_color, background_color,
                          button_width=12+len(txt_enablecheckupdate[LANG]), key='-UPDATECHECK-'),
             StyledButton(txt_disablecheckupdate[LANG], accent_color, background_color, background_color,
