@@ -41,7 +41,7 @@ YOLO_THRES = 0.6 # boxes above this threshold are considered for image classific
 YOLOHUMAN_THRES = 0.4 # boxes with human above this threshold are saved
 YOLOCOUNT_THRES = 0.6 # boxes above this threshold are counted as a number of individuals
 model = 'deepfaune-yolov8s.pt'
-       
+
 ####################################################################################
 ### BEST BOX DETECTION 
 ####################################################################################
@@ -58,7 +58,7 @@ class Detector:
         try:
             results = self.yolo(filename_or_imagecv, verbose=False)            
         except FileNotFoundError:
-            return None, 0, np.zeros(4), 0
+            return None, 0, np.zeros(4), 0, None
         except Exception as err:
             print(f"Unexpected {err=}, {type(err)=}")
             #raise

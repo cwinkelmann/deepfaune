@@ -320,15 +320,28 @@ class PredictorVideo(PredictorBase):
             maxcount = 0            
             videocap = cv2.VideoCapture(self.fileManager.getFilename(self.k1))
             total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
+            kframetotal = []
             if total_frames==0:
                 pass # corrupted video, considered as empty
             else:
                 fps = int(videocap.get(5))
-                lag = int(fps/3) # lag between two successive frames
-                while((self.BATCH_SIZE-1)*lag>total_frames):
-                    lag = lag-1 # reducing lag if video duration is less than self.BATCH_SIZE sec
+                # lag between two successive frames,
+                # first 2/3*BATCH_SIZE spaced with a small lag for the video beginning
+                # next 1/3*BATCH_SIZE spaced with a large lag for the remaining video
+                nbframebegin = int(self.BATCH_SIZE*2/3+0.5)
+                nbframeremain = self.BATCH_SIZE-nbframebegin 
+                lagbegin = int(fps/3)
+                while((nbframebegin-1)*lagbegin>total_frames):
+                    lagbegin = lagbegin-1 # reducing lagbegin if video duration is small
+                kframebegin = [k*lagbegin for k in range(0,nbframebegin)]
+                lagremain = int( (total_frames-kframebegin[-1])/nbframeremain )
+                if lagremain>0:
+                    kframeremain = [kframebegin[-1]+(k+1)*lagremain for k in range(0,nbframeremain)]
+                else:
+                    kframeremain = []
+                kframetotal = kframebegin+kframeremain
                 k = 0 # frame k in position kframe
-                for kframe in range(0, self.BATCH_SIZE*lag, lag): 
+                for kframe in kframetotal: 
                     videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                     ret,frame = videocap.read()
                     if ret == False:
@@ -367,8 +380,8 @@ class PredictorVideo(PredictorBase):
                     else: # animal
                         predictionallframeanimal = predictionallframe[rangenonempty,0:len(txt_animalclasses[self.LANG])]
                         kmax = np.unravel_index(np.argmax(predictionallframeanimal , axis=None), predictionallframeanimal.shape)[0]
-                self.keyframes[self.k1] = rangenonempty[kmax]
-            self.bestboxes[self.k1] = bestboxesallframe[self.keyframes[self.k1]]
+                self.keyframes[self.k1] = kframetotal[rangenonempty[kmax]]
+                self.bestboxes[self.k1] = bestboxesallframe[rangenonempty[kmax]]
             self.count[self.k1] = maxcount
             k1_batch = self.k1
             k2_batch = self.k2
