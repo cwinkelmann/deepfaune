@@ -146,7 +146,11 @@ txt_newupdatelong = {'fr': "Une nouvelle mise à jour est disponible sur le site
 txt_disablecheckupdate = {'fr': "Ne plus me le rappeler",
                           'en': "Do not remind me again",
        		          'it': 'Non ricordarmelo più',
-                          'de': 'Erinnern Sie mich nicht mehr daran'}
+                          'de': 'Erinnere mich nicht mehr daran'}
+txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
+                         'en': "Remind me later",
+       		         'it': 'Ricordamelo più tardi',
+                         'de': 'Erinnere mich später'}
 ####################################################################################
 ### THEME SETTINGS
 ####################################################################################
@@ -743,9 +747,10 @@ while True:
     if draw_popup_update:
         layoutupdate = [
             [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
-            [
-            StyledButton(txt_goupdate[LANG], accent_color, background_color, background_color,
-                         button_width=12+len(txt_goupdate[LANG]), key='-UPDATE-'),
+            [StyledButton(txt_goupdate[LANG], accent_color, background_color, background_color,
+                          button_width=12+len(txt_goupdate[LANG]), key='-UPDATE-'),
+            StyledButton(txt_enablecheckupdate[LANG], accent_color, background_color, background_color,
+                         button_width=12+len(txt_enablecheckupdate[LANG]), key='-UPDATECHECK-'),
             StyledButton(txt_disablecheckupdate[LANG], accent_color, background_color, background_color,
                          button_width=12+len(txt_disablecheckupdate[LANG]), key='-NOUPDATECHECK-')]]
 
@@ -765,7 +770,7 @@ while True:
             if eventconfig == '-NOUPDATECHECK-':
                 configsetsave('checkupdate', 'False')
                 draw_popup_update = False
-            elif eventconfig in (sg.WIN_CLOSED, 'Exit'):
+            elif eventconfig in (sg.WIN_CLOSED, 'Exit', '-UPDATECHECK-'):
                 draw_popup_update = False
         windowupdate.close()
 
