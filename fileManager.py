@@ -35,8 +35,9 @@ import numpy as np
 from PIL import Image
 from datetime import datetime, timedelta
 import os.path as op
-import ffmpeg
-from datetime import datetime
+from hachoir.parser import createParser
+from hachoir.metadata import extractMetadata
+
 
 def getFilesOrder(filenames):
     nbfiles = len(filenames)
@@ -67,8 +68,7 @@ def getDateFromMetadata(filename):
     # Video file
     try:
         # works for MOV/MP4/MKV files
-        creation_time = ffmpeg.probe(filename)["streams"][0]['tags']['creation_time']
-        date = str(datetime.strptime(creation_time.replace(".000000Z", ""), '%Y-%m-%dT%H:%M:%S'))
+        date = extractMetadata(createParser(filename)).get('creation_date')
     except: # KeyError
         pass
     return date
