@@ -75,7 +75,7 @@ def configsetsave(option, value):
 LANG = configget('language', 'fr')
 countactivated = configget('count', 'False')
 humanbluractivated = configget('humanblur', 'False')
-        
+checkupdate = configget('checkupdate', 'True')        
 ####################################################################################
 ### GUI TEXT
 ####################################################################################
@@ -131,7 +131,26 @@ txt_restart = {'fr':"Redémarrage nécessaire pour changer la langue. Arréter l
                'en':"Restart required to change the language. Stopping the software?",
                'it':"Per cambiare la lingua è necessario un riavvio. Arresto del software ?",
                'de':"Neustart erforderlich, um die Sprache zu ändern. Wollen Sie die Software stoppen?"}
-
+txt_visitwebsite = {'fr': "Aller sur le site",
+                    'en': 'Visit the website',
+                    'it': 'Vai al sito web',
+                    'de': 'Auf die Website gehen'}
+txt_newupdate = {'fr': "Mise à jour du logiciel",
+                'en': 'Software update',
+                'it': 'Aggiornamento software',
+                'de': 'Software-Update'}
+txt_newupdatelong = {'fr': "Une nouvelle mise à jour est disponible sur le site",
+                     'en': 'A new update is available on the website',
+       		     'it': 'Un nuovo aggiornamento è disponibile sul sito web',
+                     'de': 'Ein neues Update ist auf der Website verfügbar'}
+txt_disablecheckupdate = {'fr': "Ne plus me le rappeler",
+                          'en': "Do not remind me again",
+       		          'it': 'Non ricordarmelo più',
+                          'de': 'Erinnere mich nicht mehr daran'}
+txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
+                         'en': "Remind me later",
+       		         'it': 'Ricordamelo più tardi',
+                         'de': 'Erinnere mich später'}
 ####################################################################################
 ### THEME SETTINGS
 ####################################################################################
@@ -681,6 +700,22 @@ def playVideoUntilOtherEvent(filename):
 ## MAIN LOOP
 #########################
 DEBUG = False
+
+draw_popup_update = False
+if checkupdate:
+    import urllib
+    from versions import parse_version
+    try:
+        online_version = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/.version', timeout=1)
+        online_version = online_version.read().decode().replace("\n", "")
+        online_version = parse_version(online_version)
+    except:
+        online_version = None
+    if online_version:
+        installed_version = parse_version(VERSION)
+        if online_version > installed_version:
+            draw_popup_update = True
+
 while True:
     event, values = window.read(timeout=10)
     if event != "__TIMEOUT__" and DEBUG is True:
@@ -706,6 +741,39 @@ while True:
             curwindowsize = window.size # current size before other config events (resizing or moving)
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
+    #########################
+    ## CHECK UPDATE
+    #########################
+    if draw_popup_update:
+        layoutupdate = [
+            [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
+            [StyledButton(txt_visitwebsite[LANG], accent_color, background_color, background_color,
+                          button_width=15+len(txt_visitwebsite[LANG]), key='-UPDATE-'),
+            StyledButton(txt_enablecheckupdate[LANG], accent_color, background_color, background_color,
+                         button_width=15+len(txt_enablecheckupdate[LANG]), key='-UPDATECHECK-'),
+            StyledButton(txt_disablecheckupdate[LANG], accent_color, background_color, background_color,
+                         button_width=15+len(txt_disablecheckupdate[LANG]), key='-NOUPDATECHECK-')]]
+
+        windowupdate = sg.Window(txt_newupdate[LANG], layoutupdate,  
+                                 font = FONT_MED, margins=(0, 0),
+                                 background_color=background_color, finalize=True)
+        with suppress(TclError):
+            windowupdate.TKroot.tk.call('source', SUN_VALLEY_TCL)
+        windowupdate.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG- events due to internal additionnal padding
+
+        while draw_popup_update:
+            eventconfig, valuesconfig = windowupdate.read(timeout=10)
+            if eventconfig == '-UPDATE-':
+                import webbrowser
+                webbrowser.open("https://www.deepfaune.cnrs.fr")
+                draw_popup_update = False
+            if eventconfig == '-NOUPDATECHECK-':
+                configsetsave('checkupdate', 'False')
+                draw_popup_update = False
+            elif eventconfig in (sg.WIN_CLOSED, 'Exit', '-UPDATECHECK-'):
+                draw_popup_update = False
+        windowupdate.close()
+
     if event in listlang:
         #########################
         ## SELECTING LANGUAGE
