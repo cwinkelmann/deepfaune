@@ -38,7 +38,6 @@ import os.path as op
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 
-
 def getFilesOrder(filenames):
     nbfiles = len(filenames)
     numdir = np.array([0]*nbfiles)
@@ -58,21 +57,20 @@ def getFilesOrder(filenames):
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
-def getDateFromMetadata(filename):
-    date = "NA" # default
-    # Image file
-    try:
-        date = Image.open(filename)._getexif()[36867]
-    except: # TypeError
-        pass
-    # Video file
-    try:
-        # works for MOV/MP4/MKV files
-        date = extractMetadata(createParser(filename)).get('creation_date')
-    except: # KeyError
-        pass
-    return date
 
+def getDateFromMetadata(filename):
+    date = "NA"  # default
+    if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):  # Image file
+        try:
+            date = Image.open(filename)._getexif()[36867]
+        except: # TypeError
+            pass
+    elif filename.lower().endswith(('.mov', '.mp4', '.mkv')):  # Video file
+        try:
+            date = extractMetadata(createParser(filename)).get('creation_date')
+        except: # KeyError
+            pass
+    return date
 
 
 class FileManager:
