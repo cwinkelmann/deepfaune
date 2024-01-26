@@ -43,7 +43,7 @@ The model parameters are protected by the [CC BY-NC-SA 4.0 license](https://crea
 
 Download the model parameters *inside the deepfaune folder* where you can find `deepfauneGUI.py`:
 
-- Animal detector parameters: for version 1.0.x and 1.1.x [deepfaune-yolov8s.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.0/)
+- Animal detector parameters: for version 1.1.x [deepfaune-yolov8s_960.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.1/)
 
 - Classifier parameters: for version 1.1.x [deepfaune-vit_large_patch14_dinov2.lvd142m.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.1/)
 
@@ -67,7 +67,7 @@ Then, the dependencies
 - OpenCV: `pip install opencv-python`
 - PIL: `pip install pillow`
 - DILL: `pip install dill`
-- ffmpeg: `pip install ffmpeg-python` (but not `ffmpeg`)
+- hachoir: `pip install hachoir`
 - (optional, for Excel users only) openpyxl: `pip install openpyxl`
 
 For some users, it may be necessary to install `python-tk` or `python3-tk` as well, when you have a message `no module tkinter`...
