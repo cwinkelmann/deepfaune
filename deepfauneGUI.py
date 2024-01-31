@@ -141,15 +141,15 @@ txt_newupdate = {'fr': "Mise à jour du logiciel",
                 'de': 'Software-Update'}
 txt_newupdatelong = {'fr': "Une nouvelle mise à jour est disponible sur le site",
                      'en': 'A new update is available on the website',
-       		     'it': 'Un nuovo aggiornamento è disponibile sul sito web',
+                     'it': 'Un nuovo aggiornamento è disponibile sul sito web',
                      'de': 'Ein neues Update ist auf der Website verfügbar'}
 txt_disablecheckupdate = {'fr': "Ne plus me le rappeler",
                           'en': "Do not remind me again",
-       		          'it': 'Non ricordarmelo più',
+                          'it': 'Non ricordarmelo più',
                           'de': 'Erinnere mich nicht mehr daran'}
 txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
                          'en': "Remind me later",
-       		         'it': 'Ricordamelo più tardi',
+                         'it': 'Ricordamelo più tardi',
                          'de': 'Erinnere mich später'}
 ####################################################################################
 ### THEME SETTINGS
