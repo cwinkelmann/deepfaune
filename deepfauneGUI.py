@@ -141,15 +141,15 @@ txt_newupdate = {'fr': "Mise à jour du logiciel",
                 'de': 'Software-Update'}
 txt_newupdatelong = {'fr': "Une nouvelle mise à jour est disponible sur le site",
                      'en': 'A new update is available on the website',
-       		     'it': 'Un nuovo aggiornamento è disponibile sul sito web',
+                     'it': 'Un nuovo aggiornamento è disponibile sul sito web',
                      'de': 'Ein neues Update ist auf der Website verfügbar'}
 txt_disablecheckupdate = {'fr': "Ne plus me le rappeler",
                           'en': "Do not remind me again",
-       		          'it': 'Non ricordarmelo più',
+                          'it': 'Non ricordarmelo più',
                           'de': 'Erinnere mich nicht mehr daran'}
 txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
                          'en': "Remind me later",
-       		         'it': 'Ricordamelo più tardi',
+                         'it': 'Ricordamelo più tardi',
                          'de': 'Erinnere mich später'}
 ####################################################################################
 ### THEME SETTINGS
@@ -203,6 +203,8 @@ def copyfile_blur(src, dst, boxes=None):
 import tkinter
 from tkinter import filedialog, messagebox
 def dialog_get_dir(title, initialdir=None):
+    # rooting to the main PySimpleGUI window
+    # does not work here dute to color problems in the dialog box
     _root = tkinter.Tk()
     _root.tk.call('source', SUN_VALLEY_TCL)
     _root.tk.call('set_theme', 'light')
@@ -214,6 +216,8 @@ def dialog_get_dir(title, initialdir=None):
     return selectdir
 
 def dialog_get_file(title, initialdir, initialfile, defaultextension):
+    # rooting to the main PySimpleGUI window
+    # does not work here dute to color problems in the dialog box
     _root = tkinter.Tk()
     _root.tk.call('source', SUN_VALLEY_TCL)
     _root.tk.call('set_theme', 'light')
@@ -225,21 +229,13 @@ def dialog_get_file(title, initialdir, initialfile, defaultextension):
     return selectfile
 
 def dialog_yesno(message):
-    _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
-    _root.withdraw()
-    yesorno = messagebox.askquestion('', message, icon='warning', parent=_root)
-    _root.destroy()
+    # rooting to the main PySimpleGUI window
+    yesorno = messagebox.askquestion('', message, icon='warning', parent=window.TKroot)
     return yesorno
 
 def dialog_error(message):
-    _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
-    _root.withdraw()
-    messagebox.showerror(title=txt_error[LANG], message=message, parent=_root)
-    _root.destroy()
+    # rooting to the main PySimpleGUI window
+    messagebox.showerror(title=txt_error[LANG], message=message, parent=window.TKroot)
     
 def popup(message):
     layout = [[sg.Text(message, background_color=background_color, text_color=text_color)]]
