@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "DeepFaune"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "CNRS"
 #define MyAppURL "https://www.deepfaune.cnrs.fr/"
 #define MyAppExeName "deepfauneGUI.exe"

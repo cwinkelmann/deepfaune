@@ -37,6 +37,8 @@ import numpy as np
 import threading
 import io
 import os
+import multiprocessing
+multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
 ####################################################################################
@@ -769,6 +771,7 @@ while True:
             elif eventconfig in (sg.WIN_CLOSED, 'Exit', '-UPDATECHECK-'):
                 draw_popup_update = False
         windowupdate.close()
+        window.TKroot.focus_force()
 
     if event in listlang:
         #########################
