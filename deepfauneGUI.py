@@ -384,8 +384,6 @@ txt_copywithhumanblur = {'fr':"Copier les fichiers (avec floutage des humains)",
                          'en':"Copy files (with human blurring)",
                          'it':"Copiare i file (con la sfocatura degli umani)",
                          'de':"Dateien kopieren (mit Die Unschärfe von Menschen)"}
-txt_move = {'fr':"Déplacer les fichiers", 'en':"Move files",
-            'it':"Spostare i file", 'de':"Dateien verschieben"}
 txt_language = {'fr':"Langue", 'en':"Language",
                 'it':"Lingua", 'de':"Sprache"}
 txt_activatecount = {'fr':"Activer le comptage (expérimental)", 'en':"Activate count (experimental)",
@@ -404,10 +402,10 @@ else:
     txt_statuscount = txt_activatecount[LANG]
 if humanbluractivated:
     txt_statushumanblur = txt_deactivatehumanblur[LANG]
-    txt_subfoldersoptions = [txt_copy[LANG], txt_copywithhumanblur[LANG], txt_move[LANG]]
+    txt_subfoldersoptions = [txt_copy[LANG], txt_copywithhumanblur[LANG]]
 else:
     txt_statushumanblur = txt_activatehumanblur[LANG]
-    txt_subfoldersoptions = [txt_copy[LANG], txt_move[LANG]]
+    txt_subfoldersoptions = [txt_copy[LANG]]
     
 menu_def = [
     ['&'+txt_file[LANG], [
@@ -528,17 +526,17 @@ def updateMenuHumanBlur(activated):
     if activated == True:
         if not VIDEO:
             menu_def[1][1][3] = txt_deactivatehumanblur[LANG]
-            menu_def[0][1][5] = [txt_copy[LANG], txt_copywithhumanblur[LANG], txt_move[LANG]]
+            menu_def[0][1][5] = [txt_copy[LANG], txt_copywithhumanblur[LANG]]
         else:
             menu_def[1][1][3] = '!'+txt_deactivatehumanblur[LANG]
-            menu_def[0][1][5] = [txt_copy[LANG], txt_move[LANG]]
+            menu_def[0][1][5] = [txt_copy[LANG]]
             
     else:
         if not VIDEO:
             menu_def[1][1][3] = txt_activatehumanblur[LANG]
         else:
             menu_def[1][1][3] = '!'+txt_activatehumanblur[LANG]
-        menu_def[0][1][5] = [txt_copy[LANG], txt_move[LANG]]
+        menu_def[0][1][5] = [txt_copy[LANG]]
     window[txt_pref[LANG]].Update(menu_def[1])
     window[txt_file[LANG]].Update(menu_def[0])
             
@@ -599,7 +597,6 @@ testdir = None
 thread = None
 thread_queue = queue.Queue()
 predictorready = False
-imgmoved  = False
 txt_new_classes_lang = []
 
 ## misc variables to allow resizing
@@ -1011,55 +1008,54 @@ while True:
         #########################
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
-        if not imgmoved: 
-            if VIDEO:
-                videocap = cv2.VideoCapture(filenames[curridx])
-                total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
-                if total_frames==0:
-                     imagecv = None # corrupted video, considered as empty
+        if VIDEO:
+            videocap = cv2.VideoCapture(filenames[curridx])
+            total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
+            if total_frames==0:
+                 imagecv = None # corrupted video, considered as empty
+            else:
+                if predictorready:
+                    kframe = predictor.getKeyFrames(curridx) # possibly 0 if video not treated by predictor yet
                 else:
-                    if predictorready:
-                        kframe = predictor.getKeyFrames(curridx) # possibly 0 if video not treated by predictor yet
-                    else:
-                        kframe = 0
+                    kframe = 0
+                videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
+                ret, imagecv = videocap.read()
+                while ret==False and (kframe+lag)<=((BATCH_SIZE-1)*lag): # ignoring corrupted frames (useless when key frame are found by predictor)
+                    kframe = kframe+lag
                     videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
                     ret, imagecv = videocap.read()
-                    while ret==False and (kframe+lag)<=((BATCH_SIZE-1)*lag): # ignoring corrupted frames (useless when key frame are found by predictor)
-                        kframe = kframe+lag
-                        videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
-                        ret, imagecv = videocap.read()
-                    if ret==False:
-                        imagecv = None                        
-                videocap.release()
-            else:
-                try:
-                    imagecv = cv2.imdecode(np.fromfile(filenames[curridx], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-                except:
-                    imagecv = None
-            if imagecv is None:
-                imagecv = np.zeros((DEFAULTIMGSIZE[1],DEFAULTIMGSIZE[0],3), np.uint8)
-                cv2.putText(imagecv, text=txt_fileerror[LANG], org=(300, 350), fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 0, 255),thickness=1)
-                if predictorready:
-                    predictor.setPredictedClass(curridx, txt_errorclass[LANG], 0.0)
-                    window['-PREDICTION-'].update(value=txt_errorclass[LANG])
-                    window['-SCORE-'].Update("   Score: 0.0")
-                    if countactivated:
-                        window['-COUNTER-'].Update(value=0)
-            else:
-                if predictorready:
-                    predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-                    window['-PREDICTION-'].update(value=predictedclass_curridx)
-                    window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
-                    if countactivated:
-                        window['-COUNTER-'].Update(value=count_curridx)
-                    if humanbluractivated:
-                        if not VIDEO:
-                            blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
-                    if predictedclass_curridx is not txt_empty[LANG]:
-                        draw_boxes(imagecv, predictedbox_curridx)
-            updateImage(imagecv)
-            if predictorready and not VIDEO:
-                window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+                if ret==False:
+                    imagecv = None                        
+            videocap.release()
+        else:
+            try:
+                imagecv = cv2.imdecode(np.fromfile(filenames[curridx], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+            except:
+                imagecv = None
+        if imagecv is None:
+            imagecv = np.zeros((DEFAULTIMGSIZE[1],DEFAULTIMGSIZE[0],3), np.uint8)
+            cv2.putText(imagecv, text=txt_fileerror[LANG], org=(300, 350), fontFace=cv2.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 0, 255),thickness=1)
+            if predictorready:
+                predictor.setPredictedClass(curridx, txt_errorclass[LANG], 0.0)
+                window['-PREDICTION-'].update(value=txt_errorclass[LANG])
+                window['-SCORE-'].Update("   Score: 0.0")
+                if countactivated:
+                    window['-COUNTER-'].Update(value=0)
+        else:
+            if predictorready:
+                predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
+                window['-PREDICTION-'].update(value=predictedclass_curridx)
+                window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
+                if countactivated:
+                    window['-COUNTER-'].Update(value=count_curridx)
+                if humanbluractivated:
+                    if not VIDEO:
+                        blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
+                if predictedclass_curridx is not txt_empty[LANG]:
+                    draw_boxes(imagecv, predictedbox_curridx)
+        updateImage(imagecv)
+        if predictorready and not VIDEO:
+            window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
          and (event == '-PREVIOUS-' or event == '-NEXT-') \
          and (len(subsetidx)>0):
@@ -1079,7 +1075,7 @@ while True:
         # updating position in Table, will send an event
         window['-TAB-'].update(select_rows=[rowidx])
         window['-TAB-'].Widget.see(rowidx+1)
-    elif event == txt_copy[LANG] or event == txt_copywithhumanblur[LANG] or event == txt_move[LANG]:
+    elif event == txt_copy[LANG] or event == txt_copywithhumanblur[LANG]:
         #########################
         ## CREATING SUBFOLDERS
         #########################
@@ -1101,12 +1097,6 @@ while True:
             destdir = dialog_get_dir(txt_destcopy[LANG], initialdir=testdir)
             if destdir is not None:
                 debugprint("Copie vers "+join(destdir,"deepfaune_"+now), "Copying to "+join(destdir,"deepfaune_"+now))
-        if event == txt_move[LANG]:
-            destdir = dialog_get_dir(txt_destmove[LANG], initialdir=testdir)
-            if destdir is not None:
-                debugprint("Déplacement vers "+join(destdir,"deepfaune_"+now), "Moving to "+join(destdir,"deepfaune_"+now))
-                imgmoved = True
-                updateMenuSubfolders(disabled=True) 
         if destdir is not None:
             import shutil
             predictedclass, predictedscore, _, _ = predictor.getPredictions()
@@ -1120,9 +1110,6 @@ while True:
                 for k in range(nbfiles):
                     copyfile_blur(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])),
                                   predictor.getHumanBoxes(filenames[k]))
-            if event == txt_move[LANG]:
-                for k in range(nbfiles):
-                    shutil.move(filenames[k], unique_new_filename(destdir, now, predictedclass[k], basename(filenames[k])))
     elif event == '-PREDICTION-':
         #########################
         ## CORRECTING PREDICTION
