@@ -656,7 +656,7 @@ def updateFromThreadQueue(): # updating GUI using info in thread queue
             thread = None
             updateMenuImport(disabled=False)
             updateMenuExport(disabled=False)
-            updateMenuSubfolders(disabled=False) 
+            updateMenuSubfolders(disabled=False)
             window['-RESTRICT-'].Update(disabled=False)
             updatePredictionInfo(disabled=False)
             window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
@@ -1106,6 +1106,7 @@ while True:
             if destdir is not None:
                 debugprint("Déplacement vers "+join(destdir,"deepfaune_"+now), "Moving to "+join(destdir,"deepfaune_"+now))
                 imgmoved = True
+                updateMenuSubfolders(disabled=True) 
         if destdir is not None:
             import shutil
             predictedclass, predictedscore, _, _ = predictor.getPredictions()
