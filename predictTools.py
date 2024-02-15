@@ -240,13 +240,22 @@ class PredictorImageBase(PredictorBase):
 ####################################################################################
 ### PREDICTOR IMAGE
 ####################################################################################
-class PredictorImage(PredictorImageBase):    
+class PredictorImage(PredictorImageBase):
+    ## Predictor performing detections with our own detector, from filenames
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
+        print("yaaaaa")
         PredictorImageBase.__init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = Detector()
         self.setDetectionThreshold(YOLO_THRES)
         self.humanboxes = dict()
 
+    ## Predictor using MDv5 detections, listed in jsonfilename
+    def __init__(self, jsonfilename, threshold, maxlag, LANG, BATCH_SIZE=8):
+        print("youou")
+        self.detector = DetectorJSON(jsonfilename)
+        self.setDetectionThreshold(MDV5_THRES)
+        PredictorImageBase.__init__(self, self.detector.getFilenames(), threshold, maxlag, LANG, BATCH_SIZE) # inherits all
+          
     def nextBatch(self):
         if self.k1>=self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, self.k1, self.k2
@@ -290,7 +299,11 @@ class PredictorImage(PredictorImageBase):
             return [self.getHumanBoxes(filename) is not None for filename in self.fileManager.getFilenames()]
         else:
             return (self.getHumanBoxes(filename) is not None)
-
+    
+    def merge(self, predictor):
+        PredictorImageBase.merge(predictor)
+        self.detector.merge(predictor.detector)
+        
         
 ####################################################################################
 ### PREDICTOR VIDEO 
@@ -398,44 +411,3 @@ class PredictorVideo(PredictorBase):
             return self.humanpresence
         else:
             return self.humanpresence[k]
-
-####################################################################################
-### PREDICTOR IMAGE FROM JSON
-####################################################################################
-class PredictorJSON(PredictorImageBase):    
-    def __init__(self, jsonfilename, threshold, maxlag, LANG, BATCH_SIZE=8):
-         self.detector = DetectorJSON(jsonfilename)
-         self.setDetectionThreshold(MDV5_THRES)
-         PredictorImageBase.__init__(self, self.detector.getFilenames(), threshold, maxlag, LANG, BATCH_SIZE) # inherits all
-    
-    def nextBatch(self):
-        if self.k1>=self.fileManager.nbFiles():
-            return self.batch, self.k1, self.k2, [],[]
-        else:
-            rangeanimal = []
-            for k in range(self.k1,self.k2):
-                croppedimage, category = self.detector.nextBestBoxDetection(self.detectionthreshold)
-                if category > 0: # not empty
-                    self.prediction[k,-1] = 0
-                if category == 1: # animal
-                    self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                    rangeanimal.append(k)
-                if category == 2: # human
-                     self.prediction[k,self.idxhuman] = DEFAULTLOGIT
-                if category == 3: # vehicle
-                     self.prediction[k,self.idxvehicle] = DEFAULTLOGIT
-            if len(rangeanimal):
-                self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)            
-            k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
-            # switching to next batch
-            k1_batch = self.k1
-            k2_batch = self.k2
-            self.k1 = self.k2
-            self.k2 = min(self.k1+self.BATCH_SIZE,self.fileManager.nbFiles())
-            self.batch = self.batch+1  
-            return self.batch-1, k1_batch, k2_batch
-        
-    def merge(self, predictor):
-        PredictorImageBase.merge(predictor)
-        self.detector.merge(predictor.detector)
-        

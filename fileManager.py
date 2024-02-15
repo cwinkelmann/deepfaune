@@ -57,6 +57,14 @@ def getFilesOrder(filenames):
     # returns a vector of the order of the files sorted by directory
     return filesOrder
 
+def isLagUnderMaxlag(date1, date2, maxlag=0):
+    try:
+        date = datetime.strptime(date2, "%Y:%m:%d %H:%M:%S")
+        datepre = datetime.strptime(date1, "%Y:%m:%d %H:%M:%S")
+        lag = date-datepre
+        return(lag>timedelta(seconds=maxlag))
+    except ValueError:
+        return(False)
 
 def getDateFromMetadata(filename):
     date = "NA"  # default
@@ -96,7 +104,7 @@ class FileManager:
         self.seqnum = [self.seqnum[k] for k in self.order]
         self.dates = [self.dates[k] for k in self.order]
         self.order = [k for k in range(0,len(self.filenames))]
-                
+
     def findSequences(self, maxlag):
         currdir = op.dirname(self.filenames[self.order[0]])
         currseqnum = 1
@@ -111,10 +119,7 @@ class FileManager:
                 self.seqnum[self.order[datesorder[0]+lowerbound]] = currseqnum
                 for j in range(1, i-lowerbound):
                     try:
-                        date = datetime.strptime(subdates[datesorder[j]], "%Y:%m:%d %H:%M:%S")
-                        datepre = datetime.strptime(subdates[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
-                        lag = date-datepre
-                        if lag>timedelta(seconds=maxlag):
+                        if isLagUnderMaxlag(subdates[datesorder[j-1]], subdates[datesorder[j]], maxlag):
                             currseqnum += 1
                     except:
                         currseqnum += 1
@@ -127,10 +132,7 @@ class FileManager:
         self.seqnum[self.order[datesorder[0]+lowerbound]] = currseqnum        
         for j in range(1, i-lowerbound+1):
             try:
-                date = datetime.strptime(subdates[datesorder[j]], "%Y:%m:%d %H:%M:%S")
-                datepre = datetime.strptime(subdates[datesorder[j-1]], "%Y:%m:%d %H:%M:%S")
-                lag = date-datepre
-                if lag>timedelta(seconds=maxlag):
+                if isLagUnderMaxlag(subdates[datesorder[j-1]], subdates[datesorder[j]], maxlag):
                     currseqnum += 1
             except:
                 currseqnum += 1
@@ -163,10 +165,14 @@ class FileManager:
     def getSortedFilename(self, k):
         return self.filenames[self.order[k]]
 
-    def merge(self, fileManager):
+    def merge(self, fileManager, maxlag=0):
         m = self.getMaxSeqnum()
+        if isLagUnderMaxlag(self.dates[-1], fileManager.dates[0], maxlag) and \
+           op.dirname(self.filenames[-1])==op.dirname(fileManager.filenames[0]):
+            self.seqnum += [(k-1)+m for k in fileManager.getSeqnums()]
+        else:
+            self.seqnum += [k+m for k in fileManager.getSeqnums()]
         self.filenames += fileManager.getFilenames()
-        self.seqnum += [k+m for k in fileManager.getSeqnums()]
         self.dates += fileManager.getDates()
         self.order = getFilesOrder(self.filenames)
     
