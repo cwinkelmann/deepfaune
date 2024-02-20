@@ -137,7 +137,6 @@ class DetectorJSON:
             else:
                 category = 0
             count = sum([box['conf']>MDV5COUNT_THRES for box in self.df_json['detections'][self.k]])
-            print("**** count=",count," ****")
         else: # is empty
             category = 0
         # is an animal detected ?
@@ -181,10 +180,11 @@ class DetectorJSON:
 
     def convertJSONboxToBox(self):
         box_norm = self.df_json['detections'][self.k][self.kbox]["bbox"]
-        xmin = int(box_norm[0] * image.width)
-        ymin = int(box_norm[1] * image.height)
-        xmax = xmin + int(box_norm[2] * image.width)
-        ymax = ymin + int(box_norm[3] * image.height)
+        height, width, _ = self.imagecv.shape 
+        xmin = int(box_norm[0] * width)
+        ymin = int(box_norm[1] * height)
+        xmax = xmin + int(box_norm[2] * width)
+        ymax = ymin + int(box_norm[3] * height)
         box = [xmin, ymin, xmax, ymax]
         return(box)
         
