@@ -195,10 +195,10 @@ class DetectorJSON:
         croppedimage = cropSquareCVtoPIL(self.imagecv, box)
         return croppedimage, box
     
-    def setFilenameIndex():
+    def setFilenameIndex(self):
         k = 0
         for filename in self.getFilenames():
-            filenameindex[filename] = k
+            self.filenameindex[filename] = k
             k = k+1
         
     def getNbFiles(self):

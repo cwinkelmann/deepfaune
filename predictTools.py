@@ -130,21 +130,6 @@ class PredictorBase(ABC):
         self.idxforbidden = [idx for idx in range(0,len(txt_animalclasses[self.LANG]))
                              if txt_animalclasses[self.LANG][idx] in forbiddenanimalclasses]
         
-    def merge(self, predictor):
-        if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
-            exit("You can not merge incompatible predictors (incompatible type or number of classes)")
-        self.fileManager.merge(predictor.fileManager)
-        self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
-        if self.predictedclass == [] or predictor.predictedclass == []:
-            self.predictedclass = []
-        else:
-            self.predictedclass += predictor.predictedclass
-        if self.predictedscore == [] or predictor.predictedscore == []:
-             self.predictedscore = []
-        else:            
-            self.predictedscore += predictor.predictedscore
-        self.resetBatch()        
-        
     def __averageLogitInSequence(self, predinseq):
         isempty = (predinseq[:,-1]>0)
         ishuman = (predinseq[:,self.idxhuman]>0)
@@ -182,11 +167,45 @@ class PredictorBase(ABC):
 ####################################################################################
 ### PREDICTOR IMAGE BASE
 ####################################################################################
-class PredictorImageBase(PredictorBase):    
+class PredictorImageBase(PredictorBase):
+    @abstractmethod
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
         PredictorBase.__init__(self, filenames, threshold, LANG, BATCH_SIZE) # inherits all
         self.fileManager.findSequences(maxlag)
         self.fileManager.reorderBySeqnum()
+        self.detector = None
+
+    def nextBatch(self):
+        if self.k1>=self.fileManager.nbFiles():
+            return self.batch, self.k1, self.k2, self.k1, self.k2
+        else:
+            rangeanimal = []
+            for k in range(self.k1,self.k2):
+                croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(self.fileManager.getFilename(k), self.detectionthreshold)
+                self.bestboxes[k] = box
+                self.count[k] = count
+                if category > 0: # not empty
+                    self.prediction[k,-1] = 0.
+                if category == 1: # animal
+                    self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
+                    rangeanimal.append(k)
+                if category == 2: # human
+                    self.prediction[k,self.idxhuman] = DEFAULTLOGIT
+                if category == 3: # vehicle
+                    self.prediction[k,self.idxvehicle] = DEFAULTLOGIT
+                if humanboxes is not None: # humans
+                    self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
+            if len(rangeanimal): # predicting species in images with animal 
+                self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
+            k1_batch = self.k1
+            k2_batch = self.k2
+            k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
+            # switching to next batch
+            self.k1 = self.k2
+            self.k2 = min(self.k1+self.BATCH_SIZE,self.fileManager.nbFiles())
+            self.batch = self.batch+1
+            # returning batch results
+            return self.batch-1, k1_batch, k2_batch, k1seq_batch, k2seq_batch
 
     def getPredictionsBase(self, k=None):
         if k is not None:
@@ -237,74 +256,56 @@ class PredictorImageBase(PredictorBase):
         self.k2 = self.fileManager.nbFiles()
         self.correctPredictionsInSequenceBatch()
 
+    def getHumanBoxes(self, filename):
+        try:
+            return(self.humanboxes[filename])
+        except KeyError:
+            return None
+
+    def getHumanPresence(self, k=None):
+        if k == None:
+            return [self.getHumanBoxes(filename) is not None for filename in self.fileManager.getFilenames()]
+        else:
+            return (self.getHumanBoxes(filename) is not None)
+
+    def merge(self, predictor):
+        if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
+            exit("You can not merge incompatible predictors (incompatible type or number of classes)")
+        self.fileManager.merge(predictor.fileManager)
+        self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
+        if self.predictedclass == [] or predictor.predictedclass == []:
+            self.predictedclass = []
+        else:
+            self.predictedclass += predictor.predictedclass
+        if self.predictedscore == [] or predictor.predictedscore == []:
+             self.predictedscore = []
+        else:            
+            self.predictedscore += predictor.predictedscore
+        self.resetBatch()   
+        self.detector.merge(predictor.detector)
+
 ####################################################################################
 ### PREDICTOR IMAGE
 ####################################################################################
 class PredictorImage(PredictorImageBase):
     ## Predictor performing detections with our own detector, from filenames
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
-        print("yaaaaa")
         PredictorImageBase.__init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = Detector()
         self.setDetectionThreshold(YOLO_THRES)
         self.humanboxes = dict()
-
+        
+####################################################################################
+### PREDICTOR JSON
+####################################################################################
+class PredictorJSON(PredictorImageBase):
     ## Predictor using MDv5 detections, listed in jsonfilename
     def __init__(self, jsonfilename, threshold, maxlag, LANG, BATCH_SIZE=8):
-        print("youou")
-        self.detector = DetectorJSON(jsonfilename)
+        detectorjson = DetectorJSON(jsonfilename)
+        PredictorImageBase.__init__(self, detectorjson.getFilenames(), threshold, maxlag, LANG, BATCH_SIZE) # inherits all
+        self.detector = detectorjson
         self.setDetectionThreshold(MDV5_THRES)
-        PredictorImageBase.__init__(self, self.detector.getFilenames(), threshold, maxlag, LANG, BATCH_SIZE) # inherits all
-          
-    def nextBatch(self):
-        if self.k1>=self.fileManager.nbFiles():
-            return self.batch, self.k1, self.k2, self.k1, self.k2
-        else:
-            rangeanimal = []
-            for k in range(self.k1,self.k2):
-                croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(self.fileManager.getFilename(k), self.detectionthreshold)
-                self.bestboxes[k] = box
-                self.count[k] = count
-                if category > 0: # not empty
-                    self.prediction[k,-1] = 0.
-                if category == 1: # animal
-                    self.cropped_data[k-self.k1,:,:,:] =  self.classifier.preprocessImage(croppedimage)
-                    rangeanimal.append(k)
-                if category == 2: # human
-                    self.prediction[k,self.idxhuman] = DEFAULTLOGIT
-                if category == 3: # vehicle
-                    self.prediction[k,self.idxvehicle] = DEFAULTLOGIT
-                if humanboxes is not None: # humans
-                    self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
-            if len(rangeanimal): # predicting species in images with animal 
-                self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
-            k1_batch = self.k1
-            k2_batch = self.k2
-            k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
-            # switching to next batch
-            self.k1 = self.k2
-            self.k2 = min(self.k1+self.BATCH_SIZE,self.fileManager.nbFiles())
-            self.batch = self.batch+1
-            # returning batch results
-            return self.batch-1, k1_batch, k2_batch, k1seq_batch, k2seq_batch
-        
-    def getHumanBoxes(self, filename):
-        try:
-            return(self.humanboxes[filename])
-        except KeyError:
-            return None
-        
-    def getHumanPresence(self, k=None):
-        if k == None:
-            return [self.getHumanBoxes(filename) is not None for filename in self.fileManager.getFilenames()]
-        else:
-            return (self.getHumanBoxes(filename) is not None)
-    
-    def merge(self, predictor):
-        PredictorImageBase.merge(predictor)
-        self.detector.merge(predictor.detector)
-        
-        
+        self.humanboxes = dict()          
 ####################################################################################
 ### PREDICTOR VIDEO 
 ####################################################################################
