@@ -269,20 +269,13 @@ class PredictorImageBase(PredictorBase):
             return (self.getHumanBoxes(filename) is not None)
 
     def merge(self, predictor):
-        if type(self).__name__ != type(predictor).__name__ or self.nbclasses != predictor.nbclasses:
-            exit("You can not merge incompatible predictors (incompatible type or number of classes)")
-        self.fileManager.merge(predictor.fileManager)
-        self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
-        if self.predictedclass == [] or predictor.predictedclass == []:
-            self.predictedclass = []
-        else:
-            self.predictedclass += predictor.predictedclass
-        if self.predictedscore == [] or predictor.predictedscore == []:
-             self.predictedscore = []
-        else:            
-            self.predictedscore += predictor.predictedscore
-        self.resetBatch()   
+        self.k1, self.k2 = self.fileManager.merge(predictor.fileManager)
         self.detector.merge(predictor.detector)
+        self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
+        self.predictedclass += predictor.predictedclass
+        self.predictedscore += predictor.predictedscore
+        self.correctPredictionsInSequenceBatch() # correcting between k1 and k2
+        self.resetBatch()   
 
 ####################################################################################
 ### PREDICTOR IMAGE
@@ -294,7 +287,7 @@ class PredictorImage(PredictorImageBase):
         self.detector = Detector()
         self.setDetectionThreshold(YOLO_THRES)
         self.humanboxes = dict()
-        
+
 ####################################################################################
 ### PREDICTOR JSON
 ####################################################################################
@@ -305,7 +298,8 @@ class PredictorJSON(PredictorImageBase):
         PredictorImageBase.__init__(self, detectorjson.getFilenames(), threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = detectorjson
         self.setDetectionThreshold(MDV5_THRES)
-        self.humanboxes = dict()          
+        self.humanboxes = dict()
+
 ####################################################################################
 ### PREDICTOR VIDEO 
 ####################################################################################

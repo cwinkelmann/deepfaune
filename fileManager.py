@@ -169,12 +169,22 @@ class FileManager:
         m = self.getMaxSeqnum()
         if isLagUnderMaxlag(self.dates[-1], fileManager.dates[0], maxlag) and \
            op.dirname(self.filenames[-1])==op.dirname(fileManager.filenames[0]):
+            k1seq = len(self.seqnum)-1
+            while self.seqnum[k1seq-1]==self.seqnum[k1seq]: # same sequence
+                k1seq = k1seq-1
+            print(k1seq)
+            k2seq = 0
+            while self.seqnum[k2seq+1]==self.seqnum[k2seq]: # same sequence
+                k2seq = k2seq+1
+            print(k2seq)
             self.seqnum += [(k-1)+m for k in fileManager.getSeqnums()]
         else:
             self.seqnum += [k+m for k in fileManager.getSeqnums()]
+            k1seq = k2seq = len(self.seqnum)-1
         self.filenames += fileManager.getFilenames()
         self.dates += fileManager.getDates()
         self.order = getFilesOrder(self.filenames)
+        return k1seq, k2seq
     
     
         
