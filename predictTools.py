@@ -269,12 +269,13 @@ class PredictorImageBase(PredictorBase):
             return (self.getHumanBoxes(filename) is not None)
 
     def merge(self, predictor):
-        self.k1, self.k2 = self.fileManager.merge(predictor.fileManager)
-        self.detector.merge(predictor.detector)
+        self.k1, self.k2 = self.fileManager.nbFiles() # positionning at the junction between the two predictors
+        self.fileManager.merge(predictor.fileManager)
         self.prediction = np.concatenate((self.prediction, predictor.prediction), axis=0)
         self.predictedclass += predictor.predictedclass
         self.predictedscore += predictor.predictedscore
-        self.correctPredictionsInSequenceBatch() # correcting between k1 and k2
+        self.correctPredictionsInSequenceBatch() # correcting current sequence at the junction
+        self.detector.merge(predictor.detector)
         self.resetBatch()   
 
 ####################################################################################
