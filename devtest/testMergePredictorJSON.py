@@ -52,15 +52,18 @@ jsonfilename2 = sys.argv[2]
 
 ## PREDICTOR OBJECT
 LANG = 'en'
-maxlag = 20
+maxlag = 50
 threshold = 0.5
 predictor = PredictorJSON(jsonfilename, threshold, maxlag, LANG)
+print(predictor.getSeqnums())
 predictor2 = PredictorJSON(jsonfilename2, threshold, maxlag, LANG)
+print(predictor2.getSeqnums())
 
 ## RUNNING BATCHES OF PREDICTION
 predictor.allBatch()
 predictor2.allBatch()
-predictor.merge(predictor2)
+predictor.merge(predictor2, maxlag)
+print(predictor.getSeqnums())
 
 ## GETTING THE RESULTS
 ## without using the sequences
