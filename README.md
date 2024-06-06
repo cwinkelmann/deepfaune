@@ -97,7 +97,7 @@ You can implement your own scripts using the DeepFaune API. A *minimal example* 
 # CONTACT
 ---
 
-For any question, bug or feedback, feel free to send an email to [Vincent Miele](https://lbbe.univ-lyon1.fr/-Miele-Vincent-.html) <!--or use the Gitlab Service Desk-->
+For any question, bug or feedback, feel free to send an email to [Vincent Miele](https://vmiele.gitlab.io/) <!--or use the Gitlab Service Desk-->
 
 
 ---
