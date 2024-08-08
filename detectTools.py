@@ -68,7 +68,7 @@ class Detector:
         box = detection.xyxy[0] # xmin, ymin, xmax, ymax
         # is an animal detected ?
         if category != 1:
-            croppedimage = None
+            croppedimage = None # indeed, not required for further classification
         # if yes, cropping the bounding box
         else:
             croppedimage = cropSquareCVtoPIL(imagecv, box.copy())
@@ -78,9 +78,9 @@ class Detector:
         ishuman = (detection.cls==1) & (detection.conf>=YOLOHUMAN_THRES)
         if any(ishuman==True):
             humanboxes = detection.xyxy[ishuman,]
-            return croppedimage, category, box, count, humanboxes
         else:
-            return croppedimage, category, box, count, None
+            humanboxes = None
+        return croppedimage, category, box, count, humanboxes
 
     def merge(self, detector):
         pass
@@ -135,7 +135,7 @@ class DetectorJSON:
             if self.df_json['detections'][self.k][self.kbox]['conf']>threshold:
                 category = int(self.df_json['detections'][self.k][self.kbox]['category'])
             else:
-                category = 0
+                return None, 0, np.zeros(4), 0, None
             count = sum([box['conf']>MDV5COUNT_THRES for box in self.df_json['detections'][self.k]])
         else: # is empty
             category = 0
@@ -145,7 +145,7 @@ class DetectorJSON:
             box = self.convertJSONboxToBox()
         # if yes, cropping the bounding box
         else:
-            self.nextImread()
+            self.nextImread() # actually read filename
             croppedimage, box = self.cropCurrentBox()
             if croppedimage is None: # FileNotFoundError
                 category = 0
@@ -190,7 +190,7 @@ class DetectorJSON:
         
     def cropCurrentBox(self):
         if self.imagecv is None:
-            return None
+            return None, np.zeros(4)
         box = self.convertJSONboxToBox()
         croppedimage = cropSquareCVtoPIL(self.imagecv, box)
         return croppedimage, box
