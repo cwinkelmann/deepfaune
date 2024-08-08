@@ -61,6 +61,7 @@ class Detector:
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
+            # category = 0
             return None, 0, np.zeros(4), 0, None
         ## best box
         category = detection.cls[0] + 1
@@ -135,10 +136,12 @@ class DetectorJSON:
             if self.df_json['detections'][self.k][self.kbox]['conf']>threshold:
                 category = int(self.df_json['detections'][self.k][self.kbox]['category'])
             else:
-                return None, 0, np.zeros(4), 0, None
+                category = 0 # considered as empty
             count = sum([box['conf']>MDV5COUNT_THRES for box in self.df_json['detections'][self.k]])
         else: # is empty
             category = 0
+        if category == 0:
+            return None, 0, np.zeros(4), 0, None
         # is an animal detected ?
         if category != 1:
             croppedimage = None
