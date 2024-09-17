@@ -38,6 +38,7 @@ import threading
 import io
 import os
 import multiprocessing
+import urllib
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
@@ -697,18 +698,17 @@ def playVideoUntilOtherEvent(filename):
 DEBUG = False
 
 draw_popup_update = False
-if checkupdate:
-    import urllib
-    from versions import parse_version
-    try:
-        online_version = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/.version', timeout=1)
-        online_version = online_version.read().decode().replace("\n", "")
-        online_version = parse_version(online_version)
-    except:
-        online_version = None
-    if online_version:
-        installed_version = parse_version(VERSION)
-        if online_version > installed_version:
+try:
+    online_version = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/.version', timeout=1)
+    online_version = online_version.read().decode().replace("\n", "")
+except:
+    online_version = None
+
+if checkupdate and online_version:
+    v_online_parts = list(map(int, online_version.split('.')))
+    v_installed_parts = list(map(int, VERSION.split('.')))
+    for v_online, v_installed in zip(v_online_parts, v_installed_parts):
+        if v_online > v_installed:
             draw_popup_update = True
 
 while True:
@@ -741,7 +741,7 @@ while True:
     #########################
     if draw_popup_update:
         layoutupdate = [
-            [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
+            [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version})", expand_x=True, background_color=background_color, text_color=text_color)], 
             [StyledButton(txt_visitwebsite[LANG], accent_color, background_color, background_color,
                           button_width=15+len(txt_visitwebsite[LANG]), key='-UPDATE-'),
             StyledButton(txt_enablecheckupdate[LANG], accent_color, background_color, background_color,
