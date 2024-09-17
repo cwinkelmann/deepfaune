@@ -461,7 +461,7 @@ layout = [
                      sg.Input(default_text="0", size=(2, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color), # not used if media are videos
                      ],
-                    [sg.Slider((0.3, 3), 1, 0.1, orientation='horizontal', key="-GAMMA-",  enable_events=True)]
+                    [sg.Slider((0.3, 3), 1, 0.1, orientation='horizontal', key="-GAMMA-",  enable_events=True), sg.Button("Open File Explorer", key="-OPENFILE-")]
                 ], background_color=background_color, expand_x=True)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -1010,6 +1010,33 @@ while True:
             if xlsxpath:
                 debugprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
                 preddf.to_excel(xlsxpath, index=False)
+    elif event == "-OPENFILE-" and len(values['-TAB-'])>0:
+        import subprocess
+        import os
+        import platform
+        def open_file_explorer(file_path): ## WINDOWS, PAS TESTE
+            folder_path = os.path.dirname(file_path)
+            os.startfile(folder_path, 'explore')  # Open the file explorer at the folder path
+            
+            # On Windows, to highlight the file itself, we use os.startfile with the full path
+            if os.path.isfile(file_path):
+                os.startfile(file_path)
+        def open_file_explorer(file_path): ## LINUX, TESTE UBUNTU
+            folder_path = os.path.dirname(file_path)
+            
+            # Check the desktop environment and use the appropriate command
+            if platform.system() == "Linux":
+                # Check if it's a GNOME-based system (using nautilus)
+                if subprocess.run(["which", "nautilus"]).returncode == 0:
+                    subprocess.run(["nautilus", "--select", file_path])
+                # Check if it's a KDE-based system (using dolphin)
+                elif subprocess.run(["which", "dolphin"]).returncode == 0:
+                    subprocess.run(["dolphin", "--select", file_path])
+                # Fallback to xdg-open to just open the folder (will not highlight the file)
+                else:
+                    subprocess.run(["xdg-open", folder_path])
+        open_file_explorer(filenames[curridx])
+                
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
          and (len(subsetidx)>0) or event == "-GAMMA-":
@@ -1017,6 +1044,8 @@ while True:
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
         #########################
+        
+        
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
         if VIDEO:
