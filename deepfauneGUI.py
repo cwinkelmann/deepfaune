@@ -460,9 +460,7 @@ layout = [
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
                      sg.Text("\t"+txt_count[LANG]+":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-'),
                      sg.Input(default_text="0", size=(2, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
-                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color), # not used if media are videos
-                     ],
-                    [sg.Slider((0.3, 3), 1, 0.1, orientation='horizontal', key="-GAMMA-",  enable_events=True)]
+                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
                 ], background_color=background_color, expand_x=True)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -561,22 +559,13 @@ def updatePredictionInfo(disabled):
             window['-COUNTER-'].Update(disabled=False)
 
 
-def gamma_correction(image, gamma):
-    # Build a lookup table mapping pixel values [0, 255] to their gamma-corrected values
-    inv_gamma = 1.0 / gamma
-    table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in range(256)]).astype("uint8")
-
-    # Apply gamma correction using the lookup table
-    return cv2.LUT(image, table)
-
-
 imageOffset = (0,0) # space between the window and the image control itself
-def updateImage(newcurimagecv=None, gamma=1):
+def updateImage(newcurimagecv=None):
     global curimagecv
     if newcurimagecv is not None:
         curimagecv = newcurimagecv
     curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
-    window['-IMAGE-'].update(data=cv2bytes(gamma_correction(curimagecv, gamma), curimsize))
+    window['-IMAGE-'].update(data=cv2bytes(curimagecv, curimsize))
  
 def resizeImage():
     global curwindowsize
@@ -706,7 +695,7 @@ def playVideoUntilOtherEvent(filename):
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = True
+DEBUG = False
 
 draw_popup_update = False
 try:
@@ -1012,7 +1001,7 @@ while True:
                 preddf.to_excel(xlsxpath, index=False)
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
-         and (len(subsetidx)>0) or event == "-GAMMA-":
+         and (len(subsetidx)>0):
         #########################
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
@@ -1064,7 +1053,7 @@ while True:
                         blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                 if predictedclass_curridx is not txt_empty[LANG]:
                     draw_boxes(imagecv, predictedbox_curridx)
-        updateImage(imagecv, values["-GAMMA-"])
+        updateImage(imagecv)
         if predictorready and not VIDEO:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
