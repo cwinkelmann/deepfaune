@@ -159,7 +159,7 @@ txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
 ####################################################################################
 from b64_images import *
 
-DEFAULT_THEME = {'accent': '#00bfff', 'background': '#121212', 'text': '#d7d7d7', 'alternate_background': '#222222'}
+DEFAULT_THEME = {'accent': '#24a0ed', 'background': '#1c1c1c', 'text': '#d7d7d7', 'alternate_background': '#222222'}
 accent_color, text_color, background_color = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background']
 
 SUN_VALLEY_TCL = 'theme/sun-valley.tcl'
@@ -463,10 +463,12 @@ layout = [
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
                 ], background_color=background_color, expand_x=True),
                 sg.Column([
-                    [sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
-                    [sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
-                    [sg.Slider((0.3, 3), 1, 0.1, orientation='vertical', key="-GAMMA-",  background_color=background_color, disable_number_display=True, enable_events=True)]
-                ], background_color=background_color, expand_x=True)
+                    [sg.Text("Light", background_color=background_color, text_color=text_color)],
+                    [sg.Push(background_color=background_color),
+                     sg.Slider((0.3, 3), 1, 0.1, size=(10,5), orientation='vertical', key="-GAMMA-",
+                               background_color=background_color, trough_color=accent_color, disable_number_display=True, enable_events=True, expand_x=True),
+                     sg.Push(background_color=background_color)]
+                ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
     ],
