@@ -461,6 +461,11 @@ layout = [
                      sg.Text("\t"+txt_count[LANG]+":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-'),
                      sg.Input(default_text="0", size=(2, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
+                ], background_color=background_color, expand_x=True),
+                sg.Column([
+                    [sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
+                    [sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
+                    [sg.Slider((0.3, 3), 1, 0.1, orientation='vertical', key="-GAMMA-",  background_color=background_color, disable_number_display=True, enable_events=True)]
                 ], background_color=background_color, expand_x=True)
             ]
         ], background_color=background_color, expand_y=True)]
