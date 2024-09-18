@@ -266,6 +266,7 @@ class PredictorImageBase(PredictorBase):
         if k == None:
             return [self.getHumanBoxes(filename) is not None for filename in self.fileManager.getFilenames()]
         else:
+            filename = self.fileManager.getFilename(k)
             return (self.getHumanBoxes(filename) is not None)
 
     def merge(self, predictor, maxlag):
