@@ -465,7 +465,7 @@ layout = [
                 sg.Column([
                     [sg.Text("Light", background_color=background_color, text_color=text_color)],
                     [sg.Push(background_color=background_color),
-                     sg.Slider((0.3, 3), 1, 0.1, size=(10,5), orientation='vertical', key="-GAMMA-",
+                     sg.Slider((-4, 4), 0, 1, size=(10,8), orientation='vertical', key="-GAMMALEVEL-",
                                background_color=background_color, trough_color=accent_color, disable_number_display=True, enable_events=True, expand_x=True, relief=sg.RELIEF_FLAT),
                      sg.Push(background_color=background_color)]
                 ], background_color=background_color, expand_y=True)
@@ -566,8 +566,23 @@ def updatePredictionInfo(disabled):
             window['-COUNTER-'].Update(disabled=False)
 
 
+gamma_dict = {
+    -4:0.2,
+    -3:0.4,
+    -2:0.6,
+    -1:0.8,
+    0: 1.,
+    1: 1.5,
+    2: 2.,
+    3: 2.5,
+    4:3.
+}
+def gammaslider_to_gamma(value):
+    return gamma_dict[int(value)]
+
 def gamma_correction(imagecv, gamma):
-    if gamma==1.0:
+    print(gamma)
+    if abs(gamma-1.0)<1e-6:
         return imagecv
     # Build a lookup table mapping pixel values [0, 255] to their gamma-corrected values
     inv_gamma = 1.0 / gamma
@@ -1017,14 +1032,14 @@ while True:
                 preddf.to_excel(xlsxpath, index=False)
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
-         and (len(subsetidx)>0) or event == "-GAMMA-":
+         and (len(subsetidx)>0) or event == "-GAMMALEVEL-":
         #########################
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
         #########################
-        if event != "-GAMMA-" and values["-GAMMA-"] != 1.0:
-            window['-GAMMA-'].Update(value=1.0)
-            window.refresh()
+        if event != "-GAMMALEVEL-" and values["-GAMMALEVEL-"] != 0:
+            window['-GAMMALEVEL-'].Update(value=0)
+            values["-GAMMALEVEL-"] = 0
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
         if VIDEO:
@@ -1072,7 +1087,7 @@ while True:
                         blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                 if predictedclass_curridx is not txt_empty[LANG]:
                     draw_boxes(imagecv, predictedbox_curridx)
-        updateImage(imagecv, values["-GAMMA-"])
+        updateImage(imagecv, gammaslider_to_gamma(values["-GAMMALEVEL-"]))
         if predictorready and not VIDEO:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
