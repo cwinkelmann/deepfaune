@@ -689,7 +689,9 @@ def updateFromThreadQueue(): # updating GUI using info in thread queue
             updatePredictionInfo(disabled=False)
             window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
 
-def playVideoUntilOtherEvent(filename, gammalevel):    
+def playVideoUntilOtherEvent(filename, gammalevel):
+    global curimagecv
+    previmagecv = curimagecv  
     videocap = cv2.VideoCapture(filename)
     total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
     if total_frames==0:
@@ -707,19 +709,57 @@ def playVideoUntilOtherEvent(filename, gammalevel):
             if kframe>=total_frames:
                 kframe = 0
             event, values = window.read(timeout=10)
+            if event == "-GAMMALEVEL-":
+                gammalevel = values["-GAMMALEVEL-"]
             updateFromThreadQueue()
             if event != '__TIMEOUT__':
-                if event != '-CONFIG-':
+                if event != '-CONFIG-' and event != "-GAMMALEVEL-":
                     play = False
     videocap.release()
-    # updating position in Table, will send an event
-    print("StepVideoPlay:",event)
+    # updating position in Table,
+    # such that we focus on the row/file of interest,
+    # but will send a -TAB- event
     #if event != '-TAB-':
     #    rowidx = values['-TAB-'][0]
     #    window['-TAB-'].update(select_rows=[rowidx])
     #    window['-TAB-'].Widget.see(rowidx+1)
+    updateImage(previmagecv, gammalevel_to_gamma(gammalevel))
     return event, values
-    
+
+def playSequenceUntilOtherEvent(filename, gammalevel):
+    global curimagecv
+    previmagecv = curimagecv
+    play = True
+    nbfiles = len(filenames)
+    k1 = k2 = curridx
+    while predictor.getSeqnums()[curridx]==predictor.getSeqnums()[max(0,k1-1)] and k1>0:
+        k1 = k1-1
+    while predictor.getSeqnums()[curridx]==predictor.getSeqnums()[min(nbfiles-1,k2+1)] and k2<(nbfiles-1):
+        k2 = k2+1
+    k = k1
+    if k1==k2: # singleton
+        event, values = window.read(timeout=10)
+        play = False
+        return event, values
+    while(play):
+        event, values = window.read(timeout=10)
+        if event == "-GAMMALEVEL-":
+            gammalevel = values["-GAMMALEVEL-"]
+        try:
+            imagecv = cv2.imdecode(np.fromfile(filenames[k], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        except:
+            imagecv = np.zeros((DEFAULTIMGSIZE[1],DEFAULTIMGSIZE[0],3), np.uint8)
+        updateImage(imagecv, gammalevel_to_gamma(gammalevel))
+        k = k+1
+        if k>k2:
+            k = k1
+        updateFromThreadQueue()
+        if event != '__TIMEOUT__':
+            if event != '-CONFIG-' and event != "-GAMMALEVEL-":
+                play = False
+    updateImage(previmagecv, gammalevel_to_gamma(gammalevel))
+    return event, values
+   
 #########################
 ## MAIN LOOP
 #########################
@@ -750,6 +790,11 @@ while True:
     #########################
     if event == '-IMAGE-DOUBLECLICK-' and VIDEO and (len(subsetidx)>0):
         event, values = playVideoUntilOtherEvent(filenames[curridx], values["-GAMMALEVEL-"]) # captures the window event internally
+    #########################
+    ## PLAYING SEQUENCE ?
+    #########################
+    if event == '-IMAGE-DOUBLECLICK-' and not VIDEO and (len(subsetidx)>0) and predictorready:
+        event, values = playSequenceUntilOtherEvent(filenames[curridx], values["-GAMMALEVEL-"]) # captures the window event internally
         
     if event != "__TIMEOUT__" and DEBUG is True:
         print("Step2:",event)
@@ -1040,7 +1085,8 @@ while True:
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
         #########################
-        if event != "-GAMMALEVEL-" and values["-GAMMALEVEL-"] != 0 and event != '-IMAGE-DOUBLECLICK-': # for video, keep the same brightness after playing
+        if event != "-GAMMALEVEL-" and values["-GAMMALEVEL-"] != 0 and event != '-IMAGE-DOUBLECLICK-':
+            # after play, keep the same brightness after playing
             window['-GAMMALEVEL-'].Update(value=0)
             values["-GAMMALEVEL-"] = 0
         rowidx = values['-TAB-'][0]       
