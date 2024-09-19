@@ -577,7 +577,7 @@ gamma_dict = {
     3: 2.5,
     4:3.
 }
-def gammaslider_to_gamma(value):
+def gammalevel_to_gamma(value):
     return gamma_dict[int(value)]
 
 def gamma_correction(imagecv, gamma):
@@ -689,7 +689,7 @@ def updateFromThreadQueue(): # updating GUI using info in thread queue
             updatePredictionInfo(disabled=False)
             window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
 
-def playVideoUntilOtherEvent(filename):    
+def playVideoUntilOtherEvent(filename, gammalevel):    
     videocap = cv2.VideoCapture(filename)
     total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
     if total_frames==0:
@@ -702,20 +702,18 @@ def playVideoUntilOtherEvent(filename):
             videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
             ret, framecv = videocap.read()
             if ret==True: # uncorrupted frame
-                curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
-                window['-IMAGE-'].update(data=cv2bytes(framecv, curimsize))
-                window.refresh()
+                updateImage(framecv, gammalevel_to_gamma(gammalevel))
             kframe = kframe+5
             if kframe>=total_frames:
                 kframe = 0
             event, values = window.read(timeout=10)
             updateFromThreadQueue()
-            #if event=='-IMAGE-DOUBLECLICK-':
             if event != '__TIMEOUT__':
                 if event != '-CONFIG-':
                     play = False
     videocap.release()
     # updating position in Table, will send an event
+    print(event)
     if event != '-TAB-':
         rowidx = values['-TAB-'][0]
         window['-TAB-'].update(select_rows=[rowidx])
@@ -751,7 +749,7 @@ while True:
     ## PLAYING VIDEO ?
     #########################
     if event == '-IMAGE-DOUBLECLICK-' and VIDEO and (len(subsetidx)>0):
-        event, values = playVideoUntilOtherEvent(filenames[curridx]) # captures the window event internally
+        event, values = playVideoUntilOtherEvent(filenames[curridx], values["-GAMMALEVEL-"]) # captures the window event internally
     #########################
     ## WINDOW RESIZING ?
     #########################
@@ -1039,7 +1037,7 @@ while True:
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
         #########################
-        if event != "-GAMMALEVEL-" and values["-GAMMALEVEL-"] != 0:
+        if event != "-GAMMALEVEL-" and values["-GAMMALEVEL-"] != 0 and event != '-IMAGE-DOUBLECLICK-': # video keep the same brightness
             window['-GAMMALEVEL-'].Update(value=0)
             values["-GAMMALEVEL-"] = 0
         rowidx = values['-TAB-'][0]       
@@ -1089,7 +1087,7 @@ while True:
                         blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                 if predictedclass_curridx is not txt_empty[LANG]:
                     draw_boxes(imagecv, predictedbox_curridx)
-        updateImage(imagecv, gammaslider_to_gamma(values["-GAMMALEVEL-"]))
+        updateImage(imagecv, gammalevel_to_gamma(values["-GAMMALEVEL-"]))
         if predictorready and not VIDEO:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
