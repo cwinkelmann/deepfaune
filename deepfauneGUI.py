@@ -395,8 +395,6 @@ txt_activatehumanblur = {'fr':"Activer le floutage des humains (images seulement
                          'it':"Attivare la sfocatura degli umani (solo immagini)", 'de':"Die Unschärfe von Menschen aktivieren (nur die Bilder)"}
 txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains  (images seulement)", 'en':"Deactivate human blurring  (image only)",
                            'it':"Disattivare la sfocatura degli umani (solo immagini)", 'de':"die Unschärfe von Menschen desaktivieren (nur die Bilder)"}
-txt_light = {'fr':"Contraste", 'en':"Light",
-               'it':"Contrasto", 'de':"Kontrast"}
 txt_credits = {'fr':"A propos", 'en':"About DeepFaune",
                'it':"A proposito", 'de':"Über DeepFaune"}
 if countactivated:
@@ -465,11 +463,10 @@ layout = [
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
                 ], background_color=background_color, expand_x=True),
                 sg.Column([
-                    [sg.Text(txt_light[LANG], background_color=background_color, text_color=text_color)],
+                    [sg.Image(BRIGHTNESS_ICON, background_color=background_color)],
                     [sg.Push(background_color=background_color),
                      sg.Slider((-4, 4), 0, 1, size=(10,8), orientation='vertical', key="-GAMMALEVEL-",
-                               background_color=background_color, trough_color=accent_color, disable_number_display=True, enable_events=True, expand_x=True, relief=sg.RELIEF_FLAT),
-                     sg.Push(background_color=background_color)]
+                               background_color=background_color, trough_color=accent_color, disable_number_display=True, enable_events=True, expand_x=True, relief=sg.RELIEF_FLAT)]
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
