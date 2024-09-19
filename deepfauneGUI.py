@@ -185,7 +185,7 @@ def debugprint(txt_fr, txt_en, end='\n'):
 def draw_boxes(imagecv, box=None):
     if box is not None:
         if np.count_nonzero(box)>0: # is not default empty box
-            cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
+            cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), max(1,imagecv.shape[0]//200))
 
 def blur_boxes(imagecv, boxes=None):
     if boxes is not None:
@@ -395,6 +395,8 @@ txt_activatehumanblur = {'fr':"Activer le floutage des humains (images seulement
                          'it':"Attivare la sfocatura degli umani (solo immagini)", 'de':"Die Unschärfe von Menschen aktivieren (nur die Bilder)"}
 txt_deactivatehumanblur = {'fr':"Desactiver le floutage des humains  (images seulement)", 'en':"Deactivate human blurring  (image only)",
                            'it':"Disattivare la sfocatura degli umani (solo immagini)", 'de':"die Unschärfe von Menschen desaktivieren (nur die Bilder)"}
+txt_light = {'fr':"Contraste", 'en':"Light",
+               'it':"Contrasto", 'de':"Kontrast"}
 txt_credits = {'fr':"A propos", 'en':"About DeepFaune",
                'it':"A proposito", 'de':"Über DeepFaune"}
 if countactivated:
@@ -463,7 +465,7 @@ layout = [
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
                 ], background_color=background_color, expand_x=True),
                 sg.Column([
-                    [sg.Text("Light", background_color=background_color, text_color=text_color)],
+                    [sg.Text(txt_light[LANG], background_color=background_color, text_color=text_color)],
                     [sg.Push(background_color=background_color),
                      sg.Slider((-4, 4), 0, 1, size=(10,8), orientation='vertical', key="-GAMMALEVEL-",
                                background_color=background_color, trough_color=accent_color, disable_number_display=True, enable_events=True, expand_x=True, relief=sg.RELIEF_FLAT),
@@ -492,6 +494,7 @@ window['-COUNTER-'].Update(disabled=True)
 window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after return key
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
+window['-GAMMALEVEL-'].Update(disabled=True)
 
 from tkinter import TclError
 from contextlib import suppress
@@ -581,7 +584,6 @@ def gammaslider_to_gamma(value):
     return gamma_dict[int(value)]
 
 def gamma_correction(imagecv, gamma):
-    print(gamma)
     if abs(gamma-1.0)<1e-6:
         return imagecv
     # Build a lookup table mapping pixel values [0, 255] to their gamma-corrected values
@@ -905,6 +907,8 @@ while True:
                 testdir = None
                 window['-TAB-'].Update(values=[[]])
                 window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
+                window['-GAMMALEVEL-'].Update(value=0)
+                window['-GAMMALEVEL-'].Update(disabled=True)
                 dialog_error(txt_incorrect[LANG])
             else:
                 curridx = 0
@@ -915,6 +919,7 @@ while True:
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[0])
                 window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
+                window['-GAMMALEVEL-'].Update(disabled=False)
     elif event == '-CONFIGRUN-' and testdir is not None and thread is None:
         #########################
         ## CONFIGURE
