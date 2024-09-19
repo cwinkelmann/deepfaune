@@ -713,11 +713,11 @@ def playVideoUntilOtherEvent(filename, gammalevel):
                     play = False
     videocap.release()
     # updating position in Table, will send an event
-    print(event)
-    if event != '-TAB-':
-        rowidx = values['-TAB-'][0]
-        window['-TAB-'].update(select_rows=[rowidx])
-        window['-TAB-'].Widget.see(rowidx+1)
+    print("StepVideoPlay:",event)
+    #if event != '-TAB-':
+    #    rowidx = values['-TAB-'][0]
+    #    window['-TAB-'].update(select_rows=[rowidx])
+    #    window['-TAB-'].Widget.see(rowidx+1)
     return event, values
     
 #########################
@@ -742,7 +742,7 @@ if checkupdate and online_version:
 while True:
     event, values = window.read(timeout=10)
     if event != "__TIMEOUT__" and DEBUG is True:
-        print(event)
+        print("Step1:",event)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     #########################
@@ -750,6 +750,9 @@ while True:
     #########################
     if event == '-IMAGE-DOUBLECLICK-' and VIDEO and (len(subsetidx)>0):
         event, values = playVideoUntilOtherEvent(filenames[curridx], values["-GAMMALEVEL-"]) # captures the window event internally
+        
+    if event != "__TIMEOUT__" and DEBUG is True:
+        print("Step2:",event)
     #########################
     ## WINDOW RESIZING ?
     #########################
@@ -1037,7 +1040,7 @@ while True:
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
         #########################
-        if event != "-GAMMALEVEL-" and values["-GAMMALEVEL-"] != 0 and event != '-IMAGE-DOUBLECLICK-': # video keep the same brightness
+        if event != "-GAMMALEVEL-" and values["-GAMMALEVEL-"] != 0 and event != '-IMAGE-DOUBLECLICK-': # for video, keep the same brightness after playing
             window['-GAMMALEVEL-'].Update(value=0)
             values["-GAMMALEVEL-"] = 0
         rowidx = values['-TAB-'][0]       
