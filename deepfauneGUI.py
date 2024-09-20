@@ -159,7 +159,7 @@ txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
 ####################################################################################
 from b64_images import *
 
-DEFAULT_THEME = {'accent': '#24a0ed', 'background': '#1c1c1c', 'text': '#d7d7d7', 'alt_background': '#595959'}
+DEFAULT_THEME = {'accent': '#24a0ed', 'background': '#1c1c1c', 'text': '#d7d7d7', 'alt_background': '#2f2f2f'}
 accent_color, text_color, background_color, alt_background = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background'], DEFAULT_THEME['alt_background']
 
 SUN_VALLEY_TCL = 'theme/sun-valley.tcl'
