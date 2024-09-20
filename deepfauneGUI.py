@@ -467,7 +467,9 @@ layout = [
                     [sg.Push(background_color=background_color),
                      sg.Slider((-4, 4), 0, 1, size=(10,8), orientation='vertical', key="-GAMMALEVEL-",
                                background_color=accent_color, trough_color=alt_background, pad=16,
-                               disable_number_display=True, enable_events=True, expand_x=True)]
+                               disable_number_display=True, enable_events=True, expand_x=True)],
+                    [sg.Image(MOVIE_ICON, background_color=background_color)],
+                    [sg.Button(key='-PLAY-', image_data=PLAY_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)]
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
