@@ -159,8 +159,8 @@ txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
 ####################################################################################
 from b64_images import *
 
-DEFAULT_THEME = {'accent': '#24a0ed', 'background': '#1c1c1c', 'text': '#d7d7d7', 'alternate_background': '#222222'}
-accent_color, text_color, background_color = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background']
+DEFAULT_THEME = {'accent': '#24a0ed', 'background': '#1c1c1c', 'text': '#d7d7d7', 'alt_background': '#595959'}
+accent_color, text_color, background_color, alt_background = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background'], DEFAULT_THEME['alt_background']
 
 SUN_VALLEY_TCL = 'theme/sun-valley.tcl'
 SUN_VALLEY_THEME = 'dark' # 'light' not coherent with DEFAULT THEME
@@ -466,7 +466,8 @@ layout = [
                     [sg.Image(BRIGHTNESS_ICON, background_color=background_color)],
                     [sg.Push(background_color=background_color),
                      sg.Slider((-4, 4), 0, 1, size=(10,8), orientation='vertical', key="-GAMMALEVEL-",
-                               background_color=background_color, trough_color=accent_color, disable_number_display=True, enable_events=True, expand_x=True, relief=sg.RELIEF_FLAT)]
+                               background_color=accent_color, trough_color=alt_background, pad=16,
+                               disable_number_display=True, enable_events=True, expand_x=True)]
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
