@@ -1241,6 +1241,7 @@ while True:
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
         if len(subsetidx)>0:
             updatePredictionInfo(disabled=False)
+            window['-GAMMALEVEL-'].Update(disabled=False)
             window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
             window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
                                                       for k in range(0, len(subsetidx)))) # row in accent_color because prediction is available
@@ -1249,6 +1250,7 @@ while True:
             updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[[]])
             window['-GAMMALEVEL-'].Update(value=0)
+            window['-GAMMALEVEL-'].Update(disabled=True)
             updateImage(logoimagecv)
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
