@@ -425,6 +425,20 @@ menu_def = [
     ]]
 ]
 
+# Constants for slider design
+SLIDER_WIDTH = 30
+SLIDER_HEIGHT = 120
+SLIDER_HANDLE_RADIUS = 9
+
+# Function to draw the vertical slider on the Graph
+def draw_slider(graph, value):
+    graph.erase()
+    handle_y = value * SLIDER_HEIGHT
+    trough_x = SLIDER_WIDTH / 2
+    graph.draw_line((trough_x, 0), (trough_x, SLIDER_HEIGHT), color='#cccccc', width=4)
+    graph.draw_circle((trough_x, handle_y), SLIDER_HANDLE_RADIUS, fill_color=accent_color, line_color='#2f8cff')
+
+
 layout = [
     [
         StyledMenu(menu_def, text_color=text_color, background_color=background_color, text_font=FONT_NORMAL, key='-MENUBAR-')
@@ -469,7 +483,16 @@ layout = [
                                background_color=accent_color, trough_color=alt_background, pad=16,
                                disable_number_display=True, enable_events=True, expand_x=True)],
                     [sg.Image(MOVIE_ICON, background_color=background_color)],
-                    [sg.Button(key='-PLAY-', image_data=PLAY_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)]
+                    [sg.Button(key='-PLAY-', image_data=PLAY_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
+                    [sg.Graph(
+                        canvas_size=(SLIDER_WIDTH, SLIDER_HEIGHT),
+                        graph_bottom_left=(0, 0),
+                        graph_top_right=(SLIDER_WIDTH, SLIDER_HEIGHT),
+                        key='-GAMMALEVEL2-',
+                        enable_events=True,
+                        drag_submits=True,  # Enable drag events
+                        background_color=background_color,
+                    )]
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -495,6 +518,12 @@ window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
 window['-GAMMALEVEL-'].Update(disabled=True)
+
+slider_graph = window['-GAMMALEVEL2-']
+slider_value = 0.5
+is_dragging = False  # Flag to track if the slider is being dragged
+slider_enabled = False
+draw_slider(slider_graph, slider_value)
 
 from tkinter import TclError
 from contextlib import suppress
@@ -752,7 +781,8 @@ def playSequenceUntilOtherEvent(filename, gammalevel):
             imagecv = cv2.imdecode(np.fromfile(filenames[k], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
         except:
             imagecv = np.zeros((DEFAULTIMGSIZE[1],DEFAULTIMGSIZE[0],3), np.uint8)
-        updateImage(imagecv, gammalevel_to_gamma(gammalevel))
+        #updateImage(imagecv, gammalevel_to_gamma(gammalevel))
+        updateImage(imagecv, rescale_slider(slider_value))
         k = k+1
         if k>k2:
             k = k1
@@ -760,13 +790,17 @@ def playSequenceUntilOtherEvent(filename, gammalevel):
         if event != '__TIMEOUT__':
             if event != '-CONFIG-' and event != "-GAMMALEVEL-":
                 play = False
-    updateImage(previmagecv, gammalevel_to_gamma(gammalevel))
+    #updateImage(previmagecv, gammalevel_to_gamma(gammalevel))
+    updateImage(previmagecv, rescale_slider(slider_value))
     return event, values
    
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = False
+def rescale_slider(value, min_rescale=-4, max_rescale=4):
+    return gamma_dict[int((1-value)*min_rescale + value*max_rescale)]
+
+DEBUG = True
 
 draw_popup_update = False
 try:
@@ -788,6 +822,26 @@ while True:
         print("Step1:",event)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    
+    # If the user clicks or drags the slider
+    if slider_enabled and event == '-GAMMALEVEL2-':  # Detect initial click
+        _, mouse_y = values['-GAMMALEVEL2-']
+        if 0 <= mouse_y <= SLIDER_HEIGHT:
+            slider_value = round((mouse_y / SLIDER_HEIGHT), 2)
+            draw_slider(slider_graph, slider_value)
+            is_dragging = True  # Start dragging
+
+    # If dragging is active and the mouse is still held down
+    if slider_enabled and is_dragging:
+        _, mouse_y = values['-GAMMALEVEL2-']  # Get the new mouse position
+        if 0 <= mouse_y <= SLIDER_HEIGHT:
+            slider_value = round((mouse_y / SLIDER_HEIGHT), 2)
+            draw_slider(slider_graph, slider_value)
+
+    # Stop dragging when mouse button is released
+    if event is None:  # Timeout event occurs when no buttons are pressed
+        is_dragging = False  # Stop dragging when no event is detected
+
     #########################
     ## PLAYING VIDEO ?
     #########################
@@ -955,6 +1009,11 @@ while True:
                 window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
                 window['-GAMMALEVEL-'].Update(value=0)
                 window['-GAMMALEVEL-'].Update(disabled=True)
+                
+                slider_value = 0.5
+                draw_slider(slider_graph, slider_value)
+                slider_enabled = False
+                
                 dialog_error(txt_incorrect[LANG])
             else:
                 curridx = 0
@@ -966,6 +1025,7 @@ while True:
                 window['-TAB-'].update(select_rows=[0])
                 window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
                 window['-GAMMALEVEL-'].Update(disabled=False)
+                slider_enabled = True
     elif event == '-CONFIGRUN-' and testdir is not None and thread is None:
         #########################
         ## CONFIGURE
@@ -1083,7 +1143,7 @@ while True:
                 preddf.to_excel(xlsxpath, index=False)
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
-         and (len(subsetidx)>0) or event == "-GAMMALEVEL-":
+         and (len(subsetidx)>0) or (event == "-GAMMALEVEL2-" and slider_enabled):
         #########################
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
@@ -1139,7 +1199,8 @@ while True:
                         blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                 if predictedclass_curridx is not txt_empty[LANG]:
                     draw_boxes(imagecv, predictedbox_curridx)
-        updateImage(imagecv, gammalevel_to_gamma(values["-GAMMALEVEL-"]))
+        #updateImage(imagecv, gammalevel_to_gamma(values["-GAMMALEVEL-"]))
+        updateImage(imagecv, rescale_slider(slider_value))
         if predictorready and not VIDEO:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
