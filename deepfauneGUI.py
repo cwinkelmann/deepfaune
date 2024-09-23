@@ -39,6 +39,8 @@ import io
 import os
 import multiprocessing
 import urllib
+from hachoir.parser import createParser
+from hachoir.metadata import extractMetadata
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
@@ -469,7 +471,8 @@ layout = [
                                background_color=accent_color, trough_color=alt_background, pad=16,
                                disable_number_display=True, enable_events=True, expand_x=True)],
                     [sg.Image(MOVIE_ICON, background_color=background_color)],
-                    [sg.Button(key='-PLAY-', image_data=PLAY_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)]
+                    [sg.Button(key='-PLAY-', image_data=PLAY_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
+                    [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=None)]
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -766,9 +769,10 @@ def playSequenceUntilOtherEvent(filename, gammalevel):
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = False
+DEBUG = True
 
 draw_popup_update = False
+draw_meta = False
 try:
     online_version = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/.version', timeout=1)
     online_version = online_version.read().decode().replace("\n", "")
@@ -1083,7 +1087,7 @@ while True:
                 preddf.to_excel(xlsxpath, index=False)
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
-         and (len(subsetidx)>0) or event == "-GAMMALEVEL-":
+         and (len(subsetidx)>0) or event == "-GAMMALEVEL-" or event == '-METADATA-':
         #########################
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
@@ -1092,6 +1096,34 @@ while True:
             # after play, keep the same brightness after playing
             window['-GAMMALEVEL-'].Update(value=0)
             values["-GAMMALEVEL-"] = 0
+        if event == '-METADATA-':
+            parser = createParser(filenames[curridx])
+            if parser:
+                with parser:
+                    try:
+                        metadata = extractMetadata(parser)
+                    except Exception as err:
+                        metadata = None
+                if metadata:
+                    text = "\n".join(metadata.exportPlaintext())
+                    layout_metadata = [
+                        [sg.Text(text, expand_x=True, background_color=background_color, text_color=text_color)], 
+                        [StyledButton('close', accent_color, background_color, background_color,
+                                      button_width=15+len(txt_visitwebsite[LANG]), key='-CLOSEMETA-')]]
+                    draw_meta = True
+        
+            windowmeta = sg.Window("Metadata", layout_metadata, font = FONT_MED, margins=(0, 0), background_color=background_color, finalize=True)
+            with suppress(TclError):
+                windowmeta.TKroot.tk.call('source', SUN_VALLEY_TCL)
+            windowmeta.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG- events due to internal additionnal padding
+
+            while draw_meta:
+                eventconfig, valuesconfig = windowmeta.read(timeout=10)
+                if eventconfig in (sg.WIN_CLOSED, 'Exit', '-CLOSEMETA-'):
+                    draw_meta = False
+            windowmeta.close()
+            window.TKroot.focus_force()
+            
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
         if VIDEO:
