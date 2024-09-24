@@ -518,23 +518,6 @@ window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
 
-
-def update_slider(value=None, enabled=None):
-    global slider_value, slider_enabled
-    if value is not None:
-        slider_value = value
-    if enabled is not None:
-        slider_enabled = enabled
-    draw_slider(slider_graph, slider_value, slider_enabled)
-
-
-
-slider_graph = window['-GAMMALEVEL-']
-slider_enabled = None
-slider_value = None
-update_slider(0.5, False)
-
-
 from tkinter import TclError
 from contextlib import suppress
 with suppress(TclError):
@@ -608,19 +591,14 @@ def updatePredictionInfo(disabled):
             window['-COUNTER-'].Update(disabled=False)
 
 
-gamma_dict = {
-    -4:0.2,
-    -3:0.4,
-    -2:0.6,
-    -1:0.8,
-    0: 1.,
-    1: 1.5,
-    2: 2.,
-    3: 2.5,
-    4:3.
-}
-def gammalevel_to_gamma(value):
-    return gamma_dict[int(value)]
+def update_slider(value=None, enabled=None):
+    global slider_value, slider_enabled
+    if value is not None:
+        slider_value = value
+    if enabled is not None:
+        slider_enabled = enabled
+    draw_slider(slider_graph, slider_value, slider_enabled)
+
 
 def gamma_correction(imagecv, gamma):
     if abs(gamma-1.0)<1e-6:
@@ -676,6 +654,18 @@ txt_new_classes_lang = []
 configactive = False # checks if a series of config events is in progress
 nbconfigseries = 0 # nb of series of config events
 curwindowsize = (0,0) # current size before config events
+
+# slider variable
+N = 10  # number of step
+gamma_dict = {k: -k/N*0.2 + (1+k/N) if k <= 0 else 3*k/N + (1-k/N) for k in range(-N, N+1)}
+slider_graph = window['-GAMMALEVEL-']
+slider_enabled = None
+slider_value = None
+update_slider(0.5, False)
+
+def rescale_slider(value, min_rescale=-N, max_rescale=N):
+    return gamma_dict[int((1-value)*min_rescale + value*max_rescale)]
+
 
 #########################
 ## ASYNCHRONOUS ACTIONS
@@ -743,6 +733,12 @@ def playVideoUntilOtherEvent(filename):
         play = True
         kframe = 0
         while(play):
+            event, values = window.read(timeout=10)
+            if slider_enabled and event == '-GAMMALEVEL-':
+                _, mouse_y = values['-GAMMALEVEL-']
+                if 0 <= mouse_y <= SLIDER_HEIGHT:
+                    update_slider(round((mouse_y / SLIDER_HEIGHT), 2), None)
+            
             videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
             ret, framecv = videocap.read()
             if ret==True: # uncorrupted frame
@@ -750,10 +746,9 @@ def playVideoUntilOtherEvent(filename):
             kframe = kframe+5
             if kframe>=total_frames:
                 kframe = 0
-            event, values = window.read(timeout=10)
             updateFromThreadQueue()
             if event != '__TIMEOUT__':
-                if event != '-CONFIG-' and event != "-GAMMALEVEL-":
+                if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
                     play = False
     videocap.release()
     # updating position in Table,
@@ -783,6 +778,10 @@ def playSequenceUntilOtherEvent(filename):
         return event, values
     while(play):
         event, values = window.read(timeout=10)
+        if slider_enabled and event == '-GAMMALEVEL-':
+            _, mouse_y = values['-GAMMALEVEL-']
+            if 0 <= mouse_y <= SLIDER_HEIGHT:
+                update_slider(round((mouse_y / SLIDER_HEIGHT), 2), None)
         try:
             imagecv = cv2.imdecode(np.fromfile(filenames[k], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
         except:
@@ -801,10 +800,7 @@ def playSequenceUntilOtherEvent(filename):
 #########################
 ## MAIN LOOP
 #########################
-def rescale_slider(value, min_rescale=-4, max_rescale=4):
-    return gamma_dict[int((1-value)*min_rescale + value*max_rescale)]
-
-DEBUG = True
+DEBUG = False
 
 draw_popup_update = False
 try:
