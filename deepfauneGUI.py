@@ -431,12 +431,15 @@ SLIDER_HEIGHT = 120
 SLIDER_HANDLE_RADIUS = 9
 
 # Function to draw the vertical slider on the Graph
-def draw_slider(graph, value):
+def draw_slider(graph, value, enabled):
     graph.erase()
     handle_y = value * SLIDER_HEIGHT
     trough_x = SLIDER_WIDTH / 2
     graph.draw_line((trough_x, 0), (trough_x, SLIDER_HEIGHT), color='#cccccc', width=4)
-    graph.draw_circle((trough_x, handle_y), SLIDER_HANDLE_RADIUS, fill_color=accent_color, line_color='#2f8cff')
+    if enabled:
+        graph.draw_circle((trough_x, handle_y), SLIDER_HANDLE_RADIUS, fill_color=accent_color, line_color=accent_color)
+    else:
+        graph.draw_circle((trough_x, handle_y), SLIDER_HANDLE_RADIUS, fill_color='#cccccc', line_color='#cccccc')
 
 
 layout = [
@@ -515,10 +518,22 @@ window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
 
+
+def update_slider(value=None, enabled=None):
+    global slider_value, slider_enabled
+    if value is not None:
+        slider_value = value
+    if enabled is not None:
+        slider_enabled = enabled
+    draw_slider(slider_graph, slider_value, slider_enabled)
+
+
+
 slider_graph = window['-GAMMALEVEL-']
-slider_value = 0.5
-slider_enabled = False
-draw_slider(slider_graph, slider_value)
+slider_enabled = None
+slider_value = None
+update_slider(0.5, False)
+
 
 from tkinter import TclError
 from contextlib import suppress
@@ -816,8 +831,7 @@ while True:
     if slider_enabled and event == '-GAMMALEVEL-':  # Detect initial click
         _, mouse_y = values['-GAMMALEVEL-']
         if 0 <= mouse_y <= SLIDER_HEIGHT:
-            slider_value = round((mouse_y / SLIDER_HEIGHT), 2)
-            draw_slider(slider_graph, slider_value)
+            update_slider(round((mouse_y / SLIDER_HEIGHT), 2), None)
 
     #########################
     ## PLAYING VIDEO ?
@@ -984,9 +998,7 @@ while True:
                 testdir = None
                 window['-TAB-'].Update(values=[[]])
                 window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
-                slider_value = 0.5
-                draw_slider(slider_graph, slider_value)
-                slider_enabled = False
+                update_slider(0.5, False)
                 dialog_error(txt_incorrect[LANG])
             else:
                 curridx = 0
@@ -997,7 +1009,7 @@ while True:
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[0])
                 window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
-                slider_enabled = True
+                update_slider(enabled=True)
     elif event == '-CONFIGRUN-' and testdir is not None and thread is None:
         #########################
         ## CONFIGURE
@@ -1121,8 +1133,7 @@ while True:
         ## AND ITS PREDICTION
         #########################
         if event != "-GAMMALEVEL-" and slider_value != 0.5 and event != '-IMAGE-DOUBLECLICK-':
-            slider_value = 0.5
-            draw_slider(slider_graph, slider_value)
+            update_slider(0.5)
             
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
@@ -1276,7 +1287,7 @@ while True:
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
         if len(subsetidx)>0:
             updatePredictionInfo(disabled=False)
-            slider_enabled = True
+            update_slider(enabled=True)
             window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
             window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
                                                       for k in range(0, len(subsetidx)))) # row in accent_color because prediction is available
@@ -1284,9 +1295,7 @@ while True:
         else:
             updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[[]])
-            slider_enabled = False
-            slider_value = 0.5
-            draw_slider(slider_graph, slider_value)
+            update_slider(0.5, False)
             updateImage(logoimagecv)
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
