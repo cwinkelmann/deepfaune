@@ -751,7 +751,7 @@ def playVideoUntilOtherEvent(filename):
                 kframe = 0
             updateFromThreadQueue()
             if event != '__TIMEOUT__':
-                if event != '-CONFIG-' and event != "-GAMMALEVEL-":
+                if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
                     play = False
     videocap.release()
     # updating position in Table,
