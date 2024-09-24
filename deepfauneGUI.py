@@ -426,7 +426,7 @@ menu_def = [
 ]
 
 # Constants for slider design
-SLIDER_WIDTH = 30
+SLIDER_WIDTH = 32
 SLIDER_HEIGHT = 120
 SLIDER_HANDLE_RADIUS = 9
 
@@ -481,8 +481,7 @@ layout = [
                 ], background_color=background_color, expand_x=True),
                 sg.Column([
                     [sg.Image(BRIGHTNESS_ICON, background_color=background_color)],
-                    [sg.Push(background_color=background_color),
-                     sg.Graph(
+                    [sg.Graph(
                          canvas_size=(SLIDER_WIDTH, SLIDER_HEIGHT),
                          graph_bottom_left=(0, 0),
                          graph_top_right=(SLIDER_WIDTH, SLIDER_HEIGHT),
