@@ -1012,30 +1012,8 @@ while True:
                 preddf.to_excel(xlsxpath, index=False)
     elif event == "-OPENFILE-" and len(values['-TAB-'])>0:
         import subprocess
-        import os
-        import platform
-        def open_file_explorer(file_path): ## WINDOWS, PAS TESTE
-            folder_path = os.path.dirname(file_path)
-            os.startfile(folder_path, 'explore')  # Open the file explorer at the folder path
-            
-            # On Windows, to highlight the file itself, we use os.startfile with the full path
-            if os.path.isfile(file_path):
-                os.startfile(file_path)
-        def open_file_explorer(file_path): ## LINUX, TESTE UBUNTU
-            folder_path = os.path.dirname(file_path)
-            
-            # Check the desktop environment and use the appropriate command
-            if platform.system() == "Linux":
-                # Check if it's a GNOME-based system (using nautilus)
-                if subprocess.run(["which", "nautilus"]).returncode == 0:
-                    subprocess.run(["nautilus", "--select", file_path])
-                # Check if it's a KDE-based system (using dolphin)
-                elif subprocess.run(["which", "dolphin"]).returncode == 0:
-                    subprocess.run(["dolphin", "--select", file_path])
-                # Fallback to xdg-open to just open the folder (will not highlight the file)
-                else:
-                    subprocess.run(["xdg-open", folder_path])
-        open_file_explorer(filenames[curridx])
+        if platform.platform().lower().startswith("windows"):
+            subprocess.Popen(r'explorer /select, "' + filenames[curridx] + '"')
                 
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
