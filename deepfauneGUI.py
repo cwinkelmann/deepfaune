@@ -1107,7 +1107,7 @@ while True:
                 if metadata:
                     text = "\n".join(metadata.exportPlaintext())
                     layout_metadata = [
-                        [sg.Text(text, expand_x=True, background_color=background_color, text_color=text_color)], 
+                        [sg.Multiline(text, size=(80, 20), disabled=True,  background_color=background_color, text_color=text_color)],
                         [StyledButton('close', accent_color, background_color, background_color,
                                       button_width=15+len(txt_visitwebsite[LANG]), key='-CLOSEMETA-')]]
                     draw_meta = True
