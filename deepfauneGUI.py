@@ -591,9 +591,16 @@ def updatePredictionInfo(disabled):
             window['-COUNTER-'].Update(disabled=False)
 
 
+def rescale_slider(value, min_rescale=-10, max_rescale=10):
+    return gamma_dict[int((1-value)*min_rescale + value*max_rescale)]
+
+
 def update_slider(value=None, enabled=None):
-    global slider_value, slider_enabled
+    global slider_value, slider_enabled, is_value_updated
+    is_value_updated = True
     if value is not None:
+        if value is not None and slider_value is not None and rescale_slider(value) == rescale_slider(slider_value):
+            is_value_updated = False
         slider_value = value
     if enabled is not None:
         slider_enabled = enabled
@@ -656,15 +663,12 @@ nbconfigseries = 0 # nb of series of config events
 curwindowsize = (0,0) # current size before config events
 
 # slider variable
-N = 10  # number of step
-gamma_dict = {k: -k/N*0.2 + (1+k/N) if k <= 0 else 3*k/N + (1-k/N) for k in range(-N, N+1)}
+gamma_dict = {k: -k/10*0.2 + (1+k/10) if k <= 0 else 3*k/10 + (1-k/10) for k in range(-10, 11)}
 slider_graph = window['-GAMMALEVEL-']
 slider_enabled = None
 slider_value = None
+is_value_updated = True
 update_slider(0.5, False)
-
-def rescale_slider(value, min_rescale=-N, max_rescale=N):
-    return gamma_dict[int((1-value)*min_rescale + value*max_rescale)]
 
 
 #########################
@@ -1178,7 +1182,8 @@ while True:
                         blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                 if predictedclass_curridx is not txt_empty[LANG]:
                     draw_boxes(imagecv, predictedbox_curridx)
-        updateImage(imagecv, rescale_slider(slider_value))
+        if is_value_updated:
+            updateImage(imagecv, rescale_slider(slider_value))
         if predictorready and not VIDEO:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
