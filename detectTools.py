@@ -129,7 +129,9 @@ class DetectorJSON:
             self.k = self.filenameindex[filename]
         except KeyError:
             return None, 0, np.zeros(4), 0, None
-            #raise IndexError # no next box
+        # now reading filename to obtain width/height (required by convertJSONboxToBox)
+        # and possibly crop if it is an animal
+        self.nextImread() 
         if len(self.df_json['detections'][self.k]): # is non empty
             # Focus on the most confident bounding box coordinates
             self.kbox = argmax([box['conf'] for box in self.df_json['detections'][self.k]])
@@ -148,7 +150,6 @@ class DetectorJSON:
             box = self.convertJSONboxToBox()
         # if yes, cropping the bounding box
         else:
-            self.nextImread() # actually read filename
             croppedimage, box = self.cropCurrentBox()
             if croppedimage is None: # FileNotFoundError
                 category = 0
