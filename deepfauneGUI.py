@@ -975,7 +975,6 @@ while True:
         #########################
         predictedclass, predictedscore, _, count = predictor.getPredictions()
         predictedtop1 = predictor.getPredictedTop1()
-        print(predictedtop1)
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
