@@ -45,7 +45,7 @@ os.environ["PYTORCH_JIT"] = "0"
 ####################################################################################
 ### VERSION
 ####################################################################################
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 ####################################################################################
 ### PARAMETERS
@@ -1099,6 +1099,7 @@ while True:
         ## EXPORTING RESULTS
         #########################
         predictedclass, predictedscore, _, count = predictor.getPredictions()
+        predictedtop1 = predictor.getPredictedTop1()
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
@@ -1106,12 +1107,12 @@ while True:
         if countactivated:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                    'prediction':predictedclass, 'score':predictedscore,
+                                    'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
                                     'count':count, 'humanpresence':predictor.getHumanPresence()})
         else:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                    'prediction':predictedclass, 'score':predictedscore,
+                                    'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
                                     'humanpresence':predictor.getHumanPresence()})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         if event == txt_ascsv[LANG]:
