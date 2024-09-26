@@ -38,13 +38,14 @@ import threading
 import io
 import os
 import multiprocessing
+import urllib
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
 ####################################################################################
 ### VERSION
 ####################################################################################
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 ####################################################################################
 ### PARAMETERS
@@ -158,8 +159,8 @@ txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
 ####################################################################################
 from b64_images import *
 
-DEFAULT_THEME = {'accent': '#00bfff', 'background': '#121212', 'text': '#d7d7d7', 'alternate_background': '#222222'}
-accent_color, text_color, background_color = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background']
+DEFAULT_THEME = {'accent': '#24a0ed', 'background': '#1c1c1c', 'text': '#d7d7d7', 'alt_background': '#2f2f2f'}
+accent_color, text_color, background_color, alt_background = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background'], DEFAULT_THEME['alt_background']
 
 SUN_VALLEY_TCL = 'theme/sun-valley.tcl'
 SUN_VALLEY_THEME = 'dark' # 'light' not coherent with DEFAULT THEME
@@ -184,7 +185,7 @@ def debugprint(txt_fr, txt_en, end='\n'):
 def draw_boxes(imagecv, box=None):
     if box is not None:
         if np.count_nonzero(box)>0: # is not default empty box
-            cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), imagecv.shape[0]//100)
+            cv2.rectangle(imagecv, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), max(1,imagecv.shape[0]//200))
 
 def blur_boxes(imagecv, boxes=None):
     if boxes is not None:
@@ -424,6 +425,29 @@ menu_def = [
     ]]
 ]
 
+# Constants for slider design
+SLIDER_WIDTH = 32
+SLIDER_HEIGHT = 120
+SLIDER_HANDLE_RADIUS = 9
+
+# Function to draw the vertical slider on the Graph
+def draw_slider(graph, value, enabled):
+    graph.erase()
+    handle_y = value * SLIDER_HEIGHT
+    trough_x = SLIDER_WIDTH / 2
+    graph.draw_line((trough_x, 0), (trough_x, SLIDER_HEIGHT), color='#cccccc', width=4)
+    if enabled:
+        graph.draw_circle((trough_x, handle_y), SLIDER_HANDLE_RADIUS, fill_color=accent_color, line_color=accent_color)
+    else:
+        graph.draw_circle((trough_x, handle_y), SLIDER_HANDLE_RADIUS, fill_color='#cccccc', line_color='#cccccc')
+
+# On windows, there is a button to open the selected file in explorer
+if platform.platform().lower().startswith("windows"):
+    button_openfile = [sg.Button("Open File Explorer XXX replace by button", key="-OPENFILE-")]
+else:
+    button_openfile = []
+
+# MAIN LAYOUT
 layout = [
     [
         StyledMenu(menu_def, text_color=text_color, background_color=background_color, text_font=FONT_NORMAL, key='-MENUBAR-')
@@ -459,10 +483,22 @@ layout = [
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
                      sg.Text("\t"+txt_count[LANG]+":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-'),
                      sg.Input(default_text="0", size=(2, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
-                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color), # not used if media are videos
-                     ],
-                    [sg.Slider((0.3, 3), 1, 0.1, orientation='horizontal', key="-GAMMA-",  enable_events=True), sg.Button("Open File Explorer", key="-OPENFILE-")]
-                ], background_color=background_color, expand_x=True)
+                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
+                ], background_color=background_color, expand_x=True),
+                sg.Column([
+                    [sg.Image(BRIGHTNESS_ICON, background_color=background_color)],
+                    [sg.Graph(
+                         canvas_size=(SLIDER_WIDTH, SLIDER_HEIGHT),
+                         graph_bottom_left=(0, 0),
+                         graph_top_right=(SLIDER_WIDTH, SLIDER_HEIGHT),
+                         key='-GAMMALEVEL-',
+                         enable_events=True,
+                         drag_submits=True,  # Enable drag events
+                         background_color=background_color,
+                     )],
+                    [sg.Button(key='-PLAY-', image_data=PLAY_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
+                    button_openfile,
+                ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
     ],
@@ -560,17 +596,33 @@ def updatePredictionInfo(disabled):
             window['-COUNTER-'].Update(disabled=False)
 
 
-def gamma_correction(image, gamma):
+def rescale_slider(value, min_rescale=-10, max_rescale=10):
+    return gamma_dict[int((1-value)*min_rescale + value*max_rescale)]
+
+
+def update_slider(value=None, enabled=None):
+    global slider_value, slider_enabled, is_value_updated
+    is_value_updated = True
+    if value is not None:
+        if value is not None and slider_value is not None and rescale_slider(value) == rescale_slider(slider_value):
+            is_value_updated = False
+        slider_value = value
+    if enabled is not None:
+        slider_enabled = enabled
+    draw_slider(slider_graph, slider_value, slider_enabled)
+
+
+def gamma_correction(imagecv, gamma):
+    if abs(gamma-1.0)<1e-6:
+        return imagecv
     # Build a lookup table mapping pixel values [0, 255] to their gamma-corrected values
     inv_gamma = 1.0 / gamma
     table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in range(256)]).astype("uint8")
-
     # Apply gamma correction using the lookup table
-    return cv2.LUT(image, table)
-
+    return cv2.LUT(imagecv, table)
 
 imageOffset = (0,0) # space between the window and the image control itself
-def updateImage(newcurimagecv=None, gamma=1):
+def updateImage(newcurimagecv=None, gamma=1.):
     global curimagecv
     if newcurimagecv is not None:
         curimagecv = newcurimagecv
@@ -614,6 +666,15 @@ txt_new_classes_lang = []
 configactive = False # checks if a series of config events is in progress
 nbconfigseries = 0 # nb of series of config events
 curwindowsize = (0,0) # current size before config events
+
+# slider variable
+gamma_dict = {k: -k/10*0.2 + (1+k/10) if k <= 0 else 3*k/10 + (1-k/10) for k in range(-10, 11)}
+slider_graph = window['-GAMMALEVEL-']
+slider_enabled = None
+slider_value = None
+is_value_updated = True
+update_slider(0.5, False)
+
 
 #########################
 ## ASYNCHRONOUS ACTIONS
@@ -669,7 +730,9 @@ def updateFromThreadQueue(): # updating GUI using info in thread queue
             updatePredictionInfo(disabled=False)
             window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
 
-def playVideoUntilOtherEvent(filename):    
+def playVideoUntilOtherEvent(filename):
+    global curimagecv
+    previmagecv = curimagecv  
     videocap = cv2.VideoCapture(filename)
     total_frames = int(videocap.get(cv2.CAP_PROP_FRAME_COUNT))
     if total_frames==0:
@@ -679,60 +742,115 @@ def playVideoUntilOtherEvent(filename):
         play = True
         kframe = 0
         while(play):
+            event, values = window.read(timeout=10)
+            if slider_enabled and event == '-GAMMALEVEL-':
+                _, mouse_y = values['-GAMMALEVEL-']
+                if 0 <= mouse_y <= SLIDER_HEIGHT:
+                    update_slider(round((mouse_y / SLIDER_HEIGHT), 2), None)
+            
             videocap.set(cv2.CAP_PROP_POS_FRAMES, kframe)
             ret, framecv = videocap.read()
             if ret==True: # uncorrupted frame
-                curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
-                window['-IMAGE-'].update(data=cv2bytes(framecv, curimsize))
-                window.refresh()
+                updateImage(framecv, rescale_slider(slider_value))
             kframe = kframe+5
             if kframe>=total_frames:
                 kframe = 0
-            event, values = window.read(timeout=10)
             updateFromThreadQueue()
-            #if event=='-IMAGE-DOUBLECLICK-':
             if event != '__TIMEOUT__':
-                if event != '-CONFIG-':
+                if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
                     play = False
     videocap.release()
-    # updating position in Table, will send an event
-    if event != '-TAB-':
-        rowidx = values['-TAB-'][0]
-        window['-TAB-'].update(select_rows=[rowidx])
-        window['-TAB-'].Widget.see(rowidx+1)
+    # updating position in Table,
+    # such that we focus on the row/file of interest,
+    # but will send a -TAB- event
+    #if event != '-TAB-':
+    #    rowidx = values['-TAB-'][0]
+    #    window['-TAB-'].update(select_rows=[rowidx])
+    #    window['-TAB-'].Widget.see(rowidx+1)
+    updateImage(previmagecv, rescale_slider(slider_value))
     return event, values
-    
+
+def playSequenceUntilOtherEvent(filename):
+    global curimagecv
+    previmagecv = curimagecv
+    play = True
+    nbfiles = len(filenames)
+    k1 = k2 = curridx
+    while predictor.getSeqnums()[curridx]==predictor.getSeqnums()[max(0,k1-1)] and k1>0:
+        k1 = k1-1
+    while predictor.getSeqnums()[curridx]==predictor.getSeqnums()[min(nbfiles-1,k2+1)] and k2<(nbfiles-1):
+        k2 = k2+1
+    k = k1
+    if k1==k2: # singleton
+        event, values = window.read(timeout=10)
+        play = False
+        return event, values
+    while(play):
+        event, values = window.read(timeout=10)
+        if slider_enabled and event == '-GAMMALEVEL-':
+            _, mouse_y = values['-GAMMALEVEL-']
+            if 0 <= mouse_y <= SLIDER_HEIGHT:
+                update_slider(round((mouse_y / SLIDER_HEIGHT), 2), None)
+        try:
+            imagecv = cv2.imdecode(np.fromfile(filenames[k], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+        except:
+            imagecv = np.zeros((DEFAULTIMGSIZE[1],DEFAULTIMGSIZE[0],3), np.uint8)
+        updateImage(imagecv, rescale_slider(slider_value))
+        k = k+1
+        if k>k2:
+            k = k1
+        updateFromThreadQueue()
+        if event != '__TIMEOUT__':
+            if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
+                play = False
+    updateImage(previmagecv, rescale_slider(slider_value))
+    return event, values
+   
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = True
+DEBUG = False
 
 draw_popup_update = False
-if checkupdate:
-    import urllib
-    from versions import parse_version
-    try:
-        online_version = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/.version', timeout=1)
-        online_version = online_version.read().decode().replace("\n", "")
-        online_version = parse_version(online_version)
-    except:
-        online_version = None
-    if online_version:
-        installed_version = parse_version(VERSION)
-        if online_version > installed_version:
+try:
+    online_version = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/.version', timeout=1)
+    online_version = online_version.read().decode().replace("\n", "")
+except:
+    online_version = None
+
+if checkupdate and online_version:
+    v_online_parts = list(map(int, online_version.split('.')))
+    v_installed_parts = list(map(int, VERSION.split('.')))
+    for v_online, v_installed in zip(v_online_parts, v_installed_parts):
+        if v_online > v_installed:
             draw_popup_update = True
 
 while True:
     event, values = window.read(timeout=10)
     if event != "__TIMEOUT__" and DEBUG is True:
-        print(event)
+        print("Step1:",event)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
+    
+    # If the user clicks or drags the slider
+    if slider_enabled and event == '-GAMMALEVEL-':  # Detect initial click
+        _, mouse_y = values['-GAMMALEVEL-']
+        if 0 <= mouse_y <= SLIDER_HEIGHT:
+            update_slider(round((mouse_y / SLIDER_HEIGHT), 2), None)
+
     #########################
     ## PLAYING VIDEO ?
     #########################
     if event == '-IMAGE-DOUBLECLICK-' and VIDEO and (len(subsetidx)>0):
         event, values = playVideoUntilOtherEvent(filenames[curridx]) # captures the window event internally
+    #########################
+    ## PLAYING SEQUENCE ?
+    #########################
+    if event == '-IMAGE-DOUBLECLICK-' and not VIDEO and (len(subsetidx)>0) and predictorready:
+        event, values = playSequenceUntilOtherEvent(filenames[curridx]) # captures the window event internally
+        
+    if event != "__TIMEOUT__" and DEBUG is True:
+        print("Step2:",event)
     #########################
     ## WINDOW RESIZING ?
     #########################
@@ -752,7 +870,7 @@ while True:
     #########################
     if draw_popup_update:
         layoutupdate = [
-            [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version.to_string()})", expand_x=True, background_color=background_color, text_color=text_color)], 
+            [sg.Text(txt_newupdatelong[LANG] + f" (version {online_version})", expand_x=True, background_color=background_color, text_color=text_color)], 
             [StyledButton(txt_visitwebsite[LANG], accent_color, background_color, background_color,
                           button_width=15+len(txt_visitwebsite[LANG]), key='-UPDATE-'),
             StyledButton(txt_enablecheckupdate[LANG], accent_color, background_color, background_color,
@@ -885,6 +1003,7 @@ while True:
                 testdir = None
                 window['-TAB-'].Update(values=[[]])
                 window['-CONFIGRUN-'].Update(button_color=("gray", background_color))
+                update_slider(0.5, False)
                 dialog_error(txt_incorrect[LANG])
             else:
                 curridx = 0
@@ -895,6 +1014,7 @@ while True:
                                                         for k in range(0, 1))) # bug, first row color need to be hard reset
                 window['-TAB-'].update(select_rows=[0])
                 window['-CONFIGRUN-'].Update(button_color=(background_color, background_color))
+                update_slider(enabled=True)
     elif event == '-CONFIGRUN-' and testdir is not None and thread is None:
         #########################
         ## CONFIGURE
@@ -985,6 +1105,7 @@ while True:
         ## EXPORTING RESULTS
         #########################
         predictedclass, predictedscore, _, count = predictor.getPredictions()
+        predictedtop1 = predictor.getPredictedTop1()
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
@@ -992,12 +1113,12 @@ while True:
         if countactivated:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                    'prediction':predictedclass, 'score':predictedscore,
+                                    'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
                                     'count':count, 'humanpresence':predictor.getHumanPresence()})
         else:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
-                                    'prediction':predictedclass, 'score':predictedscore,
+                                    'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
                                     'humanpresence':predictor.getHumanPresence()})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         if event == txt_ascsv[LANG]:
@@ -1017,13 +1138,13 @@ while True:
                 
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
-         and (len(subsetidx)>0) or event == "-GAMMA-":
+         and (len(subsetidx)>0) or (event == "-GAMMALEVEL-" and slider_enabled):
         #########################
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
         #########################
-        
-        
+        if event != "-GAMMALEVEL-" and slider_value != 0.5 and event != '-IMAGE-DOUBLECLICK-':
+            update_slider(0.5)
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
         if VIDEO:
@@ -1071,7 +1192,8 @@ while True:
                         blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                 if predictedclass_curridx is not txt_empty[LANG]:
                     draw_boxes(imagecv, predictedbox_curridx)
-        updateImage(imagecv, values["-GAMMA-"])
+        if is_value_updated:
+            updateImage(imagecv, rescale_slider(slider_value))
         if predictorready and not VIDEO:
             window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
@@ -1176,6 +1298,7 @@ while True:
             subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
         if len(subsetidx)>0:
             updatePredictionInfo(disabled=False)
+            update_slider(enabled=True)
             window.Element('-TAB-').Update(values=[[basename(f)] for f in [filenames[k] for k in subsetidx]])
             window['-TAB-'].Update(row_colors = tuple((k,accent_color,background_color)
                                                       for k in range(0, len(subsetidx)))) # row in accent_color because prediction is available
@@ -1183,6 +1306,7 @@ while True:
         else:
             updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[[]])
+            update_slider(0.5, False)
             updateImage(logoimagecv)
             dialog_error(txt_classnotfound[LANG])
         curridx = 0

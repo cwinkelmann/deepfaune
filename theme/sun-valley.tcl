@@ -10,13 +10,15 @@ proc set_theme {mode} {
 		ttk::style theme use "sun-valley-dark"
 
 		array set colors {
-		    -fg             "#ffffff"
+		    -fg             "#ffffff" 
 		    -bg             "#1c1c1c"
 		    -disabledfg     "#595959"
 		    -selectfg       "#ffffff"
-		    -selectbg       "#2f60d8"
+		    -selectbg       "#24a0ed"
 		}
+	    # fg control some text color
 
+	    
         ttk::style configure . \
             -background $colors(-bg) \
             -foreground $colors(-fg) \

@@ -71,9 +71,9 @@ windowimg = sg.Window(basename(df_filename['filename'][curridx]), layout, size=(
 image = cv2.imread(str(df_filename['filename'][curridx]))
 
 if image is None:
-    image = np.zeros((600,400,3), np.uint8)
+    image = np.zeros((400,400,3), np.uint8)
 else:
-    image = cv2.resize(image, (600,400))
+    image = cv2.resize(image, (400,400))
     
 is_success, png_buffer = cv2.imencode(".png", image)
 bio = BytesIO(png_buffer)
@@ -109,9 +109,9 @@ while(True):
                 
         image = cv2.imread(str(df_filename['filename'][curridx]))
         if image is None:
-            image = np.zeros((600,400,3), np.uint8)
+            image = np.zeros((400,400,3), np.uint8)
         else:
-            image = cv2.resize(image, (600,400))
+            image = cv2.resize(image, (400,400))
         is_success, png_buffer = cv2.imencode(".png", image)
         bio = BytesIO(png_buffer)
         windowimg["-IMAGE-"].update(data=bio.getvalue())
