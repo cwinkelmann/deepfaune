@@ -42,6 +42,8 @@ import urllib
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 import subprocess
+import tkinter as tk
+from tkinter import ttk
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
@@ -253,7 +255,22 @@ def popup(message):
         windowpopup.TKroot.tk.call('source', SUN_VALLEY_TCL)
     windowpopup.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
     return windowpopup
-    
+
+
+def scrollabled_text_window(text, title):
+            root = tk.Tk()
+            root.title(title)
+            root.geometry("1200x600")
+            scrollbar = tk.Scrollbar(root)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            text_widget = tk.Text(root, wrap=tk.WORD, yscrollcommand=scrollbar.set, width=50, height=20)
+            text_widget.pack(expand=True, fill='both')
+            scrollbar.config(command=text_widget.yview)
+            text_widget.insert(tk.END, text)
+            text_widget.config(state=tk.DISABLED)
+            root.mainloop()
+
+
 import base64
 from PIL import Image, ImageDraw
 def StyledButton(button_text, fill, text_color, background_color, font=None, tooltip=None, key=None, visible=True,
@@ -1148,24 +1165,10 @@ while True:
                 except Exception as err:
                     metadata = None
         if metadata:
-            text = "\n".join(metadata.exportPlaintext())
-            layout_metadata = [
-                [sg.Multiline(text, size=(80, 20), disabled=True,  background_color=background_color, text_color=text_color)],
-                [StyledButton('close', accent_color, background_color, background_color,
-                              button_width=15+len(txt_visitwebsite[LANG]), key='-CLOSEMETA-')]]
-            draw_meta = True
-    
-            windowmeta = sg.Window("Metadata", layout_metadata, font = FONT_MED, margins=(0, 0), background_color=background_color, finalize=True)
-            with suppress(TclError):
-                windowmeta.TKroot.tk.call('source', SUN_VALLEY_TCL)
-            windowmeta.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG- events due to internal additionnal padding
-            
-            while draw_meta:
-                eventconfig, valuesconfig = windowmeta.read(timeout=10)
-                if eventconfig in (sg.WIN_CLOSED, 'Exit', '-CLOSEMETA-'):
-                    draw_meta = False
-            windowmeta.close()
-            window.TKroot.focus_force()
+            text = "\n".join(metadata.exportPlaintext()[1:])
+            text = f"- Path: {filenames[curridx]}\n" + text
+            scrollabled_text_window(text, "Metadata")
+
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
          and (len(subsetidx)>0) or (event == "-GAMMALEVEL-" and slider_enabled):
