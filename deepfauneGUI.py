@@ -39,6 +39,7 @@ import io
 import os
 import multiprocessing
 import urllib
+import subprocess
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
@@ -441,7 +442,13 @@ def draw_slider(graph, value, enabled):
     else:
         graph.draw_circle((trough_x, handle_y), SLIDER_HANDLE_RADIUS, fill_color='#cccccc', line_color='#cccccc')
 
+# On windows, there is a button to open the selected file in explorer
+if platform.platform().lower().startswith("windows"):
+    button_openfile = [sg.Button(image_data=OPEN_FOLDER_ICON, key="-OPENFILE-", button_color=(background_color,background_color))]
+else:
+    button_openfile = []
 
+# MAIN LAYOUT
 layout = [
     [
         StyledMenu(menu_def, text_color=text_color, background_color=background_color, text_font=FONT_NORMAL, key='-MENUBAR-')
@@ -491,6 +498,7 @@ layout = [
                          background_color=background_color,
                      )],
                     [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), enable_events=True, tooltip=None)],
+                    button_openfile,
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -1126,6 +1134,10 @@ while True:
             if xlsxpath:
                 debugprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
                 preddf.to_excel(xlsxpath, index=False)
+    elif event == "-OPENFILE-" and len(values['-TAB-'])>0:
+        if platform.platform().lower().startswith("windows"):
+            subprocess.Popen(r'explorer /select, "' + filenames[curridx] + '"')
+                
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
          and (len(subsetidx)>0) or (event == "-GAMMALEVEL-" and slider_enabled):
@@ -1135,7 +1147,6 @@ while True:
         #########################
         if event != "-GAMMALEVEL-" and slider_value != 0.5 and event != '-IMAGE-DOUBLECLICK-':
             update_slider(0.5)
-            
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
         if VIDEO:
