@@ -467,8 +467,8 @@ layout = [
                         sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]],
                                  background_color=background_color, text_color=text_color, enable_events=True,
                                  default_value=txt_all[LANG], size=(12, 1), bind_return_key=False, key='-RESTRICT-'),
-                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None),
-                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)
+                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), border_width=0, tooltip=None),
+                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), border_width=0, tooltip=None)
                      ]
                 ], background_color=background_color, expand_y=True),
                 sg.Column([ 
@@ -497,7 +497,7 @@ layout = [
                          drag_submits=True,  # Enable drag events
                          background_color=background_color,
                      )],
-                    [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), enable_events=True, tooltip=None)],
+                    [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), border_width=0, enable_events=True, tooltip=None)],
                     button_openfile,
                 ], background_color=background_color, expand_y=True)
             ]
