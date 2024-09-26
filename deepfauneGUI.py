@@ -776,7 +776,7 @@ def playVideoUntilOtherEvent(filename):
     return event, values
 
 def playSequenceUntilOtherEvent(filename):
-    global curimagecv
+    global curimagecv, humanbluractivated
     previmagecv = curimagecv
     play = True
     nbfiles = len(filenames)
@@ -801,6 +801,8 @@ def playSequenceUntilOtherEvent(filename):
             imagecv = cv2.imdecode(np.fromfile(filenames[k], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
         except:
             imagecv = np.zeros((DEFAULTIMGSIZE[1],DEFAULTIMGSIZE[0],3), np.uint8)
+        if humanbluractivated:
+            blur_boxes(imagecv, predictor.getHumanBoxes(filenames[k]))
         updateImage(imagecv, rescale_slider(slider_value))
         k = k+1
         if k>k2:
