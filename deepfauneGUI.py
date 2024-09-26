@@ -490,8 +490,7 @@ layout = [
                          drag_submits=True,  # Enable drag events
                          background_color=background_color,
                      )],
-                    [sg.Image(MOVIE_ICON, background_color=background_color)],
-                    [sg.Button(key='-PLAY-', image_data=PLAY_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
+                    [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), enable_events=True, tooltip=None)],
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -803,7 +802,7 @@ def playSequenceUntilOtherEvent(filename):
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = False
+DEBUG = True
 
 draw_popup_update = False
 try:
@@ -835,12 +834,14 @@ while True:
     #########################
     ## PLAYING VIDEO ?
     #########################
-    if event == '-IMAGE-DOUBLECLICK-' and VIDEO and (len(subsetidx)>0):
+    if (event == '-IMAGE-DOUBLECLICK-' or event == '-PLAY-') and VIDEO and (len(subsetidx)>0):
+        window['-PLAY-'].Update(image_data=NICE_PAUSE_ICON)
         event, values = playVideoUntilOtherEvent(filenames[curridx]) # captures the window event internally
     #########################
     ## PLAYING SEQUENCE ?
     #########################
-    if event == '-IMAGE-DOUBLECLICK-' and not VIDEO and (len(subsetidx)>0) and predictorready:
+    if (event == '-IMAGE-DOUBLECLICK-' or event == '-PLAY-') and not VIDEO and (len(subsetidx)>0) and predictorready:
+        window['-PLAY-'].Update(image_data=NICE_PAUSE_ICON)
         event, values = playSequenceUntilOtherEvent(filenames[curridx]) # captures the window event internally
         
     if event != "__TIMEOUT__" and DEBUG is True:
