@@ -789,6 +789,7 @@ def playSequenceUntilOtherEvent(filename):
     if k1==k2: # singleton
         event, values = window.read(timeout=10)
         play = False
+        window['-PLAY-'].Update(image_data=NICE_PLAYIN_ICON)
         return event, values
     while(play):
         event, values = window.read(timeout=10)
@@ -817,7 +818,7 @@ def playSequenceUntilOtherEvent(filename):
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = True
+DEBUG = False
 
 draw_popup_update = False
 try:
