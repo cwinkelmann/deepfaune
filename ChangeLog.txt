@@ -2,7 +2,7 @@
 
 	    Version 1.2.0
 	    * New column 'Top1' (predicted class, even above the threshold) is now in csv/xslx export.
-	    	    
+	    * Videos and sequences can be played.	    
 
 2024-01-12  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 

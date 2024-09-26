@@ -486,8 +486,8 @@ layout = [
                         sg.Combo(values=[txt_all[LANG]]+sorted_txt_classes_lang+[txt_undefined[LANG],txt_empty[LANG]],
                                  background_color=background_color, text_color=text_color, enable_events=True,
                                  default_value=txt_all[LANG], size=(12, 1), bind_return_key=False, key='-RESTRICT-'),
-                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None),
-                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)
+                        sg.Button(key='-PREVIOUS-', image_data=PREVIOUS_BUTTON_IMG, button_color=(background_color,background_color), border_width=0, tooltip=None),
+                        sg.Button(key='-NEXT-', image_data=NEXT_BUTTON_IMG, button_color=(background_color,background_color), border_width=0, tooltip=None)
                      ]
                 ], background_color=background_color, expand_y=True),
                 sg.Column([ 
@@ -516,7 +516,7 @@ layout = [
                          drag_submits=True,  # Enable drag events
                          background_color=background_color,
                      )],
-                    [sg.Button(key='-PLAY-', image_data=PLAY_BUTTON_IMG, button_color=(background_color,background_color), tooltip=None)],
+                    [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), border_width=0, enable_events=True, tooltip=None)],
                     button_openfile,
                     [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=None)],
                 ], background_color=background_color, expand_y=True)
@@ -778,8 +778,11 @@ def playVideoUntilOtherEvent(filename):
                 kframe = 0
             updateFromThreadQueue()
             if event != '__TIMEOUT__':
-                if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
+                if event == "-PLAY-": # pause button
                     play = False
+                elif event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
+                    play = False
+                
     videocap.release()
     # updating position in Table,
     # such that we focus on the row/file of interest,
@@ -789,6 +792,7 @@ def playVideoUntilOtherEvent(filename):
     #    window['-TAB-'].update(select_rows=[rowidx])
     #    window['-TAB-'].Widget.see(rowidx+1)
     updateImage(previmagecv, rescale_slider(slider_value))
+    window['-PLAY-'].Update(image_data=NICE_PLAYIN_ICON)
     return event, values
 
 def playSequenceUntilOtherEvent(filename):
@@ -805,6 +809,7 @@ def playSequenceUntilOtherEvent(filename):
     if k1==k2: # singleton
         event, values = window.read(timeout=10)
         play = False
+        window['-PLAY-'].Update(image_data=NICE_PLAYIN_ICON)
         return event, values
     while(play):
         event, values = window.read(timeout=10)
@@ -822,9 +827,12 @@ def playSequenceUntilOtherEvent(filename):
             k = k1
         updateFromThreadQueue()
         if event != '__TIMEOUT__':
-            if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
+            if event == "-PLAY-": # pause button
+                play = False
+            elif event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
                 play = False
     updateImage(previmagecv, rescale_slider(slider_value))
+    window['-PLAY-'].Update(image_data=NICE_PLAYIN_ICON)
     return event, values
    
 #########################
@@ -863,12 +871,14 @@ while True:
     #########################
     ## PLAYING VIDEO ?
     #########################
-    if event == '-IMAGE-DOUBLECLICK-' and VIDEO and (len(subsetidx)>0):
+    if (event == '-IMAGE-DOUBLECLICK-' or event == '-PLAY-') and VIDEO and (len(subsetidx)>0):
+        window['-PLAY-'].Update(image_data=NICE_PAUSE_ICON)
         event, values = playVideoUntilOtherEvent(filenames[curridx]) # captures the window event internally
     #########################
     ## PLAYING SEQUENCE ?
     #########################
-    if event == '-IMAGE-DOUBLECLICK-' and not VIDEO and (len(subsetidx)>0) and predictorready:
+    if (event == '-IMAGE-DOUBLECLICK-' or event == '-PLAY-') and not VIDEO and (len(subsetidx)>0) and predictorready:
+        window['-PLAY-'].Update(image_data=NICE_PAUSE_ICON)
         event, values = playSequenceUntilOtherEvent(filenames[curridx]) # captures the window event internally
         
     if event != "__TIMEOUT__" and DEBUG is True:
@@ -1176,7 +1186,7 @@ while True:
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
         #########################
-        if event != "-GAMMALEVEL-" and slider_value != 0.5 and event != '-IMAGE-DOUBLECLICK-':
+        if event != "-GAMMALEVEL-" and slider_value != 0.5 and event != '-IMAGE-DOUBLECLICK-' and event != '-PLAY-':
             update_slider(0.5)
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
