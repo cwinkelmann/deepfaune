@@ -208,67 +208,62 @@ def copyfile_blur(src, dst, boxes=None):
         blur_boxes(imagecv, boxes)
         cv2.imwrite(dst, imagecv)
 
-import tkinter
-from tkinter import filedialog, messagebox
 def dialog_get_dir(title, initialdir=None):
     # rooting to the main PySimpleGUI window
     # does not work here dute to color problems in the dialog box
-    _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
-    _root.withdraw()
-    selectdir = filedialog.askdirectory(title=title, initialdir=initialdir, parent=_root)
+    root = tk.Tk()
+    root.tk.call('source', SUN_VALLEY_TCL)
+    root.tk.call('set_theme', 'light')
+    root.withdraw()
+    selectdir = tk.filedialog.askdirectory(title=title, initialdir=initialdir, parent=root)
     if len(selectdir) == 0:
         selectdir = None
-    _root.destroy()
+    root.destroy()
     return selectdir
 
 def dialog_get_file(title, initialdir, initialfile, defaultextension):
     # rooting to the main PySimpleGUI window
     # does not work here dute to color problems in the dialog box
-    _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
-    _root.withdraw()
-    selectfile = filedialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension=defaultextension, parent=_root)
+    root = tk.Tk()
+    root.tk.call('source', SUN_VALLEY_TCL)
+    root.tk.call('set_theme', 'light')
+    root.withdraw()
+    selectfile = tk.filedialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension=defaultextension, parent=root)
     if len(selectfile) == 0:
         selectfile = None
-    _root.destroy()
+    root.destroy()
     return selectfile
 
 def dialog_yesno(message):
     # rooting to the main PySimpleGUI window
-    yesorno = messagebox.askquestion('', message, icon='warning', parent=window.TKroot)
+    yesorno = tk.messagebox.askquestion('', message, icon='warning', parent=window.TKroot)
     return yesorno
 
 def dialog_error(message):
     # rooting to the main PySimpleGUI window
-    messagebox.showerror(title=txt_error[LANG], message=message, parent=window.TKroot)
+    tk.messagebox.showerror(title=txt_error[LANG], message=message, parent=window.TKroot)
     
 def popup(message):
     layout = [[sg.Text(message, background_color=background_color, text_color=text_color)]]
     windowpopup = sg.Window('Message', layout, no_titlebar=True, keep_on_top=True,
                             font = FONT_MED, background_color=background_color, finalize=True)
-    from tkinter import TclError
     from contextlib import suppress
-    with suppress(TclError):
+    with suppress(tk.TclError):
         windowpopup.TKroot.tk.call('source', SUN_VALLEY_TCL)
     windowpopup.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
     return windowpopup
 
-
 def scrollabled_text_window(text, title):
-            root = tk.Tk()
-            root.title(title)
-            root.geometry("1200x600")
-            scrollbar = tk.Scrollbar(root)
-            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-            text_widget = tk.Text(root, wrap=tk.WORD, yscrollcommand=scrollbar.set, width=50, height=20)
-            text_widget.pack(expand=True, fill='both')
-            scrollbar.config(command=text_widget.yview)
-            text_widget.insert(tk.END, text)
-            text_widget.config(state=tk.DISABLED)
-            root.mainloop()
+    root = tk.Tk()
+    root.title(title)
+    scrollbar = tk.Scrollbar(root)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    text_widget = tk.Text(root, wrap=tk.WORD, yscrollcommand=scrollbar.set, width=50, height=20)
+    text_widget.pack(expand=True, fill='both')
+    scrollbar.config(command=text_widget.yview)
+    text_widget.insert(tk.END, text)
+    text_widget.config(state=tk.DISABLED)
+    root.mainloop()
 
 
 import base64
@@ -1167,7 +1162,11 @@ while True:
         if platform.platform().lower().startswith("windows"):
             subprocess.Popen(r'explorer /select, "' + filenames[curridx] + '"')
     elif event == '-METADATA-' and len(values['-TAB-'])>0:
-        parser = createParser(filenames[curridx])
+        try:
+            parser = createParser(filenames[curridx])
+        except:
+            parser = None
+            metadata = None
         if parser:
             with parser:
                 try:
