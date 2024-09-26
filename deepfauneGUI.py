@@ -39,6 +39,7 @@ import io
 import os
 import multiprocessing
 import urllib
+import subprocess
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
@@ -443,7 +444,7 @@ def draw_slider(graph, value, enabled):
 
 # On windows, there is a button to open the selected file in explorer
 if platform.platform().lower().startswith("windows"):
-    button_openfile = [sg.Button("Open File Explorer XXX replace by button", key="-OPENFILE-")]
+    button_openfile = [sg.Button(image_data=OPEN_FOLDER_ICON, key="-OPENFILE-", button_color=(background_color,background_color))]
 else:
     button_openfile = []
 
@@ -1132,7 +1133,6 @@ while True:
                 debugprint("Enregistrement dans "+xlsxpath, "Saving to "+xlsxpath)
                 preddf.to_excel(xlsxpath, index=False)
     elif event == "-OPENFILE-" and len(values['-TAB-'])>0:
-        import subprocess
         if platform.platform().lower().startswith("windows"):
             subprocess.Popen(r'explorer /select, "' + filenames[curridx] + '"')
                 
