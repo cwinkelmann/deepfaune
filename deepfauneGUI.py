@@ -463,7 +463,7 @@ def draw_slider(graph, value, enabled):
 
 # On windows, there is a button to open the selected file in explorer
 if platform.platform().lower().startswith("windows"):
-    button_openfile = [sg.Button(image_data=OPEN_FOLDER_ICON, key="-OPENFILE-", button_color=(background_color,background_color))]
+    button_openfile = [sg.Button(image_data=OPEN_FOLDER_ICON, key="-OPENFILE-", button_color=(background_color,background_color), border_width=0)]
 else:
     button_openfile = []
 
@@ -518,7 +518,7 @@ layout = [
                      )],
                     [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), border_width=0, enable_events=True, tooltip=None)],
                     button_openfile,
-                    [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=None)],
+                    [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=None, border_width=0)],
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
