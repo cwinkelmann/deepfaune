@@ -144,5 +144,5 @@ class Model(nn.Module):
             self.nbclasses = args['num_classes']
             self.load_state_dict(params['state_dict'])
         except Exception as e:
-            print("\n/!\ Can't load checkpoint model /!\ because :\n\n " + str(e), file=sys.stderr)
+            print("Can't load checkpoint model because :\n\n " + str(e), file=sys.stderr)
             raise e
