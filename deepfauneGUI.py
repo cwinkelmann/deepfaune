@@ -435,6 +435,8 @@ SLIDER_HANDLE_RADIUS = 9
 def draw_slider(graph, value, enabled):
     graph.erase()
     handle_y = value * SLIDER_HEIGHT
+    handle_y = min(handle_y, SLIDER_HEIGHT - SLIDER_HANDLE_RADIUS)
+    handle_y = max(handle_y, SLIDER_HANDLE_RADIUS)
     trough_x = SLIDER_WIDTH / 2
     graph.draw_line((trough_x, 0), (trough_x, SLIDER_HEIGHT), color='#cccccc', width=4)
     if enabled:
