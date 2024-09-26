@@ -44,25 +44,20 @@ BACKBONE = "vit_large_patch14_dinov2.lvd142m"
 weight_path = 'weights/prod5v3_1e6_pa5_09-09-24_13-27/vit_large_patch.pt'
 
 txt_animalclasses = {
-    'fr': ["blaireau", "bouquetin", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "ecureuil", "equide", "genette",
-           "herisson", "lagomorphe", "loup", "lynx", "marmotte", "micromammifere", "mouflon",
-           "mouton", "mustelide", "oiseau", "ours", "ragondin", "renard", "sanglier", "vache"],
-    'en': ["badger", "ibex", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "squirrel", "equid", "genet",
-           "hedgehog", "lagomorph", "wolf", "lynx", "marmot", "micromammal", "mouflon",
-           "sheep", "mustelid", "bird", "bear", "nutria", "fox", "wild boar", "cow"],
-    'it': ["tasso", "stambecco", "cervo", "camoscio", "gatto", "capra", "capriolo", "cane", "scoiattolo", "equide", "genet",
-           "riccio", "lagomorfo", "lupo", "lince", "marmotta", "micromammifero", "muflone",
-           "pecora", "mustelide", "uccello", "orso", "nutria", "volpe", "cinghiale", "mucca"],
-    'de': ["Dachs", "Steinbock", "Rothirsch", "Gämse", "Katze", "Ziege", "Rehwild", "Hund", "Eichhörnchen", "Equiden", "Ginsterkatze",
-           "Igel", "Lagomorpha", "Wolf", "Luchs", "Murmeltier", "Kleinsäuger", "Mufflon",
-           "Schaf", "Mustelide", "Vogen", "Bär", "Nutria", "Fuchs", "Wildschwein", "Kuh"],
+    'fr': ["blaireau", "bouquetin", "castor", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "daim", "ecureuil", "equide", "genette",
+           "herisson", "lagomorphe", "loup", "loutre", "lynx", "marmotte", "micromammifere", "mouflon",
+           "mouton", "mustelide", "oiseau", "ours", "ragondin", 'ratonlaveur', "renard", "sanglier", "vache"],
+    'en': ["badger", "ibex", "xxxcastor", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "XXXdaim", "squirrel", "equid", "genet",
+           "hedgehog", "lagomorph", "wolf", "xxxloutre", "lynx", "marmot", "micromammal", "mouflon",
+           "sheep", "mustelid", "bird", "bear", "nutria", 'xxxratonlaveur', "fox", "wild boar", "cow"],
+    'it': ["tasso", "stambecco", "xxxcastor", "cervo", "camoscio", "gatto", "capra", "capriolo", "cane", "XXXdaim", "scoiattolo", "equide", "genet",
+           "riccio", "lagomorfo", "lupo", "xxxloutre", "lince", "marmotta", "micromammifero", "muflone",
+           "pecora", "mustelide", "uccello", "orso", "nutria", 'xxxratonlaveur', "volpe", "cinghiale", "mucca"],
+    'de': ["Dachs", "Steinbock", "xxxcastor", "Rothirsch", "Gämse", "Katze", "Ziege", "Rehwild", "Hund", "XXXdaim", "Eichhörnchen", "Equiden", "Ginsterkatze",
+           "Igel", "Lagomorpha", "Wolf", "xxxloutre", "Luchs", "Murmeltier", "Kleinsäuger", "Mufflon",
+           "Schaf", "Mustelide", "Vogen", "Bär", "Nutria", 'xxxratonlaveur', "Fuchs", "Wildschwein", "Kuh"],
     
 }
-
-# using new classes
-sp = txt_animalclasses["fr"] + ['daim', 'ratonlaveur', "loutre", "castor"]
-sp.sort()
-txt_animalclasses = dict(fr=sp, en=sp, it=sp, de=sp)
 
 ####################################################################################
 ### CLASSIFIER
