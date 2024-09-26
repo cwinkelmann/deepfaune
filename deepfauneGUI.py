@@ -758,8 +758,11 @@ def playVideoUntilOtherEvent(filename):
                 kframe = 0
             updateFromThreadQueue()
             if event != '__TIMEOUT__':
-                if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
+                if event == "-PLAY-": # pause button
                     play = False
+                elif event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
+                    play = False
+                
     videocap.release()
     # updating position in Table,
     # such that we focus on the row/file of interest,
@@ -769,6 +772,7 @@ def playVideoUntilOtherEvent(filename):
     #    window['-TAB-'].update(select_rows=[rowidx])
     #    window['-TAB-'].Widget.see(rowidx+1)
     updateImage(previmagecv, rescale_slider(slider_value))
+    window['-PLAY-'].Update(image_data=NICE_PLAYIN_ICON)
     return event, values
 
 def playSequenceUntilOtherEvent(filename):
@@ -802,9 +806,12 @@ def playSequenceUntilOtherEvent(filename):
             k = k1
         updateFromThreadQueue()
         if event != '__TIMEOUT__':
-            if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
+            if event == "-PLAY-": # pause button
+                play = False
+            elif event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
                 play = False
     updateImage(previmagecv, rescale_slider(slider_value))
+    window['-PLAY-'].Update(image_data=NICE_PLAYIN_ICON)
     return event, values
    
 #########################
@@ -1145,7 +1152,7 @@ while True:
         ## SHOW SELECTED MEDIA
         ## AND ITS PREDICTION
         #########################
-        if event != "-GAMMALEVEL-" and slider_value != 0.5 and event != '-IMAGE-DOUBLECLICK-':
+        if event != "-GAMMALEVEL-" and slider_value != 0.5 and event != '-IMAGE-DOUBLECLICK-' and event != '-PLAY-':
             update_slider(0.5)
         rowidx = values['-TAB-'][0]       
         curridx = subsetidx[rowidx]
