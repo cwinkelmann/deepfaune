@@ -795,7 +795,7 @@ def playSequenceUntilOtherEvent(filename):
             k = k1
         updateFromThreadQueue()
         if event != '__TIMEOUT__':
-            if event != '-CONFIG-' and event != "-GAMMALEVEL-":
+            if event != '-CONFIG-' and event != "-GAMMALEVEL-" and event != "-GAMMALEVEL-+UP":
                 play = False
     updateImage(previmagecv, rescale_slider(slider_value))
     return event, values
