@@ -255,6 +255,8 @@ def popup(message):
 
 def scrollabled_text_window(text, title):
     root = tk.Tk()
+    root.tk.call('source', SUN_VALLEY_TCL)
+    root.tk.call('set_theme', 'dark')
     root.title(title)
     scrollbar = tk.Scrollbar(root)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
