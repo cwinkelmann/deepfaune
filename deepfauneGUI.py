@@ -860,7 +860,7 @@ if checkupdate and online_version:
 while True:
     event, values = window.read(timeout=10)
     if event != "__TIMEOUT__" and DEBUG is True:
-        print("Step1:",event)
+        print(event)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     
@@ -883,8 +883,6 @@ while True:
         window['-PLAY-'].Update(image_data=NICE_PAUSE_ICON)
         event, values = playSequenceUntilOtherEvent(filenames[curridx]) # captures the window event internally
         
-    if event != "__TIMEOUT__" and DEBUG is True:
-        print("Step2:",event)
     #########################
     ## WINDOW RESIZING ?
     #########################
