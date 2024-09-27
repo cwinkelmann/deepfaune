@@ -843,7 +843,7 @@ def playSequenceUntilOtherEvent(filename):
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = True
+DEBUG = False 
 
 draw_popup_update = False
 draw_meta = False
