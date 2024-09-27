@@ -1,4 +1,4 @@
-# Copyright CNRS 2023
+# Copyright CNRS 2024
 
 # simon.chamaille@cefe.cnrs.fr; vincent.miele@univ-lyon1.fr
 
@@ -43,7 +43,31 @@ from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
 import subprocess
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, TclError
+import configparser
+import base64
+from b64_images import *
+from contextlib import suppress
+from PIL import Image, ImageDraw
+from io import BytesIO
+import platform
+from datetime import datetime
+import pandas as pd
+from os import mkdir
+from os.path import join, basename
+from pathlib import Path
+import pkgutil
+import time
+from collections import deque
+from statistics import mean
+import queue
+import webbrowser
+import copy
+import shutil
+
+from predictTools import txt_undefined, txt_empty, txt_classes
+from classifTools import txt_animalclasses
+
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
@@ -61,7 +85,6 @@ maxlag = maxlag_default = 10 # seconds
 listlang = ['fr', 'en', 'it', 'de']
 
 ## From settings.ini
-import configparser
 config = configparser.ConfigParser()
 
 def configget(option, defaultvalue):
@@ -87,8 +110,6 @@ checkupdate = configget('checkupdate', 'True')
 ####################################################################################
 ### GUI TEXT
 ####################################################################################
-from predictTools import txt_undefined, txt_empty, txt_classes
-from classifTools import txt_animalclasses
 txt_other =  {'fr':"autre", 'en':"other",
               'it':"altro", 'de':"andere Klasse"}
 txt_browse = {'fr':"Choisir", 'en':"Select",
@@ -171,13 +192,11 @@ tooltip_playpause = {'fr': 'Lire la vidéo/séquence',
 
 tooltip_openfolder = {'fr': "Afficher le fichier dans Windows Explorer",
                       'en': 'Show file in Windows Explorer',
-                      'it': 'Mostra il file in Esplora risorse',
+                      'it': 'Mostra il file in Windows Explorer',
                       'de': 'Datei im Windows Explorer anzeigen'}
 ####################################################################################
 ### THEME SETTINGS
 ####################################################################################
-from b64_images import *
-
 DEFAULT_THEME = {'accent': '#24a0ed', 'background': '#1c1c1c', 'text': '#d7d7d7', 'alt_background': '#2f2f2f'}
 accent_color, text_color, background_color, alt_background = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background'], DEFAULT_THEME['alt_background']
 
@@ -261,7 +280,6 @@ def popup(message):
     layout = [[sg.Text(message, background_color=background_color, text_color=text_color)]]
     windowpopup = sg.Window('Message', layout, no_titlebar=True, keep_on_top=True,
                             font = FONT_MED, background_color=background_color, finalize=True)
-    from contextlib import suppress
     with suppress(tk.TclError):
         windowpopup.TKroot.tk.call('source', SUN_VALLEY_TCL)
     windowpopup.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
@@ -281,9 +299,6 @@ def scrollabled_text_window(text, title):
     text_widget.config(state=tk.DISABLED)
     root.mainloop()
 
-
-import base64
-from PIL import Image, ImageDraw
 def StyledButton(button_text, fill, text_color, background_color, font=None, tooltip=None, key=None, visible=True,
               pad=None, bind_return_key=False, button_width=None):
     multi = 4
@@ -334,7 +349,6 @@ def StyledMenu(menu_definition, text_color, background_color, text_font, key):
 ### CHECKING SCREEN SIZE & RESOLUTION FOR IMAGE DISPLAY
 ####################################################################################
 # Image display
-from io import BytesIO
 def cv2bytes(imagecv, imsize=None):
     if imsize is not None and imsize[0]>0 and imsize[1]>0:
         imagecv_resized = cv2.resize(imagecv, imsize)
@@ -349,7 +363,6 @@ logoimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dty
 curimagecv = logoimagecv
 
 # Checking screen possibilities and sizing image accordinglyimport ctypes
-import platform
 DEFAULTIMGSIZE = (width,height) = (933,700)
 try:
     if platform.platform().lower().startswith("windows"):
@@ -530,6 +543,7 @@ layout = [
                          drag_submits=True,  # Enable drag events
                          background_color=background_color,
                      )],
+                    [sg.HorizontalSeparator(pad=10)],
                     [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), border_width=0, enable_events=True, tooltip=tooltip_playpause[LANG])],
                     button_openfile,
                     [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=tooltip_metadata[LANG], border_width=0)],
@@ -558,8 +572,6 @@ window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
 
-from tkinter import TclError
-from contextlib import suppress
 with suppress(TclError):
     window.TKroot.tk.call('source', SUN_VALLEY_TCL)
 window.TKroot.tk.call('set_theme', SUN_VALLEY_THEME) # if dark, implies -CONFIG- events due to internal additionnal padding
@@ -673,16 +685,6 @@ def resizeImage():
 ####################################################################################
 ### GUI IN ACTION
 ####################################################################################
-from datetime import datetime
-import pandas as pd
-from os import mkdir
-from os.path import join, basename
-from pathlib import Path
-import pkgutil
-import time
-from collections import deque
-from statistics import mean
-import queue
 
 #########################
 ## GLOBAL VARIABLES
@@ -825,6 +827,7 @@ def playSequenceUntilOtherEvent(filename):
         play = False
         window['-PLAY-'].Update(image_data=NICE_PLAYIN_ICON)
         return event, values
+    t0 = time.time()
     while(play):
         event, values = window.read(timeout=10)
         if slider_enabled and event == '-GAMMALEVEL-':
@@ -838,7 +841,9 @@ def playSequenceUntilOtherEvent(filename):
         if humanbluractivated:
             blur_boxes(imagecv, predictor.getHumanBoxes(filenames[k]))
         updateImage(imagecv, rescale_slider(slider_value))
-        k = k+1
+        if time.time() - t0 > 0.5:
+            k = k + 1
+            t0 = time.time()
         if k>k2:
             k = k1
         updateFromThreadQueue()
@@ -854,7 +859,7 @@ def playSequenceUntilOtherEvent(filename):
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = True
+DEBUG = False 
 
 draw_popup_update = False
 draw_meta = False
@@ -874,7 +879,7 @@ if checkupdate and online_version:
 while True:
     event, values = window.read(timeout=10)
     if event != "__TIMEOUT__" and DEBUG is True:
-        print("Step1:",event)
+        print(event)
     if event in (sg.WIN_CLOSED, 'Exit'):
         break
     
@@ -897,8 +902,6 @@ while True:
         window['-PLAY-'].Update(image_data=NICE_PAUSE_ICON)
         event, values = playSequenceUntilOtherEvent(filenames[curridx]) # captures the window event internally
         
-    if event != "__TIMEOUT__" and DEBUG is True:
-        print("Step2:",event)
     #########################
     ## WINDOW RESIZING ?
     #########################
@@ -936,7 +939,6 @@ while True:
         while draw_popup_update:
             eventconfig, valuesconfig = windowupdate.read(timeout=10)
             if eventconfig == '-UPDATE-':
-                import webbrowser
                 webbrowser.open("https://www.deepfaune.cnrs.fr")
                 draw_popup_update = False
             if eventconfig == '-NOUPDATECHECK-':
@@ -997,7 +999,6 @@ while True:
         #########################
         ## CREDITS
         #########################
-        import webbrowser
         webbrowser.open("https://www.deepfaune.cnrs.fr")
         continue
     elif event == txt_importimage[LANG] or event == txt_importvideo[LANG]: 
@@ -1067,7 +1068,6 @@ while True:
         #########################
         ## CONFIGURE
         #########################
-        import copy
         if VIDEO:
             sequencespin = []
         else:
@@ -1301,7 +1301,6 @@ while True:
             if destdir is not None:
                 debugprint("Copie vers "+join(destdir,"deepfaune_"+now), "Copying to "+join(destdir,"deepfaune_"+now))
         if destdir is not None:
-            import shutil
             predictedclass, predictedscore, _, _ = predictor.getPredictions()
             mkdir(join(destdir,"deepfaune_"+now))
             for subfolder in set(predictedclass):

@@ -1,8 +1,13 @@
-2024-09-25  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2024-09-27  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 1.2.0
-	    * New column 'Top1' (predicted class, even above the threshold) is now in csv/xslx export.
-	    * Videos and sequences can be played.	    
+	    * More efficient classification model, still based on vit_large_patch14_dinov2 architecture.
+	    * New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
+	    * New column 'Top1' (predicted class, even below  the threshold) is now in csv/xslx export.
+	    * Videos and sequences can be played.
+	    * Metadata can be displayed in a separate windows.
+	    * Brightness can be changed.
+	    * On Windows, images can be opened in explorer
 
 2024-01-12  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
@@ -30,7 +35,7 @@
 	    * Box count available as an option (experimental).
 	    * API changes with no reverse compatibility with previous versions.
 
-2023-03-23  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2023-03-23  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 0.6.0
 	    * New categories 'genet', 'goat', 'hedgehog' and 'nutria' (in french 'genette', 'chevre', 'herisson' and 'ragondin').
@@ -40,14 +45,14 @@
 	    Model weights are now in 'deepfaune-yolov8s.pt'.
 	    
 
-2023-02-16  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2023-02-16  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 0.5.3
 	    * New multiline view in results table for videos.
 	    * Bug fix: progress bar is reinitialized when loading a new folder.
 	    * Bug fix: correct handling of empty/null images.
 
-2023-01-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2023-01-18  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 0.5.2
 	    * Improved confidence score for videos, leading to less videos classified as "undefined".
@@ -57,14 +62,14 @@
 	    * New default threshold to 0.8
 	    * New testdata/ content with images for a quick software trial.
 
-2022-11-12  Gaspard Dussert  <gaspard.dussert@univ-lyon1.fr>
+2022-11-12  Gaspard Dussert  <gaspard.dussert@cnrs.fr>
 
 	    Version 0.5.1
 	    * Bug fix: The software do not crash when no folder is selected to save in a CSV/XLSX file.
 	    * Bug fix: Overwriting of files with the same name is now prevented when they are copied/moved.
 	    Filenames are now changed with an additionnal "_1,_2,..." tag if necessary.
 
-2022-10-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-10-18  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 0.5.0
 	    * New categories 'bear' and 'equide' (in french 'ours' and 'equide').
@@ -77,13 +82,13 @@
 	    * Users can choose the folder to save csv/xlsx files.
 	    * It is possible to select a subset of categories/species to keep for prediction.
 
-22022-09-01  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+22022-09-01  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 0.4.1
 	    * New GUI shape with tabs.
 	    * Date/time are now saved in csv/xslx files.
 
-2022-07-06  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-07-06  Vincent Miele  <vincent.miele@cnrs.fr>
     
 	    Version 0.4.0
 	    * New detector weights, with a more restrictive threshold to enhance empty detection.
@@ -91,12 +96,12 @@
 	    * New class PredictorJSON to hanlde JSON results from MegaDetector.
 	    * Directory demo/ now contains example of API use.
 
-2022-05-23  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-05-23  Vincent Miele  <vincent.miele@cnrs.fr>
 	    
 	    Version 0.3.1
 	    * Video are now accepted and transformed into sequences of 8 images for the first 8 seconds.
 
-2022-05-16  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-05-16  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 0.3.0
 	    * Now relying on openCV.
@@ -105,7 +110,7 @@
 	    * New heuristic to detect sequences of identical images.
 	    * Fully modular code, with available API.
 	    
-2022-03-28  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-03-28  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 0.2.1
 	    * Bug fix: threshold button is now working correctly.
@@ -113,7 +118,7 @@
 	    * File ordering is now optimal for vizualization: by folder, then
 	    by alphabetical order.
 
-2022-03-18  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-03-18  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 0.2
 	    * New categories 'cat','lynx' and 'marmot' (in french 'chat', 'lynx' and 'marmotte').
@@ -122,7 +127,7 @@
 	    * The principal windows is now desactivated when using the visualization window.
 	    * Version working on Linux/Windows, and now on Mac OSX
 	   
-2022-02-14  Vincent Miele  <vincent.miele@univ-lyon1.fr>
+2022-02-14  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Pre-release version O.1
 	    * Includes categories 'badger','ibex','red deer','chamois','cat','roe deer','dog','squirrel',

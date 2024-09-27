@@ -1,4 +1,4 @@
-# Copyright CNRS 2023
+# Copyright CNRS 2024
 
 # simon.chamaille@cefe.cnrs.fr; vincent.miele@univ-lyon1.fr
 
