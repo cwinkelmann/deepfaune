@@ -1,8 +1,11 @@
 2024-09-25  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 
 	    Version 1.2.0
+	    * New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
 	    * New column 'Top1' (predicted class, even above the threshold) is now in csv/xslx export.
-	    * Videos and sequences can be played.	    
+	    * Videos and sequences can be played.
+	    * Metadata can be displayed in a separate windows.
+	    * Brightness can be changed.
 
 2024-01-12  Vincent Miele  <vincent.miele@univ-lyon1.fr>
 

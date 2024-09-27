@@ -10,9 +10,9 @@
 # NEWS
 ---
 
-Release v1.1 is available on Linux. 
+Release v1.2 is available on Linux. 
 
-Supported categories/species : BADGER, BEAR, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, REDDEER, ROEDEER, SHEEP, SQUIRREL, WILDBOAR, WOLF + HUMAN, VEHICULE + EMPTY 
+Supported categories/species : BADGER, BEAR, BEAVER, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FALLOW DEER, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, OTTER, RACCOON, RED DEER, ROE DEER, SHEEP, SQUIRREL, WILD BOAR, WOLF + HUMAN + VEHICULE + EMPTY 
 
 ---
 # INSTALL
@@ -33,10 +33,11 @@ The latest versions are available at:
 `Deepfaune` sofware is released under the [CeCILL](http://www.cecill.info) licence, compatible with [GNU GPL](http://www.gnu.org/licenses/gpl-3.0.html).
 
 ### 1. Get the source code of the latest release, directly from this site. 
-Option1 (latest stable version):  get the `zip` archive by clicking on the button `Download` (next to "Create release") on the last row of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
-Then, uncompress the zip file.
 
-Option2 (latest version): clone the repository by clicking on the blue button above.
+Option1 (latest version, recommended): clone the repository by clicking on the blue button above.
+
+Option2 (latest stable version):  get the `zip` archive by clicking on the button `Download` (next to "Create release") on the last row of [https://plmlab.math.cnrs.fr/deepfaune/software/-/tags](https://plmlab.math.cnrs.fr/deepfaune/software/-/tags). 
+Then, uncompress the zip file.
 
 ###  2. Download and unzip the model parameters
 The model parameters are protected by the [CC BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0/) (Attribution-NonCommercial-ShareAlike 4.0 International).
@@ -45,7 +46,7 @@ Download the model parameters *inside the deepfaune folder* where you can find `
 
 - Animal detector parameters: for version 1.1.x [deepfaune-yolov8s_960.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.1/)
 
-- Classifier parameters: for version 1.1.x [deepfaune-vit_large_patch14_dinov2.lvd142m.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.1/)
+- Classifier parameters: for version 1.2.x [deepfaune-vit_large_patch14_dinov2.lvd142m.v2.pt](https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.2/)
 
 ### 3. Install the dependencies
 
