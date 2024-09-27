@@ -180,6 +180,20 @@ txt_enablecheckupdate = {'fr': "Me le rappeler plus tard",
                          'en': "Remind me later",
                          'it': 'Ricordamelo più tardi',
                          'de': 'Erinnere mich später'}
+tooltip_metadata = {'fr': 'Metadata',
+                    'en': 'Metadata',
+                    'it': 'Metadati',
+                    'de': 'Metadaten'}
+
+tooltip_playpause = {'fr': 'Lire la vidéo/séquence',
+                     'en': 'Play the video/sequence',
+                     'it': 'Riproduci il video/sequenza',
+                     'de': 'Video/Sequenz abspielen'}
+
+tooltip_openfolder = {'fr': "Afficher le fichier dans Windows Explorer",
+                      'en': 'Show file in Windows Explorer',
+                      'it': 'Mostra il file in Windows Explorer',
+                      'de': 'Datei im Windows Explorer anzeigen'}
 ####################################################################################
 ### THEME SETTINGS
 ####################################################################################
@@ -475,7 +489,8 @@ def draw_slider(graph, value, enabled):
 
 # On windows, there is a button to open the selected file in explorer
 if platform.platform().lower().startswith("windows"):
-    button_openfile = [sg.Button(image_data=OPEN_FOLDER_ICON, key="-OPENFILE-", button_color=(background_color,background_color), border_width=0)]
+    button_openfile = [sg.Button(image_data=OPEN_FOLDER_ICON, key="-OPENFILE-", button_color=(background_color,background_color), border_width=0,
+                                 tooltip=tooltip_openfolder[LANG])]
 else:
     button_openfile = []
 
@@ -529,9 +544,9 @@ layout = [
                          background_color=background_color,
                      )],
                     [sg.HorizontalSeparator(pad=10)],
-                    [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), border_width=0, enable_events=True, tooltip=None)],
+                    [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), border_width=0, enable_events=True, tooltip=tooltip_playpause[LANG])],
                     button_openfile,
-                    [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=None, border_width=0)],
+                    [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=tooltip_metadata[LANG], border_width=0)],
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
