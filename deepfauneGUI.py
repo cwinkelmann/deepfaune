@@ -515,6 +515,7 @@ layout = [
                          drag_submits=True,  # Enable drag events
                          background_color=background_color,
                      )],
+                    [sg.HorizontalSeparator(pad=10)],
                     [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), border_width=0, enable_events=True, tooltip=None)],
                     button_openfile,
                     [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=None, border_width=0)],
