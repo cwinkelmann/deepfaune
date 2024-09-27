@@ -810,6 +810,7 @@ def playSequenceUntilOtherEvent(filename):
         play = False
         window['-PLAY-'].Update(image_data=NICE_PLAYIN_ICON)
         return event, values
+    t0 = time.time()
     while(play):
         event, values = window.read(timeout=10)
         if slider_enabled and event == '-GAMMALEVEL-':
@@ -823,7 +824,9 @@ def playSequenceUntilOtherEvent(filename):
         if humanbluractivated:
             blur_boxes(imagecv, predictor.getHumanBoxes(filenames[k]))
         updateImage(imagecv, rescale_slider(slider_value))
-        k = k+1
+        if time.time() - t0 > 0.5:
+            k = k + 1
+            t0 = time.time()
         if k>k2:
             k = k1
         updateFromThreadQueue()
