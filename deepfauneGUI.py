@@ -39,7 +39,11 @@ import io
 import os
 import multiprocessing
 import urllib
+from hachoir.parser import createParser
+from hachoir.metadata import extractMetadata
 import subprocess
+import tkinter as tk
+from tkinter import ttk
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 
@@ -204,54 +208,66 @@ def copyfile_blur(src, dst, boxes=None):
         blur_boxes(imagecv, boxes)
         cv2.imwrite(dst, imagecv)
 
-import tkinter
-from tkinter import filedialog, messagebox
 def dialog_get_dir(title, initialdir=None):
     # rooting to the main PySimpleGUI window
     # does not work here dute to color problems in the dialog box
-    _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
-    _root.withdraw()
-    selectdir = filedialog.askdirectory(title=title, initialdir=initialdir, parent=_root)
+    root = tk.Tk()
+    root.tk.call('source', SUN_VALLEY_TCL)
+    root.tk.call('set_theme', 'light')
+    root.withdraw()
+    selectdir = tk.filedialog.askdirectory(title=title, initialdir=initialdir, parent=root)
     if len(selectdir) == 0:
         selectdir = None
-    _root.destroy()
+    root.destroy()
     return selectdir
 
 def dialog_get_file(title, initialdir, initialfile, defaultextension):
     # rooting to the main PySimpleGUI window
     # does not work here dute to color problems in the dialog box
-    _root = tkinter.Tk()
-    _root.tk.call('source', SUN_VALLEY_TCL)
-    _root.tk.call('set_theme', 'light')
-    _root.withdraw()
-    selectfile = filedialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension=defaultextension, parent=_root)
+    root = tk.Tk()
+    root.tk.call('source', SUN_VALLEY_TCL)
+    root.tk.call('set_theme', 'light')
+    root.withdraw()
+    selectfile = tk.filedialog.asksaveasfilename(initialdir=initialdir, initialfile=initialfile, defaultextension=defaultextension, parent=root)
     if len(selectfile) == 0:
         selectfile = None
-    _root.destroy()
+    root.destroy()
     return selectfile
 
 def dialog_yesno(message):
     # rooting to the main PySimpleGUI window
-    yesorno = messagebox.askquestion('', message, icon='warning', parent=window.TKroot)
+    yesorno = tk.messagebox.askquestion('', message, icon='warning', parent=window.TKroot)
     return yesorno
 
 def dialog_error(message):
     # rooting to the main PySimpleGUI window
-    messagebox.showerror(title=txt_error[LANG], message=message, parent=window.TKroot)
+    tk.messagebox.showerror(title=txt_error[LANG], message=message, parent=window.TKroot)
     
 def popup(message):
     layout = [[sg.Text(message, background_color=background_color, text_color=text_color)]]
     windowpopup = sg.Window('Message', layout, no_titlebar=True, keep_on_top=True,
                             font = FONT_MED, background_color=background_color, finalize=True)
-    from tkinter import TclError
     from contextlib import suppress
-    with suppress(TclError):
+    with suppress(tk.TclError):
         windowpopup.TKroot.tk.call('source', SUN_VALLEY_TCL)
     windowpopup.TKroot.tk.call('set_theme', SUN_VALLEY_THEME)
     return windowpopup
-    
+
+def scrollabled_text_window(text, title):
+    root = tk.Tk()
+    root.tk.call('source', SUN_VALLEY_TCL)
+    root.tk.call('set_theme', 'dark')
+    root.title(title)
+    scrollbar = tk.Scrollbar(root)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    text_widget = tk.Text(root, wrap=tk.WORD, yscrollcommand=scrollbar.set, width=50, height=20)
+    text_widget.pack(expand=True, fill='both')
+    scrollbar.config(command=text_widget.yview)
+    text_widget.insert(tk.END, text)
+    text_widget.config(state=tk.DISABLED)
+    root.mainloop()
+
+
 import base64
 from PIL import Image, ImageDraw
 def StyledButton(button_text, fill, text_color, background_color, font=None, tooltip=None, key=None, visible=True,
@@ -446,7 +462,7 @@ def draw_slider(graph, value, enabled):
 
 # On windows, there is a button to open the selected file in explorer
 if platform.platform().lower().startswith("windows"):
-    button_openfile = [sg.Button(image_data=OPEN_FOLDER_ICON, key="-OPENFILE-", button_color=(background_color,background_color))]
+    button_openfile = [sg.Button(image_data=OPEN_FOLDER_ICON, key="-OPENFILE-", button_color=(background_color,background_color), border_width=0)]
 else:
     button_openfile = []
 
@@ -501,6 +517,7 @@ layout = [
                      )],
                     [sg.Button(key='-PLAY-', image_data=NICE_PLAYIN_ICON, button_color=(background_color,background_color), border_width=0, enable_events=True, tooltip=None)],
                     button_openfile,
+                    [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=None, border_width=0)],
                 ], background_color=background_color, expand_y=True)
             ]
         ], background_color=background_color, expand_y=True)]
@@ -822,9 +839,10 @@ def playSequenceUntilOtherEvent(filename):
 #########################
 ## MAIN LOOP
 #########################
-DEBUG = False
+DEBUG = True
 
 draw_popup_update = False
+draw_meta = False
 try:
     online_version = urllib.request.urlopen('https://pbil.univ-lyon1.fr/software/download/deepfaune/.version', timeout=1)
     online_version = online_version.read().decode().replace("\n", "")
@@ -1149,7 +1167,23 @@ while True:
     elif event == "-OPENFILE-" and len(values['-TAB-'])>0:
         if platform.platform().lower().startswith("windows"):
             subprocess.Popen(r'explorer /select, "' + filenames[curridx] + '"')
-                
+    elif event == '-METADATA-' and len(values['-TAB-'])>0:
+        try:
+            parser = createParser(filenames[curridx])
+        except:
+            parser = None
+            metadata = None
+        if parser:
+            with parser:
+                try:
+                    metadata = extractMetadata(parser)
+                except Exception as err:
+                    metadata = None
+        if metadata:
+            text = "\n".join(metadata.exportPlaintext()[1:])
+            text = f"- Path: {filenames[curridx]}\n" + text
+            scrollabled_text_window(text, "Metadata")
+
     elif (testdir is not None) \
          and (event == '-TAB-' and len(values['-TAB-'])>0) \
          and (len(subsetidx)>0) or (event == "-GAMMALEVEL-" and slider_enabled):
