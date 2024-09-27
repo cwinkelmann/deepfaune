@@ -41,22 +41,21 @@ from torchvision.transforms import InterpolationMode, transforms
 
 CROP_SIZE = 182
 BACKBONE = "vit_large_patch14_dinov2.lvd142m"
-weight_path = 'weights/prod5v3_1e6_pa5_09-09-24_13-27/vit_large_patch.pt'
+weight_path = 'deepfaune-vit_large_patch14_dinov2.lvd142m.v2.pt'
 
 txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "castor", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "daim", "ecureuil", "equide", "genette",
            "herisson", "lagomorphe", "loup", "loutre", "lynx", "marmotte", "micromammifere", "mouflon",
-           "mouton", "mustelide", "oiseau", "ours", "ragondin", 'ratonlaveur', "renard", "sanglier", "vache"],
-    'en': ["badger", "ibex", "beaver", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "fallowdeer", "squirrel", "equid", "genet",
+           "mouton", "mustelide", "oiseau", "ours", "ragondin", 'raton laveur', "renard", "sanglier", "vache"],
+    'en': ["badger", "ibex", "beaver", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "fallow deer", "squirrel", "equid", "genet",
            "hedgehog", "lagomorph", "wolf", "otter", "lynx", "marmot", "micromammal", "mouflon",
            "sheep", "mustelid", "bird", "bear", "nutria", 'raccoon', "fox", "wild boar", "cow"],
-    'it': ["tasso", "stambecco", "xxxcastor", "cervo", "camoscio", "gatto", "capra", "capriolo", "cane", "XXXdaim", "scoiattolo", "equide", "genet",
-           "riccio", "lagomorfo", "lupo", "xxxloutre", "lince", "marmotta", "micromammifero", "muflone",
-           "pecora", "mustelide", "uccello", "orso", "nutria", 'xxxratonlaveur', "volpe", "cinghiale", "mucca"],
-    'de': ["Dachs", "Steinbock", "xxxcastor", "Rothirsch", "Gämse", "Katze", "Ziege", "Rehwild", "Hund", "XXXdaim", "Eichhörnchen", "Equiden", "Ginsterkatze",
-           "Igel", "Lagomorpha", "Wolf", "xxxloutre", "Luchs", "Murmeltier", "Kleinsäuger", "Mufflon",
-           "Schaf", "Mustelide", "Vogen", "Bär", "Nutria", 'xxxratonlaveur', "Fuchs", "Wildschwein", "Kuh"],
-    
+    'it': ["tasso", "stambecco", "castoro", "cervo", "camoscio", "gatto", "capra", "capriolo", "cane", "daino", "scoiattolo", "equide", "genetta",
+           "riccio", "lagomorfo", "lupo", "lontra", "lince", "marmotta", "micromammifero", "muflone",
+           "pecora", "mustelide", "uccello", "orso", "nutria", 'procione', "volpe", "cinghiale", "mucca"],
+    'de': ["Dachs", "Steinbock", "Biber", "Rothirsch", "Gämse", "Katze", "Ziege", "Rehwild", "Hund", "Damwild", "Eichhörnchen", "Equide",
+           "Ginsterkatze", "Igel", "Lagomorpha", "Wolf", "Otter", "Luchs", "Murmeltier", "Kleinsäuger", "Mufflon",
+           "Schaf", "Marder", "Vogel", "Bär", "Nutria", 'Waschbär', "Fuchs", "Wildschwein", "Kuh"],
 }
 
 ####################################################################################
