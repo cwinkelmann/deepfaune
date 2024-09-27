@@ -55,9 +55,9 @@ class Detector:
         except FileNotFoundError:
             return None, 0, np.zeros(4), 0, None
         except Exception as err:
-            print(f"Unexpected {err=}, {type(err)=}")
-            #raise
+            return None, 0, np.zeros(4), 0, None
         # orig_img a numpy array (cv2) in BGR
+        print("/////////////",results)
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
         if not len(detection.cls) or detection.conf[0] < threshold:
