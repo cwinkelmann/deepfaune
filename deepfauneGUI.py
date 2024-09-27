@@ -128,10 +128,10 @@ txt_run = {'fr':"Lancer", 'en':"Run",
            'it':"Inviare", 'de':"Starten"}
 txt_paramframe = {'fr':"Paramètres", 'en':"Parameters",
                   'it':"Parametri", 'de':"Parameter"}
-txt_selectclasses = {'fr':"Désélectionner les classes animales non présentes dans votre secteur",
-                     'en':"Deselect animal classes not found in your area",
-                     'it':"Deselezionare le animale classi non presenti nella propria area",
-                     'de':"Deaktivieren Sie Animal Klassen, die in Ihrer Region nicht gefunden wurden"}
+txt_selectclasses = {'fr':"Désélectionner les classes animales absentes de votre zone d'étude",
+                     'en':"Deselect animal classes not found in your study area",
+                     'it':"Deselezionare le animale classi assenti della zona di studio",
+                     'de':"Deaktivieren Sie Animal Klassen, die in Ihrem Studiengebiet fehlen"}
 txt_all = {'fr':"toutes", 'en':"all",
            'it':"tutte", 'de':"Alles"}
 txt_classnotfound = {'fr':"Aucun média pour cette classe", 'en':"No media found for this class",
