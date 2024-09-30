@@ -1185,17 +1185,17 @@ while True:
         if platform.platform().lower().startswith("windows"):
             subprocess.Popen(r'explorer /select, "' + filenames[curridx] + '"')
     elif event == '-METADATA-' and len(values['-TAB-'])>0:
+        metadata = None
         try:
             parser = createParser(filenames[curridx])
         except:
             parser = None
-            metadata = None
         if parser:
             with parser:
                 try:
                     metadata = extractMetadata(parser)
                 except Exception as err:
-                    metadata = None
+                    pass
         if metadata:
             text = "\n".join(metadata.exportPlaintext()[1:])
             text = f"- Path: {filenames[curridx]}\n" + text
