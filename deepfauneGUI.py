@@ -361,8 +361,8 @@ def cv2bytes(imagecv, imsize=None):
     return bio.getvalue()
 
 # Initial logo image
-logoimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
-curimagecv = logoimagecv
+startimagecv = cv2.imdecode(np.fromfile("icons/startscreen.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
+curimagecv = startimagecv
 
 # Checking screen possibilities and sizing image accordinglyimport ctypes
 DEFAULTIMGSIZE = (width,height) = (933,700)
@@ -677,7 +677,7 @@ def updateImage(newcurimagecv=None, gamma=1.):
         curimagecv = newcurimagecv
     curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
     window['-IMAGE-'].update(data=cv2bytes(gamma_correction(curimagecv, gamma), curimsize))
- 
+
 def resizeImage():
     global curwindowsize
     if window.size[0] != curwindowsize[0] or window.size[1] != curwindowsize[1]:
@@ -1020,7 +1020,7 @@ while True:
             curridx = -1
             window['-RTIME-'].Update("00:00:00")
             window['-PROGBAR-'].update_bar(0)
-            updateImage(logoimagecv)
+            updateImage(startimagecv)
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
@@ -1371,7 +1371,7 @@ while True:
             updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[[]])
             update_slider(0.5, False)
-            updateImage(logoimagecv)
+            updateImage(startimagecv)
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
         rowidx = 0
