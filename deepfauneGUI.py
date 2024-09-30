@@ -522,7 +522,7 @@ layout = [
                 sg.Column([ 
                     [sg.Frame('',
                               [[sg.Image(cv2bytes(curimagecv), key='-IMAGE-',  background_color=background_color)]]
-                              , background_color=background_color)
+                              , background_color=background_color, border_width=0)
                      ],
                     [sg.Text(txt_prediction[LANG]+':', background_color=background_color, text_color=text_color, size=(10, 1)),
                      sg.Combo(values=list(sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]),
@@ -551,7 +551,7 @@ layout = [
                     [sg.Button(key='-METADATA-', image_data=INFO_ICON, button_color=(background_color,background_color), tooltip=tooltip_metadata[LANG], border_width=0)],
                 ], background_color=background_color, expand_y=True)
             ]
-        ], background_color=background_color, expand_y=True)]
+        ], background_color=background_color, expand_y=True, border_width=0)]
     ],
     [
         sg.Frame('',[
@@ -559,7 +559,7 @@ layout = [
                 StyledButton(txt_configrun[LANG], accent_color, "gray", background_color, key='-CONFIGRUN-', button_width=8+len(txt_configrun[LANG]), pad=(5, (7, 5))),
                 sg.ProgressBar(1, orientation='h', border_width=1, expand_x=True, key='-PROGBAR-', bar_color=accent_color), sg.Text("00:00:00", background_color=background_color, text_color=text_color, key='-RTIME-')
             ],
-        ], expand_x=True, background_color=background_color)
+        ], expand_x=True, background_color=background_color, border_width=0)
     ]
 ]
 
