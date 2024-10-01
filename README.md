@@ -116,7 +116,7 @@ Know your rights.
 # REFERENCES
 ---
 
-[Rig22] Rigoudy, N., the DeepFaune consortium, Spataro, B., Miele, V. & Chamaillé-Jammes, S. (2022) *The DeepFaune initiative: a collaborative effort towards the automatic identification of the French fauna in camera-trap images.* [Preprint bioRxiv](https://biorxiv.org/)
+[Rig23] Rigoudy, N., Dussert G., the DeepFaune consortium, Spataro, B., Miele, V. & Chamaillé-Jammes, S. (2023) *The DeepFaune initiative: a collaborative effort towards the automatic identification of the European fauna in camera-trap images.* [European Journal of Wildlife Research](https://link.springer.com/article/10.1007/s10344-023-01742-7)
 
 [Mie21] Miele, V., Dray, S., & Gimenez, O. (2021). *Images, écologie et deep learning.* [Regards sur la biodiversité](https://sfecologie.org/regard/r95-fev-2021-miele-dray-gimenez-deep-learning/)
 
