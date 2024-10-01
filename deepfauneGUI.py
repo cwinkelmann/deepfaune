@@ -70,7 +70,6 @@ from classifTools import txt_animalclasses
 
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
-
 ####################################################################################
 ### VERSION
 ####################################################################################
@@ -877,7 +876,7 @@ if checkupdate and online_version:
     for v_online, v_installed in zip(v_online_parts, v_installed_parts):
         if v_online > v_installed:
             draw_popup_update = True
-first_start = True
+atstartup = True
 
 while True:
     event, values = window.read(timeout=10)
@@ -919,9 +918,9 @@ while True:
             curwindowsize = window.size # current size before other config events (resizing or moving)
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
-    if first_start:
+    if atstartup: # image rescaling required
         updateImage(startimagecv)
-        first_start = False
+        atstartup = False
     #########################
     ## CHECK UPDATE
     #########################
