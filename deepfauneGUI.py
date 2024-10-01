@@ -70,7 +70,6 @@ from classifTools import txt_animalclasses
 
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
-
 ####################################################################################
 ### VERSION
 ####################################################################################
@@ -361,8 +360,8 @@ def cv2bytes(imagecv, imsize=None):
     return bio.getvalue()
 
 # Initial logo image
-logoimagecv = cv2.imdecode(np.fromfile("icons/1316-black-large-933x700.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
-curimagecv = logoimagecv
+startimagecv = cv2.imdecode(np.fromfile("icons/startscreen-large.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
+curimagecv = startimagecv
 
 # Checking screen possibilities and sizing image accordinglyimport ctypes
 DEFAULTIMGSIZE = (width,height) = (933,700)
@@ -382,7 +381,7 @@ except:
 
 
 correctedimgsize = (min(DEFAULTIMGSIZE[0],int(width*0.65)),
-                    min(DEFAULTIMGSIZE[1],int(width*0.65*DEFAULTIMGSIZE[0]/DEFAULTIMGSIZE[1]), int(height*0.75)))           
+                    min(DEFAULTIMGSIZE[1],int(width*0.65*DEFAULTIMGSIZE[0]/DEFAULTIMGSIZE[1]), int(height*0.75)))
 
 curimagecv = cv2.resize(curimagecv, correctedimgsize)
 
@@ -677,7 +676,7 @@ def updateImage(newcurimagecv=None, gamma=1.):
         curimagecv = newcurimagecv
     curimsize = ((window.size[0] - imageOffset[0], window.size[1] - imageOffset[1]))
     window['-IMAGE-'].update(data=cv2bytes(gamma_correction(curimagecv, gamma), curimsize))
- 
+
 def resizeImage():
     global curwindowsize
     if window.size[0] != curwindowsize[0] or window.size[1] != curwindowsize[1]:
@@ -877,6 +876,7 @@ if checkupdate and online_version:
     for v_online, v_installed in zip(v_online_parts, v_installed_parts):
         if v_online > v_installed:
             draw_popup_update = True
+atstartup = True
 
 while True:
     event, values = window.read(timeout=10)
@@ -918,6 +918,9 @@ while True:
             curwindowsize = window.size # current size before other config events (resizing or moving)
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
+    if atstartup: # image rescaling required
+        updateImage(startimagecv)
+        atstartup = False
     #########################
     ## CHECK UPDATE
     #########################
@@ -1020,7 +1023,7 @@ while True:
             curridx = -1
             window['-RTIME-'].Update("00:00:00")
             window['-PROGBAR-'].update_bar(0)
-            updateImage(logoimagecv)
+            updateImage(startimagecv)
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)
             updatePredictionInfo(disabled=True)
             updateMenuExport(disabled=True)
@@ -1371,7 +1374,7 @@ while True:
             updatePredictionInfo(disabled=True)
             window.Element('-TAB-').Update(values=[[]])
             update_slider(0.5, False)
-            updateImage(logoimagecv)
+            updateImage(startimagecv)
             dialog_error(txt_classnotfound[LANG])
         curridx = 0
         rowidx = 0
