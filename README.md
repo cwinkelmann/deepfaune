@@ -68,7 +68,6 @@ Then, the dependencies
 - PIL: `pip install pillow`
 - DILL: `pip install dill`
 - hachoir: `pip install hachoir`
-- versions: `pip install versions`
 - (optional, for Excel users only) openpyxl: `pip install openpyxl`
 
 For some users, it may be necessary to install `python-tk` or `python3-tk` as well, when you have a message `no module tkinter`...
