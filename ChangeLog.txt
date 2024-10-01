@@ -1,4 +1,4 @@
-2024-09-27  Vincent Miele  <vincent.miele@cnrs.fr>
+2024-10-02  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 1.2.0
 	    * Light modernization of the software design.
