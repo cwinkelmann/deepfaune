@@ -1,7 +1,6 @@
 #  WELCOME TO DEEPFAUNE SOFTWARE REPOSITORY
 
 
-<img src="icons/1316-white-small.png" width="20%">
 <img src="icons/logoINEE.png" width="50%" align=right>
 
 
