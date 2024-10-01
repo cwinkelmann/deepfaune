@@ -361,7 +361,7 @@ def cv2bytes(imagecv, imsize=None):
     return bio.getvalue()
 
 # Initial logo image
-startimagecv = cv2.imdecode(np.fromfile("icons/startscreen.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
+startimagecv = cv2.imdecode(np.fromfile("icons/startscreen-large.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
 curimagecv = startimagecv
 
 # Checking screen possibilities and sizing image accordinglyimport ctypes
