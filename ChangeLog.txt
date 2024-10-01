@@ -1,6 +1,7 @@
 2024-09-27  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 1.2.0
+	    * Light modernization of the software design.
 	    * More efficient classification model, still based on vit_large_patch14_dinov2 architecture.
 	    * New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
 	    * New column 'Top1' (predicted class, even below  the threshold) is now in csv/xslx export.
