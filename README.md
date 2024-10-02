@@ -49,16 +49,8 @@ Download the model parameters *inside the deepfaune folder* where you can find `
 
 ### 3. Install the dependencies
 
-We need Python 3.x and `pip` 
+We need Python 3.x , plus additional dependencies:
 
-WARNING: on Linux it is not mandatory to create a virtual environement with:
-```
-python3 -m venv envdeepfaune
-source env/bin/activatedeepfaune
-pip install XXX
-```
-
-Then, the dependencies
 - PyTorch: `pip install torch torchvision`
 - Yolov8: `pip install ultralytics`
 - Timm: `pip install timm`
@@ -71,6 +63,22 @@ Then, the dependencies
 - (optional, for Excel users only) openpyxl: `pip install openpyxl`
 
 For some users, it may be necessary to install `python-tk` or `python3-tk` as well, when you have a message `no module tkinter`...
+
+**Setting up your Python environment:**
+
+On Linux, it can be recommended to create a virtual environement with:
+```
+python3 -m venv envdeepfaune
+source env/bin/activatedeepfaune
+pip install XXX
+```
+
+On Mac (& Linux) it is also recommended to use Anaconda:
+```
+conda create -n deepfaune
+conda activate deepfaune
+pip install XXX
+```
 
 On Windows, install these dependencies using **[Anaconda Individual Edition](https://www.anaconda.com/products/individual)** (WARNING: during installation of Anaconda, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE).
 
