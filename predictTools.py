@@ -115,7 +115,7 @@ class PredictorBase(ABC):
     def getPredictedClass(self, k):
         return self.predictedclass[k]
 
-    def setPredictedClass(self, k, label, score=DEFAULTLOGIT):
+    def setPredictedClass(self, k, label, score=1.0):
         self.predictedclass[k] = label
         self.predictedscore[k] = score
         self.predictedtop1[k] = label
@@ -226,7 +226,7 @@ class PredictorImageBase(PredictorBase):
                 predictedclass_base[k], predictedscore_base[k], _ = self._PredictorBase__averageLogitInSequence(self.prediction[k:(k+1),])
             return predictedclass_base, predictedscore_base, self.bestboxes, self.count
 
-    def setPredictedClassInSequence(self, k, label, score=DEFAULTLOGIT):
+    def setPredictedClassInSequence(self, k, label, score=1.0):
         self.setPredictedClass(k, label, score)
         seqnum = self.fileManager.getSeqnums()
         k1seq = k2seq = k
