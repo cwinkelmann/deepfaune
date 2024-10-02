@@ -918,9 +918,9 @@ while True:
             curwindowsize = window.size # current size before other config events (resizing or moving)
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
-    if atstartup and event != '-CONFIG-': # image rescaling required
-        updateImage(startimagecv)
-        atstartup = False
+        if atstartup and event != '-CONFIG-': # image rescaling required
+            updateImage(startimagecv)
+            atstartup = False
     #########################
     ## CHECK UPDATE
     #########################
