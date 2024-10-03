@@ -1076,12 +1076,13 @@ while True:
                             sg.Spin(values=[i for i in range(0, 60)], initial_value=maxlag_default, size=(4, 1), enable_events=True, key='-LAG-', background_color=background_color, text_color=text_color)]
         layoutconfig = [
             [select_frame],
-            [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, layout=[
-                [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
-                 sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), enable_events=True,
-                         background_color=background_color, text_color=text_color, key='-THRESHOLD-')],
-                sequencespin
-            ], background_color=background_color, border_width=0)],
+            [sg.Frame(txt_paramframe[LANG], font=FONT_MED, expand_x=True, expand_y=True, pad=(sg.DEFAULT_ELEMENT_PADDING[1],10), #DEFAULT_ELEMENT_PADDING between elements (row, col)
+                      layout=[
+                          [sg.Text(txt_confidence[LANG]+'\t', expand_x=True, background_color=background_color, text_color=text_color),
+                           sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), enable_events=True,
+                                   background_color=background_color, text_color=text_color, key='-THRESHOLD-')],
+                          sequencespin
+                      ], background_color=background_color, border_width=0)],
             [
                 StyledButton(txt_run[LANG], accent_color, background_color, background_color, button_width=8+len(txt_run[LANG]), key='-RUN-')
             ]
