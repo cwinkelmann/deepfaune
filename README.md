@@ -2,7 +2,7 @@
 
 
 <img src="icons/logoINEE.png" width="50%" align=right>
-
+<br>
 
 
 ---
@@ -143,7 +143,7 @@ You can dig into [this paper list](https://ecostat.gitlab.io/imaginecology/paper
 
 > Is the `deepfaune` software free?
 
-Yes, it is a free software, ut commercial use is forbidden (see LICENSE section). If you appreciate our work, please cite our work and/or contribute by sharing with us your annotated images.
+Yes, it is a free software, commercial use is forbidden (see LICENSE section). If you appreciate our work, please cite our work and/or contribute by sharing with us your annotated images.
 
 > Can I have access to the images used in the DeepFaune project?
 

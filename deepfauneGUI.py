@@ -117,8 +117,8 @@ txt_incorrect = {'fr':"Dossier incorrect - aucun media trouvé", 'en':"Incorrect
                  'it':"File scorretto - media non trovato", 'de':"Falscher Ordner - keine Medien gefunden"}
 txt_confidence = {'fr':"Seuil de confiance", 'en':"Confidence threshold",
                   'it':"Livello minimo di affidabilita", 'de':"Konfidenzniveau"}
-txt_sequencemaxlag = {'fr':"Durée maximale entre images consécutives\n d'une séquence (secondes)",
-                      'en':"Maximum length between consecutive images\n in a sequence (seconds)",
+txt_sequencemaxlag = {'fr':"Durée maximum entre images consécutives (secondes)\npour qu'elles soient d'une même séquence",
+                      'en':"Maximum duration between consecutive images\nfor them to be in the same sequence (seconds)",
                       'it':"Durata massima tra immagini consecutive\n in una sequenza (secondi)",
                       'de':"Maximale Dauer zwischen aufeinanderfolgenden Bildern\n in einer Sequenz (Sekunden)"}
 txt_configrun = {'fr':"Configurer et lancer", 'en':"Configure & Run",
@@ -128,7 +128,7 @@ txt_run = {'fr':"Lancer", 'en':"Run",
 txt_paramframe = {'fr':"Paramètres", 'en':"Parameters",
                   'it':"Parametri", 'de':"Parameter"}
 txt_selectclasses = {'fr':"Désélectionner les classes animales absentes de votre zone d'étude",
-                     'en':"Deselect animal classes not found in your study area",
+                     'en':"Unselect animal classes not found in your study area",
                      'it':"Deselezionare le animale classi assenti della zona di studio",
                      'de':"Deaktivieren Sie Animal Klassen, die in Ihrem Studiengebiet fehlen"}
 txt_all = {'fr':"toutes", 'en':"all",
@@ -401,7 +401,7 @@ for k in range(0,len(sorted_txt_animalclasses_lang)):
 if lineCB:
     listCB = listCB+[lineCB]
 select_frame = sg.Frame(txt_selectclasses[LANG], listCB, font=FONT_NORMAL, expand_x=True, expand_y=True,
-                        background_color=background_color) # required here to avoid element reuse (not accepted) 
+                        background_color=background_color, border_width=0) # required here to avoid element reuse (not accepted) 
 
 # Main window
 txt_file = {'fr':"Fichier", 'en':"File",
@@ -1085,7 +1085,7 @@ while True:
                  sg.Spin(values=[i/100. for i in range(25, 100)], initial_value=threshold_default, size=(4, 1), enable_events=True,
                          background_color=background_color, text_color=text_color, key='-THRESHOLD-')],
                 sequencespin
-            ], background_color=background_color)],
+            ], background_color=background_color, border_width=0)],
             [
                 StyledButton(txt_run[LANG], accent_color, background_color, background_color, button_width=8+len(txt_run[LANG]), key='-RUN-')
             ]
