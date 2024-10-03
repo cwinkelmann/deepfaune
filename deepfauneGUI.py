@@ -67,6 +67,8 @@ import shutil
 
 from predictTools import txt_undefined, txt_empty, txt_classes
 from classifTools import txt_animalclasses
+from hachoir.core import config
+config.quiet = True
 
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
