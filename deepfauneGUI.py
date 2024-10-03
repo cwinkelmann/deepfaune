@@ -876,7 +876,6 @@ if checkupdate and online_version:
     for v_online, v_installed in zip(v_online_parts, v_installed_parts):
         if v_online > v_installed:
             draw_popup_update = True
-atstartup = True
 
 while True:
     event, values = window.read(timeout=10)
@@ -918,9 +917,6 @@ while True:
             curwindowsize = window.size # current size before other config events (resizing or moving)
             imageOffset = (window.size[0] - window['-IMAGE-'].get_size()[0],
                            window.size[1] - window['-IMAGE-'].get_size()[1]) # offset is set after the the first config events
-        if atstartup and event != '-CONFIG-': # image rescaling required
-            updateImage(startimagecv)
-            atstartup = False
     #########################
     ## CHECK UPDATE
     #########################
