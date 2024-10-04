@@ -1,14 +1,15 @@
 #  WELCOME TO DEEPFAUNE SOFTWARE REPOSITORY
 
 
-<img src="icons/logoINEE.png" width="50%" align=right>
+<img src="icons/logoINEE.png" width="50%" align=center>
 <br>
 
 
 ---
 # NEWS
 ---
-**Oct 4, 2024**
+
+## Oct 4, 2024
 Release v1.2.0 is available on Windows, Linux and MacOS.  
 
 * New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
