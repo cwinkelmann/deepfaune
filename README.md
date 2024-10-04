@@ -1,7 +1,7 @@
 #  WELCOME TO DEEPFAUNE SOFTWARE REPOSITORY
 
 
-<img src="icons/logoINEE.png" width="50%" align=right>
+<img src="icons/logoINEE.png" width="50%" align=center>
 <br>
 
 
@@ -9,7 +9,18 @@
 # NEWS
 ---
 
-Release v1.2 is available on Linux. 
+## Oct 4, 2024
+Release v1.2.0 is available on Windows, Linux and MacOS.  
+
+* New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
+* New column 'Top1' (predicted class, even below  the threshold) is now in csv/xslx export.
+* Light modernization of the software design.
+* More efficient classification model, still based on vit_large_patch14_dinov2 architecture.
+* Videos and sequences can be played.
+* Metadata can be displayed in a separate windows.
+* Brightness can be changed.
+* On Windows, images can be opened in explorer
+
 
 Supported categories/species : BADGER, BEAR, BEAVER, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FALLOW DEER, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, OTTER, RACCOON, RED DEER, ROE DEER, SHEEP, SQUIRREL, WILD BOAR, WOLF + HUMAN + VEHICULE + EMPTY 
 
