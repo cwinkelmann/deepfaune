@@ -59,13 +59,22 @@ class Detector:
         # orig_img a numpy array (cv2) in BGR
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
+        # relevant boxes ?
         if not len(detection.cls) or detection.conf[0] < threshold:
-            # category = 0
             return None, 0, np.zeros(4), 0, None
-        ## best box
-        category = detection.cls[0] + 1
-        count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
-        box = detection.xyxy[0] # xmin, ymin, xmax, ymax
+        # yes, select best box
+        try:
+            # searching best animal box 
+            kbox = np.where(detection.cls==0)[0][0]
+            if detection.conf[kbox] < threshold:
+                category = 0 # not relevant
+            else:
+                category = 1 # relevant, will be used
+        except IndexError:
+            # no animal box, best box for other categories
+            kbox = 0
+            category = detection.cls[kbox] + 1
+        box = detection.xyxy[kbox] # xmin, ymin, xmax, ymax
         # is an animal detected ?
         if category != 1:
             croppedimage = None # indeed, not required for further classification
