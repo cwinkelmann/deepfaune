@@ -1259,7 +1259,10 @@ while True:
         else:
             if predictorready:
                 predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-                humanboxes = predictor.getHumanBoxes(filenames[curridx])
+                if not VIDEO:
+                    humanboxes = predictor.getHumanBoxes(filenames[curridx])
+                else:
+                    humanboxes = None
                 if humanboxes is not None:
                     counthuman_curridx = len(humanboxes)
                     txt_human = txt_classes[LANG][-2]
