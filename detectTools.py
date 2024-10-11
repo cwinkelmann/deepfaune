@@ -59,30 +59,34 @@ class Detector:
         # orig_img a numpy array (cv2) in BGR
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
-        # relevant boxes ?
+        # Are there any relevant boxes?
         if not len(detection.cls) or detection.conf[0] < threshold:
+            # No. Image considered as empty
             return None, 0, np.zeros(4), 0, None
-        # yes, select best box
-        try:
-            # searching best animal box 
-            kbox = np.where(detection.cls==0)[0][0]
-            if detection.conf[kbox] < threshold:
-                category = 0 # not relevant
-            else:
-                category = 1 # relevant, will be used
-        except IndexError:
-            # no animal box, best box for other categories
-            kbox = 0
-            category = detection.cls[kbox] + 1
-        box = detection.xyxy[kbox] # xmin, ymin, xmax, ymax
-        # is an animal detected ?
-        if category != 1:
-            croppedimage = None # indeed, not required for further classification
-        # if yes, cropping the bounding box
         else:
+            # Yes. Non empty image
+            pass
+        # Is there a relevant animal box? 
+        try:
+            # Yes. Selecting the best animal box
+            kbox = np.where((detection.cls==0) & (detection.conf>threshold))[0][0]
+        except IndexError:
+            # No: Selecting the best box for another category (human, vehicle)
+            kbox = 0
+        category = detection.cls[kbox] + 1
+        box = detection.xyxy[kbox] # xmin, ymin, xmax, ymax
+        # Is this an animal box ?
+        if category == 1:
+            # Yes: cropped image is required for classification
             croppedimage = cropSquareCVtoPIL(imagecv, box.copy())
-        ## count
-        count = sum(detection.conf>YOLOCOUNT_THRES) # only if best box > YOLOTHRES
+        else: 
+            # No: cropped image is not required for classification 
+            croppedimage = None
+        ## animal count
+        if category == 1:
+            count = sum((detection.conf>YOLOCOUNT_THRES) & (detection.cls==0)) # only above a threshold
+        else:
+            count = 0
         ## human boxes
         ishuman = (detection.cls==1) & (detection.conf>=YOLOHUMAN_THRES)
         if any(ishuman==True):

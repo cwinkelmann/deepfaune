@@ -532,7 +532,7 @@ layout = [
                      sg.Text("   Score: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
                      sg.Text("\t"+txt_count[LANG]+":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-'),
-                     sg.Input(default_text="0", size=(2, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
+                     sg.Input(default_text="0", size=(5, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
                 ], background_color=background_color, expand_x=True),
                 sg.Column([
@@ -645,6 +645,15 @@ def updatePredictionInfo(disabled):
         if countactivated:
             window['-COUNTER-'].Update(disabled=False)
 
+def updateTxtNewClasses(txt_newclass):
+    if txt_newclass not in sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]+txt_new_classes_lang:
+        txt_new_classes_lang.append(txt_newclass) 
+        window['-PREDICTION-'].Update(values=sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]],
+                                      value=txt_newclass)
+        valuerestrict = values['-RESTRICT-']
+        window['-RESTRICT-'].Update(values=[txt_all[LANG]]+sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_empty[LANG]],
+                                    value=valuerestrict)
+ 
 
 def rescale_slider(value, min_rescale=-10, max_rescale=10):
     return gamma_dict[int((1-value)*min_rescale + value*max_rescale)]
@@ -1250,13 +1259,27 @@ while True:
         else:
             if predictorready:
                 predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-                window['-PREDICTION-'].update(value=predictedclass_curridx)
+                humanboxes = predictor.getHumanBoxes(filenames[curridx])
+                if humanboxes is not None:
+                    counthuman_curridx = len(humanboxes)
+                    txt_human = txt_classes[LANG][-2]
+                    if predictedclass_curridx != txt_human:
+                        window['-PREDICTION-'].update(value=predictedclass_curridx+"+"+txt_human)
+                        updateTxtNewClasses(predictedclass_curridx+"+"+txt_human)
+                        if countactivated:
+                            window['-COUNTER-'].Update(value=str(count_curridx)+"+"+str(counthuman_curridx))
+                    else:
+                        window['-PREDICTION-'].update(value=txt_human)
+                        if countactivated:
+                            window['-COUNTER-'].Update(value=str(counthuman_curridx))
+                else:
+                    window['-PREDICTION-'].update(value=predictedclass_curridx)
+                    if countactivated:
+                        window['-COUNTER-'].Update(value=count_curridx)
                 window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
-                if countactivated:
-                    window['-COUNTER-'].Update(value=count_curridx)
                 if humanbluractivated:
                     if not VIDEO:
-                        blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
+                        blur_boxes(imagecv, humanboxes)
                 if predictedclass_curridx is not txt_empty[LANG]:
                     draw_boxes(imagecv, predictedbox_curridx)
         if is_value_updated or event == "-TAB-":
@@ -1338,13 +1361,7 @@ while True:
             window['-PREDICTION-'].Update(select=False)
             window['-SCORE-'].Update("   Score: 1.0")
         # new class proposed by the user ?
-        if not values['-PREDICTION-'] in sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]+txt_new_classes_lang:
-            txt_new_classes_lang.append(values['-PREDICTION-']) 
-            window['-PREDICTION-'].Update(values=sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]],
-                                          value=values['-PREDICTION-'])
-            valuerestrict = values['-RESTRICT-']
-            window['-RESTRICT-'].Update(values=[txt_all[LANG]]+sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_empty[LANG]],
-                                        value=valuerestrict)
+        updateTxtNewClasses(values['-PREDICTION-'])
     elif event == '-COUNTER-' + "_Enter":
         if predictorready:
             try:
