@@ -284,7 +284,7 @@ class PredictorImageBase(PredictorBase):
             return (self.getHumanBoxes(filename) is not None)
         
     def getHumanCount(self, k=None):
-        TODO
+        print("TODO")
 
     def merge(self, predictor, maxlag):
         self.k1 = self.k2 = self.fileManager.nbFiles() # positionning at the junction between the two predictors
