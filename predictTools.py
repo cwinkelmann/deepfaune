@@ -120,6 +120,10 @@ class PredictorBase(ABC):
         self.predictedscore[k] = score
         self.predictedtop1[k] = label
 
+    @abstractmethod
+    def getHumanPresence(self, k=None):
+        pass
+
     def setPredictedCount(self, k, count):
         self.count[k] = count
             
@@ -278,6 +282,9 @@ class PredictorImageBase(PredictorBase):
         else:
             filename = self.fileManager.getFilename(k)
             return (self.getHumanBoxes(filename) is not None)
+        
+    def getHumanCount(self, k=None):
+        TODO
 
     def merge(self, predictor, maxlag):
         self.k1 = self.k2 = self.fileManager.nbFiles() # positionning at the junction between the two predictors
