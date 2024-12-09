@@ -141,8 +141,6 @@ txt_filename = {'fr':"Nom de fichier", 'en':"Filename",
                 'it':"Nome del file", 'de':"Dateiname"}
 txt_prediction = {'fr':"Prédiction", 'en':"Prediction",
                   'it':"Predizione", 'de':"Vorhersage"}
-txt_count = {'fr':"Comptage", 'en':"Count",
-             'it':"Conto", 'de':"Zählung"}
 txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID",
               'it':"Sequenza ID", 'de':"Sequenz ID"}
 txt_error = {'fr':"Erreur", 'en':"Error",
@@ -187,16 +185,19 @@ tooltip_metadata = {'fr': 'Metadata',
                     'en': 'Metadata',
                     'it': 'Metadati',
                     'de': 'Metadaten'}
-
 tooltip_playpause = {'fr': 'Lire la vidéo/séquence',
                      'en': 'Play the video/sequence',
                      'it': 'Riproduci il video/sequenza',
                      'de': 'Video/Sequenz abspielen'}
-
 tooltip_openfolder = {'fr': "Afficher le fichier dans Windows Explorer",
                       'en': 'Show file in Windows Explorer',
                       'it': 'Mostra il file in Windows Explorer',
                       'de': 'Datei im Windows Explorer anzeigen'}
+tooltip_count = {'fr':"Comptage des animaux", 'en':"Animal count",
+                 'it':"Conteggio degli animali", 'de':"Tiere zählung"}
+tooltip_counthuman = {'fr':"Comptage des humains", 'en':"Human count",
+                      'it':"Conteggio degli esseri umani", 'de':"Zählung der Menschen"}
+
 ####################################################################################
 ### THEME SETTINGS
 ####################################################################################
@@ -531,13 +532,11 @@ layout = [
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("   Score: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
-                     sg.Text("Icone1:", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-'),
+                     sg.Image(ANIMAL_ICON, background_color=background_color, visible=countactivated, key='-COUNT-', tooltip=tooltip_count[LANG]),
                      sg.Input(default_text="0", size=(5, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color, border_width=0),
-                     sg.Text("Icone2 :", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNTHUMAN-'),
+                     sg.Image(HUMAN_ICON, background_color=background_color, visible=countactivated, key='-COUNTHUMAN-', tooltip=tooltip_counthuman[LANG]),
                      sg.Text("0", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNTERHUMAN-')]
-                     #sg.Input(default_text="0", size=(5, 1), key='-COUNTERHUMAN-', background_color=background_color, text_color=text_color, visible=countactivated,
-                     #         disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
                 ], background_color=background_color, expand_x=True),
                 sg.Column([
                     [sg.Image(BRIGHTNESS_ICON, background_color=background_color)],
