@@ -141,7 +141,7 @@ txt_filename = {'fr':"Nom de fichier", 'en':"Filename",
                 'it':"Nome del file", 'de':"Dateiname"}
 txt_prediction = {'fr':"Prédiction", 'en':"Prediction",
                   'it':"Predizione", 'de':"Vorhersage"}
-txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID",
+txt_seqnum = {'fr':"Séquence ID", 'en':"Sequence ID",
               'it':"Sequenza ID", 'de':"Sequenz ID"}
 txt_error = {'fr':"Erreur", 'en':"Error",
              'it':"Errore", 'de':"Fehler"}
@@ -532,11 +532,15 @@ layout = [
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("   Score: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
+                     sg.Text(" ", background_color=background_color, text_color=text_color),
                      sg.Image(ANIMAL_ICON, background_color=background_color, visible=countactivated, key='-COUNT-', tooltip=tooltip_count[LANG]),
+                     sg.Text(":", background_color=background_color, text_color=text_color),
                      sg.Input(default_text="0", size=(5, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color, border_width=0),
                      sg.Image(HUMAN_ICON, background_color=background_color, visible=countactivated, key='-COUNTHUMAN-', tooltip=tooltip_counthuman[LANG]),
-                     sg.Text("0", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNTERHUMAN-')]
+                     sg.Text(":", background_color=background_color, text_color=text_color),
+                     sg.Input(default_text="0", size=(5, 1), enable_events=True, key='-COUNTERHUMAN-', background_color=background_color, text_color=text_color, visible=countactivated,
+                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color, border_width=0)]
                 ], background_color=background_color, expand_x=True),
                 sg.Column([
                     [sg.Image(BRIGHTNESS_ICON, background_color=background_color)],
@@ -646,7 +650,7 @@ def updatePredictionInfo(disabled):
         if VIDEO:
             window['-SEQNUM-'].Update("")
         else:
-            window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
+            window['-SEQNUM-'].Update(" "+txt_seqnum[LANG]+": NA")
     else:
         window['-PREDICTION-'].Update(disabled=False)
         if countactivated:
@@ -1312,7 +1316,7 @@ while True:
         if is_value_updated or event == "-TAB-":
             updateImage(imagecv, rescale_slider(slider_value))
         if predictorready and not VIDEO:
-            window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+            window['-SEQNUM-'].Update(" "+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
          and (event == '-PREVIOUS-' or event == '-NEXT-') \
          and (len(subsetidx)>0):
