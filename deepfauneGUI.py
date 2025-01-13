@@ -534,11 +534,11 @@ layout = [
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
                      sg.Text(" ", background_color=background_color, text_color=text_color),
                      sg.Image(ANIMAL_ICON, background_color=background_color, visible=countactivated, key='-COUNT-', tooltip=tooltip_count[LANG]),
-                     sg.Text(":", background_color=background_color, text_color=text_color),
+                     sg.Text(":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNTCOLON-'),
                      sg.Input(default_text="0", size=(5, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color, border_width=0),
                      sg.Image(HUMAN_ICON, background_color=background_color, visible=countactivated, key='-COUNTHUMAN-', tooltip=tooltip_counthuman[LANG]),
-                     sg.Text(":", background_color=background_color, text_color=text_color),
+                     sg.Text(":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNTHUMANCOLON-'),
                      sg.Input(default_text="0", size=(5, 1), enable_events=True, key='-COUNTERHUMAN-', background_color=background_color, text_color=text_color, visible=countactivated,
                               disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color, border_width=0)]
                 ], background_color=background_color, expand_x=True),
@@ -1001,16 +1001,20 @@ while True:
             window['-COUNTER-'].Update(value=0)
             window['-COUNTERHUMAN-'].Update(value=0)
         window['-COUNT-'].Update(visible=True)
+        window['-COUNTCOLON-'].Update(visible=True)
         window['-COUNTER-'].Update(visible=True)
         window['-COUNTHUMAN-'].Update(visible=True)
+        window['-COUNTHUMANCOLON-'].Update(visible=True)
         window['-COUNTERHUMAN-'].Update(visible=True)
         configsetsave('count', 'True')
         updateMenuCount(activated=True)
     elif event == txt_deactivatecount[LANG]:
         countactivated = False
         window['-COUNT-'].Update(visible=False)
+        window['-COUNTCOLON-'].Update(visible=False)
         window['-COUNTER-'].Update(visible=False)
         window['-COUNTHUMAN-'].Update(visible=False)
+        window['-COUNTHUMANCOLON-'].Update(visible=False)
         window['-COUNTERHUMAN-'].Update(visible=False)
         configsetsave('count', 'False')
         updateMenuCount(activated=False)
