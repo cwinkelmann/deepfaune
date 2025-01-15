@@ -10,7 +10,7 @@
 ---
 
 ## Oct 4, 2024
-Release v1.2.0 is available on Windows, Linux and MacOS.  Performance are avialable [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance)
+Release v1.2.0 is available on Windows, Linux and MacOS.  Performance are available [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance)
 
 * New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
 * New column 'Top1' (predicted class, even below  the threshold) is now in csv/xslx export.
@@ -114,7 +114,7 @@ You can implement your own scripts using the DeepFaune API. *Minimal examples* a
 
 ---
 # PERFORMANCE
----| 
+---
 
 We measured the performance (accuracy) of the classification model available in the latest stable release:
 <br>
