@@ -10,7 +10,7 @@
 ---
 
 ## Oct 4, 2024
-Release v1.2.0 is available on Windows, Linux and MacOS.  Performance are available [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance)
+Release v1.2.0 is available on Windows, Linux and MacOS.  
 
 * New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
 * New column 'Top1' (predicted class, even below  the threshold) is now in csv/xslx export.
@@ -24,6 +24,7 @@ Release v1.2.0 is available on Windows, Linux and MacOS.  Performance are availa
 
 Supported categories/species : BADGER, BEAR, BEAVER, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FALLOW DEER, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, OTTER, RACCOON, RED DEER, ROE DEER, SHEEP, SQUIRREL, WILD BOAR, WOLF + HUMAN + VEHICULE + EMPTY 
 
+Classification performances are available [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance).
 ---
 # INSTALL
 ---
