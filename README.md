@@ -10,7 +10,7 @@
 ---
 
 ## Oct 4, 2024
-Release v1.2.0 is available on Windows, Linux and MacOS.  
+Release v1.2.0 is available on Windows, Linux and MacOS.  Performance are avialable [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance)
 
 * New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
 * New column 'Top1' (predicted class, even below  the threshold) is now in csv/xslx export.
@@ -110,6 +110,48 @@ Now you can use the GUI !
 ### Using the API
 
 You can implement your own scripts using the DeepFaune API. *Minimal examples* are available in the [demo/ directory](https://plmlab.math.cnrs.fr/deepfaune/software/-/tree/master/demo/).
+
+
+---
+# PERFORMANCE
+---| 
+
+We measured the performance (accuracy) of the classification model available in the latest stable release:
+<br>
+
+| Species    | Validation set | Out-of-sample Test set |
+| -------- | ------- |------- |
+| blaireau / badger      |     98,44% |  98,61% |
+| bouquetin      |     91,74% | -       |
+| castor / beaver        |          - |  30,21% |
+| cerf / red deer          |     96,99% |  95,27% |
+| chamois        |     98,08% |  95,72% |
+| chat / cat          |     92,92% |  94,90% |
+| chevre / goat        |     82,93% |  64,99% |
+| chevreuil / roe deer     |     98,89% |  98,49% |
+| chien / dog         |     88,67% |  94,08% |
+| daim / fallow deer          |     99,01% |  93,09% |
+| ecureuil / squirrel      |     99,03% |  97,49% |
+| equide         |     99,64% |  81,13% |
+| genette / genet       |     97,12% | -       |
+| herisson / hedgehog       |     89,29% | 100,00% |
+| lagomorphe     |     99,00% |  98,45% |
+| loup / wolf          |     99,34% |  96,83% |
+| loutre / otter    |     98,85% |  76,98% |
+| lynx           |     99,08% |  95,22% |
+| marmotte       |     99,11% |  99,26% |
+| micromammifere / micromammals |     96,99% |  95,53% |
+| mouflon        |     83,78% |  85,09% |
+| mouton / sheep        |     99,69% |  97,58% |
+| mustelide      |     96,58% |  96,53% |
+| oiseau / bird        |     98,42% |  98,15% |
+| ours / bear          |     83,97% |  97,52% |
+| ragondin / nutria      |     76,80% |  33,33% |
+| ratonlaveur / racoon    |     91,59% | 100,00% |
+| renard / fox        |     98,07% |  98,58% |
+| sanglier / wild boar      |     99,19% |  98,76% |
+| vache / cow         |     99,86% |  93,02% |
+
 
 ---
 # CONTACT
