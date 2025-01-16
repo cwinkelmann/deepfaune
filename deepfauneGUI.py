@@ -990,13 +990,8 @@ while True:
         if predictorready and len(subsetidx)>0:
             _, _, _, count_curridx = predictor.getPredictions(curridx)
             window['-COUNTER-'].Update(value=count_curridx)
-            if not VIDEO:
-                humanboxes = predictor.getHumanBoxes(filenames[curridx])
-            else:
-                humanboxes = None
-            if humanboxes is not None:
-                counthuman_curridx = len(humanboxes)
-                window['-COUNTERHUMAN-'].Update(value=counthuman_curridx)
+            counthuman_curridx =  predictor.getHumanCount(curridx)
+            window['-COUNTERHUMAN-'].Update(value=counthuman_curridx)
         else:
             window['-COUNTER-'].Update(value=0)
             window['-COUNTERHUMAN-'].Update(value=0)
@@ -1199,7 +1194,7 @@ while True:
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
-            predictedclass_base, predictedscore_base, _, count = predictor.getPredictionsBase()
+            predictedclass_base, predictedscore_base, _, _ = predictor.getPredictionsBase()
         if countactivated:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
@@ -1289,28 +1284,18 @@ while True:
         else:
             if predictorready:
                 predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-                if not VIDEO:
-                    humanboxes = predictor.getHumanBoxes(filenames[curridx])
-                else:
-                    humanboxes = None
-                if humanboxes is not None:
-                    counthuman_curridx = len(humanboxes)
-                    txt_human = txt_classes[LANG][-2]
-                    if predictedclass_curridx != txt_human:
-                        window['-PREDICTION-'].update(value=predictedclass_curridx)
-                        if countactivated:
-                            window['-COUNTER-'].Update(value=str(count_curridx))
-                            window['-COUNTERHUMAN-'].Update(value=str(counthuman_curridx))
-                    else:
-                        window['-PREDICTION-'].update(value=txt_human)
-                        if countactivated:
-                            window['-COUNTER-'].Update(value=0)
-                            window['-COUNTERHUMAN-'].Update(value=str(counthuman_curridx))
-                else:
+                counthuman_curridx = predictor.getHumanCount(curridx)
+                txt_human = txt_classes[LANG][-2]
+                if predictedclass_curridx != txt_human:
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
                     if countactivated:
-                        window['-COUNTER-'].Update(value=count_curridx)
-                        window['-COUNTERHUMAN-'].Update(value=0)
+                        window['-COUNTER-'].Update(value=str(count_curridx))
+                        window['-COUNTERHUMAN-'].Update(value=str(counthuman_curridx))
+                else:
+                    window['-PREDICTION-'].update(value=txt_human)
+                    if countactivated:
+                        window['-COUNTER-'].Update(value=0) # setting the animal count to 0 when sequences is predicted as human
+                        window['-COUNTERHUMAN-'].Update(value=str(counthuman_curridx))
                 window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
                 if humanbluractivated:
                     if not VIDEO:

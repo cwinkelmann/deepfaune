@@ -123,6 +123,10 @@ class PredictorBase(ABC):
     @abstractmethod
     def getHumanPresence(self, k=None):
         pass
+    
+    @abstractmethod
+    def getHumanCount(self, k=None):
+        pass
 
     def setPredictedCount(self, k, count):
         self.count[k] = count
@@ -284,7 +288,11 @@ class PredictorImageBase(PredictorBase):
             return (self.getHumanBoxes(filename) is not None)
         
     def getHumanCount(self, k=None):
-        print("TODO")
+        if k == None:
+            return [len(self.getHumanBoxes(filename)) for filename in self.fileManager.getFilenames()]
+        else:
+            filename = self.fileManager.getFilename(k)
+            return (len(self.getHumanBoxes(filename)))
 
     def merge(self, predictor, maxlag):
         self.k1 = self.k2 = self.fileManager.nbFiles() # positionning at the junction between the two predictors
@@ -328,7 +336,7 @@ class PredictorVideo(PredictorBase):
          self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.setDetectionThreshold(YOLO_THRES)
-         self.humanpresence = [False]*self.fileManager.nbFiles()
+         self.humancount = [False]*self.fileManager.nbFiles()
 
     def resetBatch(self):
         self.k1 = 0
@@ -375,7 +383,9 @@ class PredictorVideo(PredictorBase):
                         pass # Corrupted or unavailable image, considered as empty
                     else:
                         imagecv = frame
+                        cv2.imwrite("/tmp/"+str(k)+".jpg", frame)
                         croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
+                        print(category, count, humanboxes) 
                         bestboxesallframe[k] = box
                         if count>maxcount:
                             maxcount = count
@@ -390,12 +400,14 @@ class PredictorVideo(PredictorBase):
                         if category == 3: # vehicle
                             predictionallframe[k,self.idxvehicle] = DEFAULTLOGIT
                         if humanboxes is not None: # humans in at least one frame
-                            self.humanpresence[self.k1] = True
+                            self.humancount[self.k1] = max(self.humancount[self.k1],len(humanboxes))
                     k = k+1
             videocap.release()
+            print(rangeanimal)
             if len(rangeanimal): # predicting species in frames with animal 
                 predictionallframe[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k for k in rangeanimal],:,:,:], withsoftmax=False)
             self.predictedclass[self.k1], self.predictedscore[self.k1], self.predictedtop1[self.k1] = self._PredictorBase__averageLogitInSequence(predictionallframe)
+            print(self.predictedclass[self.k1], self.predictedscore[self.k1])
             if len(rangenonempty): # selecting key frame to display when not empty
                 self.prediction[self.k1,-1] = 0.
                 # using max score
@@ -422,6 +434,12 @@ class PredictorVideo(PredictorBase):
         
     def getHumanPresence(self, k=None):
         if k == None:
-            return self.humanpresence
+            return [self.humancount[k]>0 for k in range(0,self.fileManager.nbFiles())]
         else:
-            return self.humanpresence[k]
+            return (self.humancount[k]>0)
+
+    def getHumanCount(self, k=None):
+        if k == None:
+            return [self.humancount[k] for k in range(0,self.fileManager.nbFiles())]
+        else:
+            return (self.humancount[k])
