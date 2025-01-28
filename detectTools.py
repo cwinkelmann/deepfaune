@@ -93,7 +93,7 @@ class Detector:
         if any(ishuman==True):
             humanboxes = detection.xyxy[ishuman,]
         else:
-            humanboxes = None
+            humanboxes = []
         return croppedimage, category, box, count, humanboxes
 
     def merge(self, detector):
@@ -167,7 +167,7 @@ class DetectorJSON:
             if croppedimage is None: # FileNotFoundError
                 category = 0
         ## human boxes for compatbility, not supported here
-        humanboxes = None
+        humanboxes = []
         return croppedimage, category, box, count, humanboxes
 
     def nextBoxDetection(self, threshold=MDV5_THRES):

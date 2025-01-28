@@ -213,7 +213,7 @@ class PredictorImageBase(PredictorBase):
                     self.prediction[k,self.idxhuman] = DEFAULTLOGIT
                 if category == 3: # vehicle
                     self.prediction[k,self.idxvehicle] = DEFAULTLOGIT
-                if humanboxes is not None: # humans
+                if len(humanboxes): # humans
                     self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
             if len(rangeanimal): # predicting species in images with animal 
                 self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
@@ -282,21 +282,19 @@ class PredictorImageBase(PredictorBase):
         try:
             return(self.humanboxes[filename])
         except KeyError:
-            return None
+            return []
 
     def getHumanPresence(self, k=None):
         if k == None:
-            return [self.getHumanBoxes(filename) is not None for filename in self.fileManager.getFilenames()]
+            return [humancount>0 for humancount in self.getHumanCount()]
         else:
-            filename = self.fileManager.getFilename(k)
-            return (self.getHumanBoxes(filename) is not None)
+            return self.getHumanCount(k)>0
         
     def getHumanCount(self, k=None):
         if k == None:
             return [len(self.getHumanBoxes(filename)) for filename in self.fileManager.getFilenames()]
         else:
-            filename = self.fileManager.getFilename(k)
-            return (len(self.getHumanBoxes(filename)))
+            return len(self.getHumanBoxes(self.fileManager.getFilename(k)))
 
     def merge(self, predictor, maxlag):
         self.k1 = self.k2 = self.fileManager.nbFiles() # positionning at the junction between the two predictors
@@ -402,7 +400,7 @@ class PredictorVideo(PredictorBase):
                             predictionallframe[k,self.idxhuman] = DEFAULTLOGIT
                         if category == 3: # vehicle
                             predictionallframe[k,self.idxvehicle] = DEFAULTLOGIT
-                        if humanboxes is not None: # humans in at least one frame
+                        if len(humanboxes): # humans in at least one frame
                             self.humancount[self.k1] = max(self.humancount[self.k1],len(humanboxes))
                     k = k+1
             videocap.release()
