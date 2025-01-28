@@ -171,7 +171,7 @@ class PredictorBase(ABC):
                 bestidx = idxanimal[np.argmax(averagelogits)] # selecting class with best average logit
                 bestscore = np.exp(averagelogits[np.argmax(averagelogits)])/sum(np.exp(averagelogits)) # softmax(average logit)
             else:
-                if sum(ishuman)>sum(isvehicle): # human
+                if sum(ishuman)>=sum(isvehicle): # human
                     bestidx = self.idxhuman
                     bestscore = 1.
                 else: # vehicle
@@ -340,7 +340,7 @@ class PredictorVideo(PredictorBase):
          self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.setDetectionThreshold(YOLO_THRES)
-         self.humancount = [False]*self.fileManager.nbFiles()
+         self.humancount = [0]*self.fileManager.nbFiles()
 
     def resetBatch(self):
         self.k1 = 0

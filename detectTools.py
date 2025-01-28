@@ -73,6 +73,7 @@ class Detector:
         except IndexError:
             # No: Selecting the best box for another category (human, vehicle)
             kbox = 0
+        # categories are 1=animal, 2=person, 3=vehicle and the empty category 0=empty
         category = int(detection.cls[kbox]) + 1
         box = detection.xyxy[kbox] # xmin, ymin, xmax, ymax
         # Is this an animal box ?
