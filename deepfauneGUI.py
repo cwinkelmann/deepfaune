@@ -579,7 +579,8 @@ window['-PREDICTION-'].Update(disabled=True)
 window['-RESTRICT-'].Update(disabled=True)
 window['-COUNTER-'].Update(disabled=True)
 window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after return key
-#window['-COUNTERHUMAN-'].Update(disabled=True)
+window['-COUNTERHUMAN-'].Update(disabled=True)
+window['-COUNTERHUMAN-'].bind("<Return>", "_Enter") # to generate an event only after return key
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
 
@@ -644,9 +645,8 @@ def updatePredictionInfo(disabled):
         if countactivated:
             window['-COUNTER-'].Update(value=0)
             window['-COUNTER-'].Update(disabled=True)
-            window['-COUNTERHUMAN-'].Update("0")
-            #window['-COUNTERHUMAN-'].Update(value=0)
-            #window['-COUNTERHUMAN-'].Update(disabled=True)
+            window['-COUNTERHUMAN-'].Update(value=0)
+            window['-COUNTERHUMAN-'].Update(disabled=True)
         if VIDEO:
             window['-SEQNUM-'].Update("")
         else:
@@ -655,7 +655,7 @@ def updatePredictionInfo(disabled):
         window['-PREDICTION-'].Update(disabled=False)
         if countactivated:
             window['-COUNTER-'].Update(disabled=False)
-            #window['-COUNTERHUMAN-'].Update(disabled=False)
+            window['-COUNTERHUMAN-'].Update(disabled=False)
 
 def updateTxtNewClasses(txt_newclass):
     if txt_newclass not in sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]+txt_new_classes_lang:
@@ -990,8 +990,8 @@ while True:
         if predictorready and len(subsetidx)>0:
             _, _, _, count_curridx = predictor.getPredictions(curridx)
             window['-COUNTER-'].Update(value=count_curridx)
-            counthuman_curridx =  predictor.getHumanCount(curridx)
-            window['-COUNTERHUMAN-'].Update(value=counthuman_curridx)
+            humancount_curridx =  predictor.getHumanCount(curridx)
+            window['-COUNTERHUMAN-'].Update(value=humancount_curridx)
         else:
             window['-COUNTER-'].Update(value=0)
             window['-COUNTERHUMAN-'].Update(value=0)
@@ -1157,7 +1157,7 @@ while True:
             updateMenuImport(disabled=True)
             window['-PREDICTION-'].Update(disabled=True)
             window['-COUNTER-'].Update(disabled=True)
-            #window['-COUNTERHUMAN-'].Update(disabled=True)
+            window['-COUNTERHUMAN-'].Update(disabled=True)
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)           
             if VIDEO:
                 from predictTools import PredictorVideo
@@ -1284,18 +1284,18 @@ while True:
         else:
             if predictorready:
                 predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-                counthuman_curridx = predictor.getHumanCount(curridx)
+                humancount_curridx = predictor.getHumanCount(curridx)
                 txt_human = txt_classes[LANG][-2]
                 if predictedclass_curridx != txt_human:
                     window['-PREDICTION-'].update(value=predictedclass_curridx)
                     if countactivated:
                         window['-COUNTER-'].Update(value=str(count_curridx))
-                        window['-COUNTERHUMAN-'].Update(value=str(counthuman_curridx))
+                        window['-COUNTERHUMAN-'].Update(value=str(humancount_curridx))
                 else:
                     window['-PREDICTION-'].update(value=txt_human)
                     if countactivated:
                         window['-COUNTER-'].Update(value=0) # setting the animal count to 0 when sequences is predicted as human
-                        window['-COUNTERHUMAN-'].Update(value=str(counthuman_curridx))
+                        window['-COUNTERHUMAN-'].Update(value=str(humancount_curridx))
                 window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
                 if humanbluractivated:
                     if not VIDEO:
@@ -1387,6 +1387,14 @@ while True:
             try:
                 newcount = int(values['-COUNTER-'])
                 predictor.setPredictedCount(curridx, values['-COUNTER-'])
+            except ValueError:
+                window['-COUNTER-'].Update(value=count_curridx)
+            #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor
+    elif event == '-COUNTERHUMAN-' + "_Enter":
+        if predictorready:
+            try:
+                newhumancount = int(values['-COUNTERHUMAN-'])
+                #predictor.setPredictedHumancount(curridx, values['-COUNTER-'])
             except ValueError:
                 window['-COUNTER-'].Update(value=count_curridx)
             #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor
