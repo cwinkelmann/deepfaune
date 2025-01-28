@@ -1299,7 +1299,7 @@ while True:
                 window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
                 if humanbluractivated:
                     if not VIDEO:
-                        blur_boxes(imagecv, humanboxes)
+                        blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
                 if predictedclass_curridx is not txt_empty[LANG]:
                     draw_boxes(imagecv, predictedbox_curridx)
         if is_value_updated or event == "-TAB-":
@@ -1386,7 +1386,7 @@ while True:
         if predictorready:
             try:
                 newcount = int(values['-COUNTER-'])
-                predictor.setPredictedCount(curridx, values['-COUNTER-'])
+                predictor.setPredictedCount(curridx, newcount)
             except ValueError:
                 window['-COUNTER-'].Update(value=count_curridx)
             #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor
@@ -1394,7 +1394,7 @@ while True:
         if predictorready:
             try:
                 newhumancount = int(values['-COUNTERHUMAN-'])
-                #predictor.setPredictedHumancount(curridx, values['-COUNTER-'])
+                predictor.setHumanCount(curridx, newhumancount)
             except ValueError:
                 window['-COUNTER-'].Update(value=count_curridx)
             #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor

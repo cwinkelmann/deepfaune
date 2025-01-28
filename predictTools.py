@@ -73,6 +73,7 @@ class PredictorBase(ABC):
         self.predictedscore = [0.]*self.fileManager.nbFiles()
         self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
         self.count = [0]*self.fileManager.nbFiles()
+        self.humancount = [0]*self.fileManager.nbFiles()
         self.threshold = threshold # classification step
         self.detectionthreshold = 0. # detection step
         self.resetBatch()    
@@ -120,17 +121,23 @@ class PredictorBase(ABC):
         self.predictedscore[k] = score
         self.predictedtop1[k] = label
 
-    @abstractmethod
-    def getHumanPresence(self, k=None):
-        pass
-    
-    @abstractmethod
-    def getHumanCount(self, k=None):
-        pass
-
     def setPredictedCount(self, k, count):
         self.count[k] = count
+
+    def getHumanCount(self, k=None):
+        if k == None:
+            return [self.humancount[k] for k in range(0,self.fileManager.nbFiles())]
+        else:
+            return (self.humancount[k])
+    
+    def setHumanCount(self, k, humancount):
+        self.humancount[k] = humancount
             
+    def getHumanPresence(self, k=None):
+        if k == None:
+            return [humancount>0 for humancount in self.getHumanCount()]
+        else:
+            return self.getHumanCount(k)>0
     def getFilenames(self):
         return self.fileManager.getFilenames()
     
@@ -215,6 +222,7 @@ class PredictorImageBase(PredictorBase):
                     self.prediction[k,self.idxvehicle] = DEFAULTLOGIT
                 if len(humanboxes): # humans
                     self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
+                    self.humancount[k] = len(humanboxes)
             if len(rangeanimal): # predicting species in images with animal 
                 self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
             k1_batch = self.k1
@@ -283,18 +291,6 @@ class PredictorImageBase(PredictorBase):
             return(self.humanboxes[filename])
         except KeyError:
             return []
-
-    def getHumanPresence(self, k=None):
-        if k == None:
-            return [humancount>0 for humancount in self.getHumanCount()]
-        else:
-            return self.getHumanCount(k)>0
-        
-    def getHumanCount(self, k=None):
-        if k == None:
-            return [len(self.getHumanBoxes(filename)) for filename in self.fileManager.getFilenames()]
-        else:
-            return len(self.getHumanBoxes(self.fileManager.getFilename(k)))
 
     def merge(self, predictor, maxlag):
         self.k1 = self.k2 = self.fileManager.nbFiles() # positionning at the junction between the two predictors
@@ -386,7 +382,6 @@ class PredictorVideo(PredictorBase):
                     else:
                         imagecv = frame
                         croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(imagecv, self.detectionthreshold)
-                        print(category, count, humanboxes) 
                         bestboxesallframe[k] = box
                         if count>maxcount:
                             maxcount = count
@@ -432,15 +427,3 @@ class PredictorVideo(PredictorBase):
 
     def getKeyFrames(self, index):
         return self.keyframes[index]
-        
-    def getHumanPresence(self, k=None):
-        if k == None:
-            return [self.humancount[k]>0 for k in range(0,self.fileManager.nbFiles())]
-        else:
-            return (self.humancount[k]>0)
-
-    def getHumanCount(self, k=None):
-        if k == None:
-            return [self.humancount[k] for k in range(0,self.fileManager.nbFiles())]
-        else:
-            return (self.humancount[k])
