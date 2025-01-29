@@ -53,16 +53,16 @@ class Detector:
         try:
             results = self.yolo(filename_or_imagecv, verbose=False, imgsz=YOLO_WIDTH)
         except FileNotFoundError:
-            return None, 0, np.zeros(4), 0, None
+            return None, 0, np.zeros(4), 0, []
         except Exception as err:
-            return None, 0, np.zeros(4), 0, None
+            return None, 0, np.zeros(4), 0, []
         # orig_img a numpy array (cv2) in BGR
         imagecv = results[0].cpu().orig_img
         detection = results[0].cpu().numpy().boxes
         # Are there any relevant boxes?
         if not len(detection.cls) or detection.conf[0] < threshold:
             # No. Image considered as empty
-            return None, 0, np.zeros(4), 0, None
+            return None, 0, np.zeros(4), 0, []
         else:
             # Yes. Non empty image
             pass
@@ -141,7 +141,7 @@ class DetectorJSON:
         try:
             self.k = self.filenameindex[filename]
         except KeyError:
-            return None, 0, np.zeros(4), 0, None
+            return None, 0, np.zeros(4), 0, []
         # now reading filename to obtain width/height (required by convertJSONboxToBox)
         # and possibly crop if it is an animal
         self.nextImread() 
@@ -156,7 +156,7 @@ class DetectorJSON:
         else: # is empty
             category = 0
         if category == 0:
-            return None, 0, np.zeros(4), 0, None
+            return None, 0, np.zeros(4), 0, []
         # is an animal detected ?
         if category != 1:
             croppedimage = None
