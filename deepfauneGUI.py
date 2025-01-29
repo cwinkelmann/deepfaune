@@ -579,8 +579,10 @@ window['-PREDICTION-'].Update(disabled=True)
 window['-RESTRICT-'].Update(disabled=True)
 window['-COUNTER-'].Update(disabled=True)
 window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after return key
+window['-COUNTER-'].bind("<KP_Enter>", "_Enter") # to generate an event only after return key in numeric pad (on Linux)
 window['-COUNTERHUMAN-'].Update(disabled=True)
 window['-COUNTERHUMAN-'].bind("<Return>", "_Enter") # to generate an event only after return key
+window['-COUNTERHUMAN-'].bind("<KP_Enter>", "_Enter") # to generate an event only after return key in numeric pad (on Linux)
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
 
