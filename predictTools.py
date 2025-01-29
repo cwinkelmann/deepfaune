@@ -403,7 +403,6 @@ class PredictorVideo(PredictorBase):
                 predictionallframe[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k for k in rangeanimal],:,:,:], withsoftmax=False)
             # Now averaging over the sequence, with priority to animal predictions
             self.predictedclass[self.k1], self.predictedscore[self.k1], self.predictedtop1[self.k1] = self._PredictorBase__averageLogitInSequence(predictionallframe)
-            print(self.predictedclass[self.k1], self.predictedscore[self.k1])
             if len(rangenonempty): # selecting key frame to display when not empty
                 self.prediction[self.k1,-1] = 0.
                 # using max score
