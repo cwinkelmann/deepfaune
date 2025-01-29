@@ -1397,7 +1397,7 @@ while True:
                 predictor.setHumanCount(curridx, newhumancount)
             except ValueError:
                 humancount_curridx =  predictor.getHumanCount(curridx)
-                window['-COUNTERHUMAN-'].Update(value=predictor.getHumanCount(humancount_curridx)
+                window['-COUNTERHUMAN-'].Update(value=humancount_curridx)
             #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor
     elif event == '-RESTRICT-':
         #########################
