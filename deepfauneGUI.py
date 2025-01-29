@@ -1387,6 +1387,7 @@ while True:
     elif event == '-COUNTER-' + "_Enter":
         if predictorready:
             try:
+                count_curridx =  predictor.getPredictedCount(curridx)
                 newcount = int(values['-COUNTER-'])
                 predictor.setPredictedCount(curridx, newcount)
             except ValueError:
