@@ -121,6 +121,9 @@ class PredictorBase(ABC):
         self.predictedscore[k] = score
         self.predictedtop1[k] = label
 
+    def getPredictedCount(self, k):
+        return self.count[k]
+
     def setPredictedCount(self, k, count):
         self.count[k] = count
 

@@ -1367,15 +1367,15 @@ while True:
         #########################
         if predictorready:
             # if predicted empty associated to another class, set count to 1
-            if predictor.getPredictedClass(curridx) == txt_empty[LANG]:
-                if values['-PREDICTION-'] != txt_empty[LANG]:
-                    window['-COUNTER-'].Update(value=1)
-                    predictor.setPredictedCount(curridx, 1)
+            #if predictor.getPredictedClass(curridx) == txt_empty[LANG]:
+            #    if values['-PREDICTION-'] != txt_empty[LANG]:
+            #        window['-COUNTER-'].Update(value=1)
+            #        predictor.setPredictedCount(curridx, 1)
             # if predicted non empty associated to another class, set count to 0
-            if values['-PREDICTION-'] == txt_empty[LANG]:
-                if predictor.getPredictedClass(curridx) != txt_empty[LANG]:
-                    window['-COUNTER-'].Update(value=0)
-                    predictor.setPredictedCount(curridx, 0)
+            #if values['-PREDICTION-'] == txt_empty[LANG]:
+            #    if predictor.getPredictedClass(curridx) != txt_empty[LANG]:
+            #        window['-COUNTER-'].Update(value=0)
+            #        predictor.setPredictedCount(curridx, 0)
             if VIDEO:
                 predictor.setPredictedClass(curridx, values['-PREDICTION-'])
             else:
@@ -1387,12 +1387,11 @@ while True:
     elif event == '-COUNTER-' + "_Enter":
         if predictorready:
             try:
-                count_curridx =  predictor.getPredictedCount(curridx)
                 newcount = int(values['-COUNTER-'])
                 predictor.setPredictedCount(curridx, newcount)
             except ValueError:
+                count_curridx =  predictor.getPredictedCount(curridx)
                 window['-COUNTER-'].Update(value=count_curridx)
-            #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor
     elif event == '-COUNTERHUMAN-' + "_Enter":
         if predictorready:
             try:
@@ -1401,7 +1400,6 @@ while True:
             except ValueError:
                 humancount_curridx =  predictor.getHumanCount(curridx)
                 window['-COUNTERHUMAN-'].Update(value=humancount_curridx)
-            #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor
     elif event == '-RESTRICT-':
         #########################
         ## BROWSING RESTRICTION
