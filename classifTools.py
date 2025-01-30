@@ -32,6 +32,7 @@
 # knowledge of the CeCILL license and that you accept its terms.
 
 import sys
+import os
 import numpy as np
 import timm
 import torch
@@ -41,6 +42,7 @@ from torchvision.transforms import InterpolationMode, transforms
 
 CROP_SIZE = 182
 BACKBONE = "vit_large_patch14_dinov2.lvd142m"
+DFPATH = os.path.abspath(os.path.dirname(__file__))
 weight_path = 'deepfaune-vit_large_patch14_dinov2.lvd142m.v2.pt'
 
 txt_animalclasses = {
