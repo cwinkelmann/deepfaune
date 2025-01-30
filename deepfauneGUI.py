@@ -41,6 +41,7 @@ import multiprocessing
 import urllib
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
+from hachoir.core import config
 import subprocess
 import tkinter as tk
 from tkinter import ttk, TclError
@@ -65,11 +66,11 @@ import webbrowser
 import copy
 import shutil
 
+
 from predictTools import txt_undefined, txt_empty, txt_classes
 from classifTools import txt_animalclasses
-from hachoir.core import config
-config.quiet = True
 
+config.quiet = True
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 ####################################################################################
@@ -1201,12 +1202,12 @@ while True:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                     'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
-                                    'count':count, 'humanpresence':predictor.getHumanPresence()})
+                                    'count':count, 'humancount':predictor.getHumanCount()})
         else:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                     'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
-                                    'humanpresence':predictor.getHumanPresence()})
+                                    'humancount':predictor.getHumanCount()})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         if event == txt_ascsv[LANG]:
             csvpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.csv", defaultextension=".csv")
