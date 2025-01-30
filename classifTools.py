@@ -41,7 +41,7 @@ from torchvision.transforms import InterpolationMode, transforms
 
 CROP_SIZE = 182
 BACKBONE = "vit_large_patch14_dinov2.lvd142m"
-weight_path = 'deepfaune-vit_large_patch14_dinov2.lvd142m.v2.pt'
+weight_path = 'p6v2.pt'
 
 txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "castor", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "daim", "ecureuil", "equide", "genette",
@@ -57,6 +57,10 @@ txt_animalclasses = {
            "Ginsterkatze", "Igel", "Lagomorpha", "Wolf", "Otter", "Luchs", "Murmeltier", "Kleinsäuger", "Mufflon",
            "Schaf", "Marder", "Vogel", "Bär", "Nutria", "Waschbär", "Fuchs", "Wildschwein", "Kuh"],
 }
+
+classes = txt_animalclasses["fr"] + ["elan", "renne", "glouton", "bison"]
+classes.sort()
+txt_animalclasses = dict(fr=classes, en=classes, it=classes, de=classes)
 
 ####################################################################################
 ### CLASSIFIER
