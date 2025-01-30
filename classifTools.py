@@ -43,7 +43,7 @@ from torchvision.transforms import InterpolationMode, transforms
 CROP_SIZE = 182
 BACKBONE = "vit_large_patch14_dinov2.lvd142m"
 DFPATH = os.path.abspath(os.path.dirname(__file__))
-weight_path = 'deepfaune-vit_large_patch14_dinov2.lvd142m.v2.pt'
+weight_path = os.path.join(DFPATH,'deepfaune-vit_large_patch14_dinov2.lvd142m.v2.pt')
 
 txt_animalclasses = {
     'fr': ["blaireau", "bouquetin", "castor", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "daim", "ecureuil", "equide", "genette",
