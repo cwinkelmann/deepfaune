@@ -44,23 +44,11 @@ BACKBONE = "vit_large_patch14_dinov2.lvd142m"
 weight_path = 'p6v2.pt'
 
 txt_animalclasses = {
-    'fr': ["blaireau", "bouquetin", "castor", "cerf", "chamois", "chat", "chevre", "chevreuil", "chien", "daim", "ecureuil", "equide", "genette",
-           "herisson", "lagomorphe", "loup", "loutre", "lynx", "marmotte", "micromammifere", "mouflon",
-           "mouton", "mustelide", "oiseau", "ours", "ragondin", "raton laveur", "renard", "sanglier", "vache"],
-    'en': ["badger", "ibex", "beaver", "red deer", "chamois", "cat", "goat", "roe deer", "dog", "fallow deer", "squirrel", "equid", "genet",
-           "hedgehog", "lagomorph", "wolf", "otter", "lynx", "marmot", "micromammal", "mouflon",
-           "sheep", "mustelid", "bird", "bear", "nutria", "raccoon", "fox", "wild boar", "cow"],
-    'it': ["tasso", "stambecco", "castoro", "cervo", "camoscio", "gatto", "capra", "capriolo", "cane", "daino", "scoiattolo", "equide", "genetta",
-           "riccio", "lagomorfo", "lupo", "lontra", "lince", "marmotta", "micromammifero", "muflone",
-           "pecora", "mustelide", "uccello", "orso", "nutria", "procione", "volpe", "cinghiale", "mucca"],
-    'de': ["Dachs", "Steinbock", "Biber", "Rothirsch", "Gämse", "Katze", "Ziege", "Rehwild", "Hund", "Damwild", "Eichhörnchen", "Equide",
-           "Ginsterkatze", "Igel", "Lagomorpha", "Wolf", "Otter", "Luchs", "Murmeltier", "Kleinsäuger", "Mufflon",
-           "Schaf", "Marder", "Vogel", "Bär", "Nutria", "Waschbär", "Fuchs", "Wildschwein", "Kuh"],
+    'fr': ['bison', 'blaireau', 'bouquetin', 'castor', 'cerf', 'chamois', 'chat', 'chevre', 'chevreuil', 'chien', 'daim', 'ecureuil', 'elan', 'equide', 'genette', 'glouton', 'herisson', 'lagomorphe', 'loup', 'loutre', 'lynx', 'marmotte', 'micromammifere', 'mouflon', 'mouton', 'mustelide', 'oiseau', 'ours', 'ragondin', 'raton laveur', 'renard', 'renne', 'sanglier', 'vache'],
+    'en': ['bison', 'badger', 'ibex', 'beaver', 'red deer', 'chamois', 'cat', 'goat', 'roe deer', 'dog', 'fallow deer', 'squirrel', 'moose', 'equid', 'genet', 'wolverine', 'hedgehog', 'lagomorph', 'wolf', 'otter', 'lynx', 'marmot', 'micromammal', 'mouflon', 'sheep', 'mustelid', 'bird', 'bear', 'nutria', 'raccoon', 'fox', 'reindeer', 'wild boar', 'cow'],
+    'it': ['bisonte', 'tasso', 'stambecco', 'castoro', 'cervo', 'camoscio', 'gatto', 'capra', 'capriolo', 'cane', 'daino', 'scoiattolo', 'alce', 'equide', 'genetta', 'ghiottone', 'riccio', 'lagomorfo', 'lupo', 'lontra', 'lince', 'marmotta', 'micromammifero', 'muflone', 'pecora', 'mustelide', 'uccello', 'orso', 'nutria', 'procione', 'volpe', 'renna', 'cinghiale', 'mucca'],
+    'de': ['Bison', 'Dachs', 'Steinbock', 'Biber', 'Rothirsch', 'Gämse', 'Katze', 'Ziege', 'Rehwild', 'Hund', 'Damwild', 'Eichhörnchen', 'Elch', 'Equide', 'Ginsterkatze', 'Vielfraß', 'Igel', 'Lagomorpha', 'Wolf', 'Otter', 'Luchs', 'Murmeltier', 'Kleinsäuger', 'Mufflon', 'Schaf', 'Marder', 'Vogel', 'Bär', 'Nutria', 'Waschbär', 'Fuchs', 'Rentier', 'Wildschwein', 'Kuh'],
 }
-
-classes = txt_animalclasses["fr"] + ["elan", "renne", "glouton", "bison"]
-classes.sort()
-txt_animalclasses = dict(fr=classes, en=classes, it=classes, de=classes)
 
 ####################################################################################
 ### CLASSIFIER
