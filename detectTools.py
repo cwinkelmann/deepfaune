@@ -31,6 +31,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL license and that you accept its terms.
 
+import os
 import cv2
 import numpy as np
 from PIL import Image
@@ -40,14 +41,16 @@ YOLO_WIDTH = 960 # image width
 YOLO_THRES = 0.6
 YOLOHUMAN_THRES = 0.4 # boxes with human above this threshold are saved
 YOLOCOUNT_THRES = 0.6
-model = 'deepfaune-yolov8s_960.pt'
+
+DFPATH = os.path.abspath(os.path.dirname(__file__))
+yoloweight_path = os.path.join(DFPATH,'deepfaune-yolov8s_960.pt')
 
 ####################################################################################
 ### BEST BOX DETECTION 
 ####################################################################################
 class Detector:
     def __init__(self):
-        self.yolo = YOLO(model)
+        self.yolo = YOLO(yoloweight_path)
         
     def bestBoxDetection(self, filename_or_imagecv, threshold=YOLO_THRES):
         try:
