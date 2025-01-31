@@ -1369,16 +1369,6 @@ while True:
         ## CORRECTING PREDICTION
         #########################
         if predictorready:
-            # if predicted empty associated to another class, set count to 1
-            #if predictor.getPredictedClass(curridx) == txt_empty[LANG]:
-            #    if values['-PREDICTION-'] != txt_empty[LANG]:
-            #        window['-COUNTER-'].Update(value=1)
-            #        predictor.setPredictedCount(curridx, 1)
-            # if predicted non empty associated to another class, set count to 0
-            #if values['-PREDICTION-'] == txt_empty[LANG]:
-            #    if predictor.getPredictedClass(curridx) != txt_empty[LANG]:
-            #        window['-COUNTER-'].Update(value=0)
-            #        predictor.setPredictedCount(curridx, 0)
             if VIDEO:
                 predictor.setPredictedClass(curridx, values['-PREDICTION-'])
             else:
