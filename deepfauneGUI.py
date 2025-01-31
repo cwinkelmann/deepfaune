@@ -64,7 +64,10 @@ import queue
 import webbrowser
 import copy
 import shutil
+import sys
 
+DFPATH = os.path.abspath(os.path.dirname(sys.argv[0]))
+sys.path.append(DFPATH)
 from predictTools import txt_undefined, txt_empty, txt_classes
 from classifTools import txt_animalclasses
 from hachoir.core import config
@@ -89,7 +92,7 @@ listlang = ['fr', 'en', 'it', 'de']
 config = configparser.ConfigParser()
 
 def configget(option, defaultvalue):
-    config.read('settings.ini')
+    config.read(os.path.join(DFPATH,'settings.ini'))
     try:
         if defaultvalue  in ['True','False']:
             value = config.getboolean('General',option)
@@ -101,7 +104,7 @@ def configget(option, defaultvalue):
             
 def configsetsave(option, value):
     config.set('General', option, value)
-    with open("settings.ini", "w") as inif:
+    with open(os.path.join(DFPATH,'settings.ini'), 'w') as inif:
         config.write(inif)
 
 LANG = configget('language', 'fr')
@@ -203,7 +206,7 @@ tooltip_openfolder = {'fr': "Afficher le fichier dans Windows Explorer",
 DEFAULT_THEME = {'accent': '#24a0ed', 'background': '#1c1c1c', 'text': '#d7d7d7', 'alt_background': '#2f2f2f'}
 accent_color, text_color, background_color, alt_background = DEFAULT_THEME['accent'], DEFAULT_THEME['text'], DEFAULT_THEME['background'], DEFAULT_THEME['alt_background']
 
-SUN_VALLEY_TCL = 'theme/sun-valley.tcl'
+SUN_VALLEY_TCL = os.path.join(DFPATH,'theme/sun-valley.tcl')
 SUN_VALLEY_THEME = 'dark' # 'light' not coherent with DEFAULT THEME
 FONT_NORMAL = 'Segoe UI', 11
 FONT_SMALL = 'Segoe UI', 10
@@ -362,7 +365,7 @@ def cv2bytes(imagecv, imsize=None):
     return bio.getvalue()
 
 # Initial logo image
-startimagecv = cv2.imdecode(np.fromfile("icons/startscreen-large.png", dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
+startimagecv = cv2.imdecode(np.fromfile(os.path.join(DFPATH,'icons/startscreen-large.png'), dtype=np.uint8), cv2.IMREAD_UNCHANGED)    
 curimagecv = startimagecv
 
 # Checking screen possibilities and sizing image accordinglyimport ctypes
