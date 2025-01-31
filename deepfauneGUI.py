@@ -41,6 +41,7 @@ import multiprocessing
 import urllib
 from hachoir.parser import createParser
 from hachoir.metadata import extractMetadata
+from hachoir.core import config
 import subprocess
 import tkinter as tk
 from tkinter import ttk, TclError
@@ -70,9 +71,8 @@ DFPATH = os.path.abspath(os.path.dirname(sys.argv[0]))
 sys.path.append(DFPATH)
 from predictTools import txt_undefined, txt_empty, txt_classes
 from classifTools import txt_animalclasses
-from hachoir.core import config
-config.quiet = True
 
+config.quiet = True
 multiprocessing.freeze_support()
 os.environ["PYTORCH_JIT"] = "0"
 ####################################################################################
@@ -144,9 +144,7 @@ txt_filename = {'fr':"Nom de fichier", 'en':"Filename",
                 'it':"Nome del file", 'de':"Dateiname"}
 txt_prediction = {'fr':"Prédiction", 'en':"Prediction",
                   'it':"Predizione", 'de':"Vorhersage"}
-txt_count = {'fr':"Comptage", 'en':"Count",
-             'it':"Conto", 'de':"Zählung"}
-txt_seqnum = {'fr':"Numéro de séquence", 'en':"Sequence ID",
+txt_seqnum = {'fr':"Séquence ID", 'en':"Sequence ID",
               'it':"Sequenza ID", 'de':"Sequenz ID"}
 txt_error = {'fr':"Erreur", 'en':"Error",
              'it':"Errore", 'de':"Fehler"}
@@ -190,16 +188,19 @@ tooltip_metadata = {'fr': 'Metadata',
                     'en': 'Metadata',
                     'it': 'Metadati',
                     'de': 'Metadaten'}
-
 tooltip_playpause = {'fr': 'Lire la vidéo/séquence',
                      'en': 'Play the video/sequence',
                      'it': 'Riproduci il video/sequenza',
                      'de': 'Video/Sequenz abspielen'}
-
 tooltip_openfolder = {'fr': "Afficher le fichier dans Windows Explorer",
                       'en': 'Show file in Windows Explorer',
                       'it': 'Mostra il file in Windows Explorer',
                       'de': 'Datei im Windows Explorer anzeigen'}
+tooltip_count = {'fr':"Comptage des animaux", 'en':"Animal count",
+                 'it':"Conteggio degli animali", 'de':"Tiere zählung"}
+tooltip_counthuman = {'fr':"Comptage des humains", 'en':"Human count",
+                      'it':"Conteggio degli esseri umani", 'de':"Zählung der Menschen"}
+
 ####################################################################################
 ### THEME SETTINGS
 ####################################################################################
@@ -534,9 +535,15 @@ layout = [
                               background_color=background_color, text_color=text_color, size=(15, 1), bind_return_key=True, key='-PREDICTION-'),
                      sg.Text("   Score: 0.0", background_color=background_color, text_color=text_color, key='-SCORE-'),
                      sg.Text("", background_color=background_color, text_color=text_color, key='-SEQNUM-'),
-                     sg.Text("\t"+txt_count[LANG]+":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNT-'),
-                     sg.Input(default_text="0", size=(2, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
-                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color)] # not used if media are videos
+                     sg.Text(" ", background_color=background_color, text_color=text_color),
+                     sg.Image(ANIMAL_ICON, background_color=background_color, visible=countactivated, key='-COUNT-', tooltip=tooltip_count[LANG]),
+                     sg.Text(":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNTCOLON-'),
+                     sg.Input(default_text="0", size=(5, 1), enable_events=True, key='-COUNTER-', background_color=background_color, text_color=text_color, visible=countactivated,
+                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color, border_width=0),
+                     sg.Image(HUMAN_ICON, background_color=background_color, visible=countactivated, key='-COUNTHUMAN-', tooltip=tooltip_counthuman[LANG]),
+                     sg.Text(":", background_color=background_color, text_color=text_color, visible=countactivated, key='-COUNTHUMANCOLON-'),
+                     sg.Input(default_text="0", size=(5, 1), enable_events=True, key='-COUNTERHUMAN-', background_color=background_color, text_color=text_color, visible=countactivated,
+                              disabled_readonly_background_color=background_color, disabled_readonly_text_color=text_color, border_width=0)]
                 ], background_color=background_color, expand_x=True),
                 sg.Column([
                     [sg.Image(BRIGHTNESS_ICON, background_color=background_color)],
@@ -575,6 +582,10 @@ window['-PREDICTION-'].Update(disabled=True)
 window['-RESTRICT-'].Update(disabled=True)
 window['-COUNTER-'].Update(disabled=True)
 window['-COUNTER-'].bind("<Return>", "_Enter") # to generate an event only after return key
+window['-COUNTER-'].bind("<KP_Enter>", "_Enter") # to generate an event only after return key in numeric pad (on Linux)
+window['-COUNTERHUMAN-'].Update(disabled=True)
+window['-COUNTERHUMAN-'].bind("<Return>", "_Enter") # to generate an event only after return key
+window['-COUNTERHUMAN-'].bind("<KP_Enter>", "_Enter") # to generate an event only after return key in numeric pad (on Linux)
 window.bind('<Configure>', '-CONFIG-') # to generate an event when window is resized
 window['-IMAGE-'].bind('<Double-Button-1>' , "DOUBLECLICK-")
 
@@ -639,15 +650,27 @@ def updatePredictionInfo(disabled):
         if countactivated:
             window['-COUNTER-'].Update(value=0)
             window['-COUNTER-'].Update(disabled=True)
+            window['-COUNTERHUMAN-'].Update(value=0)
+            window['-COUNTERHUMAN-'].Update(disabled=True)
         if VIDEO:
             window['-SEQNUM-'].Update("")
         else:
-            window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": NA")
+            window['-SEQNUM-'].Update(" "+txt_seqnum[LANG]+": NA")
     else:
         window['-PREDICTION-'].Update(disabled=False)
         if countactivated:
             window['-COUNTER-'].Update(disabled=False)
+            window['-COUNTERHUMAN-'].Update(disabled=False)
 
+def updateTxtNewClasses(txt_newclass):
+    if txt_newclass not in sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]+txt_new_classes_lang:
+        txt_new_classes_lang.append(txt_newclass) 
+        window['-PREDICTION-'].Update(values=sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]],
+                                      value=txt_newclass)
+        valuerestrict = values['-RESTRICT-']
+        window['-RESTRICT-'].Update(values=[txt_all[LANG]]+sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_empty[LANG]],
+                                    value=valuerestrict)
+ 
 
 def rescale_slider(value, min_rescale=-10, max_rescale=10):
     return gamma_dict[int((1-value)*min_rescale + value*max_rescale)]
@@ -972,16 +995,27 @@ while True:
         if predictorready and len(subsetidx)>0:
             _, _, _, count_curridx = predictor.getPredictions(curridx)
             window['-COUNTER-'].Update(value=count_curridx)
+            humancount_curridx =  predictor.getHumanCount(curridx)
+            window['-COUNTERHUMAN-'].Update(value=humancount_curridx)
         else:
             window['-COUNTER-'].Update(value=0)
+            window['-COUNTERHUMAN-'].Update(value=0)
         window['-COUNT-'].Update(visible=True)
+        window['-COUNTCOLON-'].Update(visible=True)
         window['-COUNTER-'].Update(visible=True)
+        window['-COUNTHUMAN-'].Update(visible=True)
+        window['-COUNTHUMANCOLON-'].Update(visible=True)
+        window['-COUNTERHUMAN-'].Update(visible=True)
         configsetsave('count', 'True')
         updateMenuCount(activated=True)
     elif event == txt_deactivatecount[LANG]:
         countactivated = False
         window['-COUNT-'].Update(visible=False)
+        window['-COUNTCOLON-'].Update(visible=False)
         window['-COUNTER-'].Update(visible=False)
+        window['-COUNTHUMAN-'].Update(visible=False)
+        window['-COUNTHUMANCOLON-'].Update(visible=False)
+        window['-COUNTERHUMAN-'].Update(visible=False)
         configsetsave('count', 'False')
         updateMenuCount(activated=False)
     elif event == txt_activatehumanblur[LANG]:
@@ -1128,6 +1162,7 @@ while True:
             updateMenuImport(disabled=True)
             window['-PREDICTION-'].Update(disabled=True)
             window['-COUNTER-'].Update(disabled=True)
+            window['-COUNTERHUMAN-'].Update(disabled=True)
             window['-RESTRICT-'].Update(value=txt_all[LANG], disabled=True)           
             if VIDEO:
                 from predictTools import PredictorVideo
@@ -1164,17 +1199,17 @@ while True:
         if VIDEO:
             predictedclass_base, predictedscore_base = predictedclass, predictedscore
         else:
-            predictedclass_base, predictedscore_base, _, count = predictor.getPredictionsBase()
+            predictedclass_base, predictedscore_base, _, _ = predictor.getPredictionsBase()
         if countactivated:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                     'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
-                                    'count':count, 'humanpresence':predictor.getHumanPresence()})
+                                    'count':count, 'humancount':predictor.getHumanCount()})
         else:
             preddf  = pd.DataFrame({'filename':predictor.getFilenames(), 'date':predictor.getDates(), 'seqnum':predictor.getSeqnums(),
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                     'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
-                                    'humanpresence':predictor.getHumanPresence()})
+                                    'humancount':predictor.getHumanCount()})
         preddf.sort_values(['seqnum','filename'], inplace=True)
         if event == txt_ascsv[LANG]:
             csvpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.csv", defaultextension=".csv")
@@ -1250,13 +1285,23 @@ while True:
                 window['-SCORE-'].Update("   Score: 0.0")
                 if countactivated:
                     window['-COUNTER-'].Update(value=0)
+                    window['-COUNTERHUMAN-'].Update(value=0)
         else:
             if predictorready:
                 predictedclass_curridx, predictedscore_curridx, predictedbox_curridx, count_curridx = predictor.getPredictions(curridx)
-                window['-PREDICTION-'].update(value=predictedclass_curridx)
+                humancount_curridx = predictor.getHumanCount(curridx)
+                txt_human = txt_classes[LANG][-2]
+                if predictedclass_curridx != txt_human:
+                    window['-PREDICTION-'].update(value=predictedclass_curridx)
+                    if countactivated:
+                        window['-COUNTER-'].Update(value=str(count_curridx))
+                        window['-COUNTERHUMAN-'].Update(value=str(humancount_curridx))
+                else:
+                    window['-PREDICTION-'].update(value=txt_human)
+                    if countactivated:
+                        window['-COUNTER-'].Update(value=0) # setting the animal count to 0 when sequences is predicted as human
+                        window['-COUNTERHUMAN-'].Update(value=str(humancount_curridx))
                 window['-SCORE-'].Update("   Score: "+str(predictedscore_curridx))
-                if countactivated:
-                    window['-COUNTER-'].Update(value=count_curridx)
                 if humanbluractivated:
                     if not VIDEO:
                         blur_boxes(imagecv, predictor.getHumanBoxes(filenames[curridx]))
@@ -1265,7 +1310,7 @@ while True:
         if is_value_updated or event == "-TAB-":
             updateImage(imagecv, rescale_slider(slider_value))
         if predictorready and not VIDEO:
-            window['-SEQNUM-'].Update("\t"+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
+            window['-SEQNUM-'].Update(" "+txt_seqnum[LANG]+": "+str(seqnums[curridx]))
     elif (testdir is not None) \
          and (event == '-PREVIOUS-' or event == '-NEXT-') \
          and (len(subsetidx)>0):
@@ -1325,15 +1370,15 @@ while True:
         #########################
         if predictorready:
             # if predicted empty associated to another class, set count to 1
-            if predictor.getPredictedClass(curridx) == txt_empty[LANG]:
-                if values['-PREDICTION-'] != txt_empty[LANG]:
-                    window['-COUNTER-'].Update(value=1)
-                    predictor.setPredictedCount(curridx, 1)
+            #if predictor.getPredictedClass(curridx) == txt_empty[LANG]:
+            #    if values['-PREDICTION-'] != txt_empty[LANG]:
+            #        window['-COUNTER-'].Update(value=1)
+            #        predictor.setPredictedCount(curridx, 1)
             # if predicted non empty associated to another class, set count to 0
-            if values['-PREDICTION-'] == txt_empty[LANG]:
-                if predictor.getPredictedClass(curridx) != txt_empty[LANG]:
-                    window['-COUNTER-'].Update(value=0)
-                    predictor.setPredictedCount(curridx, 0)
+            #if values['-PREDICTION-'] == txt_empty[LANG]:
+            #    if predictor.getPredictedClass(curridx) != txt_empty[LANG]:
+            #        window['-COUNTER-'].Update(value=0)
+            #        predictor.setPredictedCount(curridx, 0)
             if VIDEO:
                 predictor.setPredictedClass(curridx, values['-PREDICTION-'])
             else:
@@ -1341,21 +1386,23 @@ while True:
             window['-PREDICTION-'].Update(select=False)
             window['-SCORE-'].Update("   Score: 1.0")
         # new class proposed by the user ?
-        if not values['-PREDICTION-'] in sorted_txt_classes_lang+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]]+txt_new_classes_lang:
-            txt_new_classes_lang.append(values['-PREDICTION-']) 
-            window['-PREDICTION-'].Update(values=sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_other[LANG],txt_empty[LANG]],
-                                          value=values['-PREDICTION-'])
-            valuerestrict = values['-RESTRICT-']
-            window['-RESTRICT-'].Update(values=[txt_all[LANG]]+sorted(sorted_txt_classes_lang+txt_new_classes_lang)+[txt_undefined[LANG],txt_empty[LANG]],
-                                        value=valuerestrict)
+        updateTxtNewClasses(values['-PREDICTION-'])
     elif event == '-COUNTER-' + "_Enter":
         if predictorready:
             try:
                 newcount = int(values['-COUNTER-'])
-                predictor.setPredictedCount(curridx, values['-COUNTER-'])
+                predictor.setPredictedCount(curridx, newcount)
             except ValueError:
+                count_curridx =  predictor.getPredictedCount(curridx)
                 window['-COUNTER-'].Update(value=count_curridx)
-            #window['-COUNTER-'].TKEntry.configure(insertontime=0) # no blinking cursor
+    elif event == '-COUNTERHUMAN-' + "_Enter":
+        if predictorready:
+            try:
+                newhumancount = int(values['-COUNTERHUMAN-'])
+                predictor.setHumanCount(curridx, newhumancount)
+            except ValueError:
+                humancount_curridx =  predictor.getHumanCount(curridx)
+                window['-COUNTERHUMAN-'].Update(value=humancount_curridx)
     elif event == '-RESTRICT-':
         #########################
         ## BROWSING RESTRICTION
@@ -1364,7 +1411,13 @@ while True:
             subsetidx = list(range(0,len(filenames)))
         else:
             predictedclass, _, _, _ = predictor.getPredictions()
-            subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
+            txt_human = txt_classes[LANG][-2]
+            if  values['-RESTRICT-'] != txt_human:
+                # restricting to a species
+                subsetidx = list(np.where(np.array(predictedclass)==values['-RESTRICT-'])[0])
+            else:
+                # restricting to human, whatever the other species present; human presence is checked
+                subsetidx = list(np.where(np.array(predictor.getHumanPresence())==True)[0])
         if len(subsetidx)>0:
             updatePredictionInfo(disabled=False)
             update_slider(enabled=True)
