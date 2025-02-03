@@ -155,7 +155,7 @@ class PredictorBase(ABC):
                     idxanimal = np.delete(idxanimal, self.idxforbidden)
                     predinseq = np.delete(predinseq, self.idxforbidden, axis=1)
                 averagelogits = np.mean(predinseq,axis=0)
-                temperature = 1.10 if predinseq.shape[0] == 1 else 1.01 # different temperature for image level and sequence level
+                temperature = 1.06 if predinseq.shape[0] == 1 else 1.00 # different temperature for image level and sequence level
                 averagelogits /= temperature
                 bestidx = idxanimal[np.argmax(averagelogits)] # selecting class with best average logit
                 bestscore = np.exp(averagelogits[np.argmax(averagelogits)])/sum(np.exp(averagelogits)) # softmax(average logit)
