@@ -40,6 +40,8 @@ from hachoir.metadata import extractMetadata
 
 def getFilesOrder(filenames):
     nbfiles = len(filenames)
+    if nbfiles==0:
+        return np.array([])
     numdir = np.array([0]*nbfiles)
     dirs = []
     for i in range(0, nbfiles):

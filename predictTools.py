@@ -73,6 +73,7 @@ class PredictorBase(ABC):
         self.predictedscore = [0.]*self.fileManager.nbFiles()
         self.bestboxes = np.zeros(shape=(self.fileManager.nbFiles(), 4), dtype=np.float32)
         self.count = [0]*self.fileManager.nbFiles()
+        self.humancount = [0]*self.fileManager.nbFiles()
         self.threshold = threshold # classification step
         self.detectionthreshold = 0. # detection step
         self.resetBatch()    
@@ -120,9 +121,26 @@ class PredictorBase(ABC):
         self.predictedscore[k] = score
         self.predictedtop1[k] = label
 
+    def getPredictedCount(self, k):
+        return self.count[k]
+
     def setPredictedCount(self, k, count):
         self.count[k] = count
+
+    def getHumanCount(self, k=None):
+        if k == None:
+            return [self.humancount[k] for k in range(0,self.fileManager.nbFiles())]
+        else:
+            return (self.humancount[k])
+    
+    def setHumanCount(self, k, humancount):
+        self.humancount[k] = humancount
             
+    def getHumanPresence(self, k=None):
+        if k == None:
+            return [humancount>0 for humancount in self.getHumanCount()]
+        else:
+            return self.getHumanCount(k)>0
     def getFilenames(self):
         return self.fileManager.getFilenames()
     
@@ -137,7 +155,11 @@ class PredictorBase(ABC):
         # that are at the beginning of the classes list
         self.idxforbidden = [idx for idx in range(0,len(txt_animalclasses[self.LANG]))
                              if txt_animalclasses[self.LANG][idx] in forbiddenanimalclasses]
-        
+
+    # Averaging the scores at the sequence level
+    # with priority to animal predictions :
+    # a sequence with at least an animal on an image will have an animal prediction
+    # whereas a sequence with all images without an animal will have a prediction empty/human/vehicle
     def __averageLogitInSequence(self, predinseq):
         isempty = (predinseq[:,-1]>0)
         ishuman = (predinseq[:,self.idxhuman]>0)
@@ -146,8 +168,7 @@ class PredictorBase(ABC):
         if sum(isempty)==predinseq.shape[0]: # testing all image are empty
             return txt_empty[self.LANG], 1., txt_empty[self.LANG]
         else:
-            mostfrequent = np.argsort([sum(isanimal), sum(ishuman), sum(isvehicle)])[-1] # discarding empty images
-            if mostfrequent==0: # animal
+            if sum(isanimal)>0: # at least an animal seen in the sequence => priority
                 idxanimal = list(range(0,len(txt_animalclasses[self.LANG])))
                 predinseq = predinseq[isanimal,] # only images with animals
                 predinseq = predinseq[:, idxanimal] # only animal classes
@@ -160,7 +181,7 @@ class PredictorBase(ABC):
                 bestidx = idxanimal[np.argmax(averagelogits)] # selecting class with best average logit
                 bestscore = np.exp(averagelogits[np.argmax(averagelogits)])/sum(np.exp(averagelogits)) # softmax(average logit)
             else:
-                if mostfrequent==1: # human
+                if sum(ishuman)>=sum(isvehicle): # human
                     bestidx = self.idxhuman
                     bestscore = 1.
                 else: # vehicle
@@ -202,8 +223,9 @@ class PredictorImageBase(PredictorBase):
                     self.prediction[k,self.idxhuman] = DEFAULTLOGIT
                 if category == 3: # vehicle
                     self.prediction[k,self.idxvehicle] = DEFAULTLOGIT
-                if humanboxes is not None: # humans
+                if len(humanboxes): # humans
                     self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
+                    self.humancount[k] = len(humanboxes)
             if len(rangeanimal): # predicting species in images with animal 
                 self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
             k1_batch = self.k1
@@ -254,6 +276,7 @@ class PredictorImageBase(PredictorBase):
         if len(subseqnum)>0:
             for num in range(min(subseqnum), max(subseqnum)+1):
                 range4num = k1seq + np.nonzero(subseqnum==num)[0]
+                # Now averaging over the sequence, with priority to animal predictions
                 predictedclass_seq, bestscore_seq, top1_seq = self._PredictorBase__averageLogitInSequence(self.prediction[range4num,])
                 for k in range4num:
                     self.predictedclass[k] = predictedclass_seq
@@ -270,14 +293,7 @@ class PredictorImageBase(PredictorBase):
         try:
             return(self.humanboxes[filename])
         except KeyError:
-            return None
-
-    def getHumanPresence(self, k=None):
-        if k == None:
-            return [self.getHumanBoxes(filename) is not None for filename in self.fileManager.getFilenames()]
-        else:
-            filename = self.fileManager.getFilename(k)
-            return (self.getHumanBoxes(filename) is not None)
+            return []
 
     def merge(self, predictor, maxlag):
         self.k1 = self.k2 = self.fileManager.nbFiles() # positionning at the junction between the two predictors
@@ -321,7 +337,7 @@ class PredictorVideo(PredictorBase):
          self.keyframes = [0]*self.fileManager.nbFiles()
          self.detector = Detector()
          self.setDetectionThreshold(YOLO_THRES)
-         self.humanpresence = [False]*self.fileManager.nbFiles()
+         self.humancount = [0]*self.fileManager.nbFiles()
 
     def resetBatch(self):
         self.k1 = 0
@@ -382,12 +398,13 @@ class PredictorVideo(PredictorBase):
                             predictionallframe[k,self.idxhuman] = DEFAULTLOGIT
                         if category == 3: # vehicle
                             predictionallframe[k,self.idxvehicle] = DEFAULTLOGIT
-                        if humanboxes is not None: # humans in at least one frame
-                            self.humanpresence[self.k1] = True
+                        if len(humanboxes): # humans in at least one frame
+                            self.humancount[self.k1] = max(self.humancount[self.k1],len(humanboxes))
                     k = k+1
             videocap.release()
             if len(rangeanimal): # predicting species in frames with animal 
                 predictionallframe[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k for k in rangeanimal],:,:,:], withsoftmax=False)
+            # Now averaging over the sequence, with priority to animal predictions
             self.predictedclass[self.k1], self.predictedscore[self.k1], self.predictedtop1[self.k1] = self._PredictorBase__averageLogitInSequence(predictionallframe)
             if len(rangenonempty): # selecting key frame to display when not empty
                 self.prediction[self.k1,-1] = 0.
@@ -412,9 +429,3 @@ class PredictorVideo(PredictorBase):
 
     def getKeyFrames(self, index):
         return self.keyframes[index]
-        
-    def getHumanPresence(self, k=None):
-        if k == None:
-            return self.humanpresence
-        else:
-            return self.humanpresence[k]

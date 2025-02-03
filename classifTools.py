@@ -32,6 +32,7 @@
 # knowledge of the CeCILL license and that you accept its terms.
 
 import sys
+import os
 import numpy as np
 import timm
 import torch
@@ -41,7 +42,8 @@ from torchvision.transforms import InterpolationMode, transforms
 
 CROP_SIZE = 182
 BACKBONE = "vit_large_patch14_dinov2.lvd142m"
-weight_path = 'deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt'
+DFPATH = os.path.abspath(os.path.dirname(__file__))
+weight_path = os.path.join(DFPATH,'deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt')
 
 txt_animalclasses = {
     'fr': ['bison', 'blaireau', 'bouquetin', 'castor', 'cerf', 'chamois', 'chat', 'chevre', 'chevreuil', 'chien', 'daim', 'ecureuil', 'elan', 'equide', 'genette', 'glouton', 'herisson', 'lagomorphe', 'loup', 'loutre', 'lynx', 'marmotte', 'micromammifere', 'mouflon', 'mouton', 'mustelide', 'oiseau', 'ours', 'ragondin', 'raton laveur', 'renard', 'renne', 'sanglier', 'vache'],

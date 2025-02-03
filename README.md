@@ -24,7 +24,8 @@ Release v1.2.0 is available on Windows, Linux and MacOS.
 
 Supported categories/species : BADGER, BEAR, BEAVER, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FALLOW DEER, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, OTTER, RACCOON, RED DEER, ROE DEER, SHEEP, SQUIRREL, WILD BOAR, WOLF + HUMAN + VEHICULE + EMPTY 
 
-Classification performances are available [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance).
+Classification performance is available [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance).
+
 ---
 # INSTALL
 ---
