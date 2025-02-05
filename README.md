@@ -12,14 +12,14 @@
 ## Feb 5, 2025
 Release v1.3.0 is available for test.
 
-* New categories 'bison','rein deer' and 'wolverine'  (in french 'bison', 'renne' and 'glouton').
+* New categories 'bison', 'moose', 'rein deer' and 'wolverine'  (in french 'bison', 'elan', 'renne' and 'glouton').
 * Even more efficient classification model, still based on vit_large_patch14_dinov2 architecture.
 * Use of more icons instead of text in software design.
 * Animal counts and human counts are managed independently, and displayed in the interface.
 * Column 'HumanPresence' replaced by 'HumanCount'.
 
 
-Supported categories/species : BADGER, BEAR, BEAVER, BIRD, BISON, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FALLOW DEER, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MOOSE, MUSTELID, NUTRIA, OTTER, RACCOON, RED DEER, REIN DEER, ROE DEER, SHEEP, SQUIRREL, WILD BOAR, WOLF + HUMAN + VEHICULE + EMPTY 
+Supported categories/species : BADGER, BEAR, BEAVER, BIRD, BISON, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FALLOW DEER, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MOOSE, MUSTELID, NUTRIA, OTTER, RACCOON, RED DEER, REIN DEER, ROE DEER, SHEEP, SQUIRREL, WILD BOAR, WOLF, WOLVERINE + HUMAN + VEHICULE + EMPTY 
 
 Classification performance is available [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance).
 

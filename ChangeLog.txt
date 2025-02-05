@@ -1,7 +1,7 @@
 2025-02-05  Vincent Miele  <vincent.miele@cnrs.fr>
 
 	    Version 1.3.0
-	    * New categories 'bison','rein deer' and 'wolverine'  (in french 'bison', 'renne' and 'glouton').
+	    * New categories 'bison', 'moose', 'rein deer' and 'wolverine'  (in french 'bison', 'elan', 'renne' and 'glouton').
 	    * Even more efficient classification model, still based on vit_large_patch14_dinov2 architecture.
 	    * Use of more icons instead of text in software design.
 	    * Animal counts and human counts are managed independently, and displayed in the interface.
