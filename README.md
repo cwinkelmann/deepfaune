@@ -9,22 +9,25 @@
 # NEWS
 ---
 
+## Feb 5, 2025
+Release v1.3.0 is available for test.
+
+* New categories 'bison','rein deer' and 'wolverine'  (in french 'bison', 'renne' and 'glouton').
+* Even more efficient classification model, still based on vit_large_patch14_dinov2 architecture.
+* Use of more icons instead of text in software design.
+* Animal counts and human counts are managed independently, and displayed in the interface.
+* Column 'HumanPresence' replaced by 'HumanCount'.
+
+
+Supported categories/species : BADGER, BEAR, BEAVER, BIRD, BISON, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FALLOW DEER, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MOOSE, MUSTELID, NUTRIA, OTTER, RACCOON, RED DEER, REIN DEER, ROE DEER, SHEEP, SQUIRREL, WILD BOAR, WOLF + HUMAN + VEHICULE + EMPTY 
+
+Classification performance is available [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance).
+
 ## Oct 4, 2024
 Release v1.2.0 is available on Windows, Linux and MacOS.  
 
-* New categories 'beaver','fallow deer', 'otter' and 'raccoon'  (in french 'castor', 'daim', 'ragondin' and 'raton laveur').
-* New column 'Top1' (predicted class, even below  the threshold) is now in csv/xslx export.
-* Light modernization of the software design.
-* More efficient classification model, still based on vit_large_patch14_dinov2 architecture.
-* Videos and sequences can be played.
-* Metadata can be displayed in a separate windows.
-* Brightness can be changed.
-* On Windows, images can be opened in explorer
-
-
 Supported categories/species : BADGER, BEAR, BEAVER, BIRD, CAT, CHAMOIS/ISARD, COW, DOG, EQUID, FALLOW DEER, FOX, GENET, GOAT, HEDGEHOG, IBEX, LAGOMORPH, LYNX, MARMOT, MICROMAMMAL, MOUFLON, MUSTELID, NUTRIA, OTTER, RACCOON, RED DEER, ROE DEER, SHEEP, SQUIRREL, WILD BOAR, WOLF + HUMAN + VEHICULE + EMPTY 
 
-Classification performance is available [here](https://plmlab.math.cnrs.fr/deepfaune/software/-/blob/master/README.md?ref_type=heads#performance).
 
 ---
 # INSTALL
@@ -120,39 +123,42 @@ You can implement your own scripts using the DeepFaune API. *Minimal examples* a
 
 We measured the performance (accuracy) of the classification model available in the latest stable release:
 <br>
-
-| Species    | Validation set | Out-of-sample Test set |
-| -------- | ------- |------- |
-| blaireau / badger      |     98,44% |  98,61% |
-| bouquetin / ibex     |     91,74% | -       |
-| castor / beaver        |          - |  30,21% |
-| cerf / red deer          |     96,99% |  95,27% |
-| chamois / chamois       |     98,08% |  95,72% |
-| chat / cat          |     92,92% |  94,90% |
-| chevre / goat        |     82,93% |  64,99% |
-| chevreuil / roe deer     |     98,89% |  98,49% |
-| chien / dog         |     88,67% |  94,08% |
-| daim / fallow deer          |     99,01% |  93,09% |
-| ecureuil / squirrel      |     99,03% |  97,49% |
-| equide / equid        |     99,64% |  81,13% |
-| genette / genet       |     97,12% | -       |
-| herisson / hedgehog       |     89,29% | 100,00% |
-| lagomorphe / lagomorph  |     99,00% |  98,45% |
-| loup / wolf          |     99,34% |  96,83% |
-| loutre / otter    |     98,85% |  76,98% |
-| lynx / lynx          |     99,08% |  95,22% |
-| marmotte / marmot      |     99,11% |  99,26% |
-| micromammifere / micromammals |     96,99% |  95,53% |
-| mouflon /mouflon      |     83,78% |  85,09% |
-| mouton / sheep        |     99,69% |  97,58% |
-| mustelide      |     96,58% |  96,53% |
-| oiseau / bird        |     98,42% |  98,15% |
-| ours / bear          |     83,97% |  97,52% |
-| ragondin / nutria      |     76,80% |  33,33% |
-| ratonlaveur / racoon    |     91,59% | 100,00% |
-| renard / fox        |     98,07% |  98,58% |
-| sanglier / wild boar      |     99,19% |  98,76% |
-| vache / cow         |     99,86% |  93,02% |
+| Classes | Validation | Out-of-sample Test | Val Support | Out-of-sample Test Support |
+|---------|------------|------|-------------|--------------|
+| bison / bison | 99,66% | 99,87% | 4363 | 4608 |
+| blaireau / badger | 99,33% | 99,26% | 4315 | 4314 |
+| bouquetin / ibex | 95,68% | NA | 880 | 0 |
+| castor / beaver | 38,57% | 54,55% | 70 | 11 |
+| cerf / red deer | 97,86% | 95,83% | 12322 | 80393 |
+| chamois / chamois | 99,62% | 96,40% | 7710 | 5674 |
+| chat / cat | 97,60% | 96,30% | 1832 | 1541 |
+| chevre / goat | 98,81% | 82,35% | 758 | 1031 |
+| chevreuil / roe deer | 99,29% | 97,86% | 13923 | 17935 |
+| chien / dog | 96,69% | 95,30% | 1661 | 319 |
+| daim / fallow deer | 99,39% | 95,26% | 12041 | 718 |
+| ecureuil / squirrel | 98,98% | 92,09% | 1659 | 834 |
+| elan / moose | 99,66% | 98,86% | 4770 | 3064 |
+| equide / equid | 96,67% | 95,68% | 3061 | 324 |
+| genette / genet | 99,04% | NA | 208 | 0 |
+| glouton / wolverine | 98,56% | 89,71% | 209 | 272 |
+| herisson / hedgehog | 95,24% | 100,00% | 63 | 8 |
+| lagomorphe / lagomorph | 98,91% | 99,40% | 3683 | 3490 |
+| loup / wolf | 98,62% | 99,34% | 1744 | 152 |
+| loutre / otter | 82,44% | 100,00% | 131 | 2 |
+| lynx / lynx | 99,22% | 100,00% | 1285 | 1047 |
+| marmotte / marmot | 100,00% | 98,86% | 448 | 1488 |
+| micromammifere / micromammal | 97,79% | 99,13% | 770 | 115 |
+| mouflon / mouflon | 92,76% | 82,42% | 221 | 711 |
+| mouton / sheep | 99,41% | 98,64% | 8780 | 6560 |
+| mustelide / mustelide | 98,54% | 96,17% | 1303 | 2196 |
+| oiseau / bird | 99,50% | 97,82% | 6054 | 6550 |
+| ours / bear | 96,92% | 97,41% | 1362 | 1157 |
+| ragondin / nutria| 76,99% | 53,33% | 113 | 30 |
+| ratonlaveur / racoon | 98,95% | 98,00% | 1715 | 50 |
+| renard / fox | 99,04% | 97,99% | 7521 | 16422 |
+| renne / rein deer | 98,52% | 98,65% | 1421 | 518 |
+| sanglier / wild boar | 98,49% | 98,90% | 7675 | 20135 |
+| vache /cow | 99,49% | 98,07% | 6902 | 2545 |
 
 
 ---
