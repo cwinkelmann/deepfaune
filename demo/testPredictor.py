@@ -33,54 +33,98 @@
 
 import sys
 import os
+import typing
 from pathlib import Path
 import pandas as pd
-
-if (len(sys.argv)!=3):
-    print("Usage: python testPredictor.py <IMAGEPATH> <CSVFILENAME>")
-    exit()
-
-## IMPORT DEEPFAUNE CLASSES
-curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
-sys.path.append(curdir+'/../') # to add the deepfaune path
+from loguru import logger
 
 from predictTools import PredictorImage
 
-## IMAGE FILES
-testdir = sys.argv[1]
-filenames = sorted(
-    [str(f) for f in  Path(testdir).rglob('*.[Jj][Pp][Gg]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Jj][Pp][Ee][Gg]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Bb][Mm][Pp]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Tt][Ii][Ff]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Gg][Ii][Ff]')] +
-    [str(f) for f in  Path(testdir).rglob('*.[Pp][Nn][Gg]')]
-)
 
-## PREDICTOR OBJECT
-LANG = 'en'
-maxlag = 20
-threshold = 0.5
-predictor = PredictorImage(filenames, threshold, maxlag, LANG)
+def find_images(images_dir: Path):
+    """
+    Find all images in the test directory
+    """
+    assert images_dir.exists(), f"Directory {images_dir} does not exist"
 
-## RUNNING BATCHES OF PREDICTION
-## ONE AT A TIME
-while True:
-    batch, k1, k2, k1seq, k2seq = predictor.nextBatch()
-    if k1 == len(filenames): break
-    print("Traitement du batch d'images "+str(batch)+"\n")
-## OR ALL TOGETHER
-predictor.allBatch()
+    return sorted(
+        [f for f in images_dir.rglob('*.[Jj][Pp][Gg]')] +
+        [f for f in images_dir.rglob('*.[Jj][Pp][Ee][Gg]')] +
+        [f for f in images_dir.rglob('*.[Bb][Mm][Pp]')] +
+        [f for f in images_dir.rglob('*.[Tt][Ii][Ff]')] +
+        [f for f in images_dir.rglob('*.[Gg][Ii][Ff]')] +
+        [f for f in images_dir.rglob('*.[Pp][Nn][Gg]')]
+    )
 
-## GETTING THE RESULTS
-## without using the sequences
-predictedclass_base, predictedscore_base, best_boxes, count = predictor.getPredictionsBase()
-## or using the sequences
-predictedclass, predictedscore, best_boxes, count = predictor.getPredictions()
+# if (len(sys.argv)!=3):
+#     print("Usage: python testPredictor.py <IMAGEPATH> <CSVFILENAME>")
+#     exit()
 
-## OUTPUT
-dates = predictor.getDates()
-seqnum = predictor.getSeqnums()
-preddf = pd.DataFrame({'filename':filenames, 'dates':dates, 'seqnum':seqnum, 'predictionbase':predictedclass_base, 'scorebase':predictedscore_base, 'prediction':predictedclass, 'score':predictedscore, 'count':count})
-preddf.to_csv(sys.argv[2], index=False)
-print('Done, results saved in '+sys.argv[2])
+## IMPORT DEEPFAUNE CLASSES
+curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
+curdir = Path("/Users/christian/PycharmProjects/hnee/deepfaune_software/demo")
+# sys.path.append(curdir+'/../') # to add the deepfaune path
+
+def prediction_wrapper(filenames: typing.List[Path])->pd.DataFrame:
+    """
+    wrap the prediction logic into a one liner
+    """
+
+    ## PREDICTOR OBJECT
+    LANG = 'en'
+    maxlag = 20
+    threshold = 0.5
+    predictor = PredictorImage(filenames, threshold, maxlag, LANG, BATCH_SIZE=16)
+
+    ## RUNNING BATCHES OF PREDICTION
+    ## ONE AT A TIME
+    while True:
+        batch, k1, k2, k1seq, k2seq = predictor.nextBatch()
+        if k1 == len(filenames): break
+        print("Traitement du batch d'images " + str(batch) + "\n")
+
+    ## OR ALL TOGETHER
+    # predictor.allBatch()
+
+    ## GETTING THE RESULTS
+    ## without using the sequences
+    predictedclass_base, predictedscore_base, best_boxes, count = predictor.getPredictionsBase()
+    ## or using the sequences
+    predictedclass, predictedscore, best_boxes, count = predictor.getPredictions()
+
+    ## OUTPUT
+    dates = predictor.getDates()
+    seqnum = predictor.getSeqnums()
+    preddf = pd.DataFrame({'filename': filenames,
+                           'dates': dates,
+                           'seqnum': seqnum,
+                           'predictionbase': predictedclass_base,
+                           'scorebase': predictedscore_base,
+                           'prediction': predictedclass,
+                           'score': predictedscore,
+                           'count': count})
+    return preddf
+
+def test_find_images():
+    images_dir = Path("/Users/christian/PycharmProjects/hnee/deepfaune_software/demo")
+    filenames = find_images(images_dir)
+    print(filenames)
+    assert len(filenames) == 5
+
+def test_predictor():
+    ## IMAGE FILES
+    images_dir = Path("/Users/christian/PycharmProjects/hnee/deepfaune_software/demo")
+    output_csv = Path("/Users/christian/PycharmProjects/hnee/deepfaune_software/demo/predictions.csv")
+
+
+    filenames = find_images(images_dir)
+    logger.debug(f"Found {len(filenames)} images in {images_dir}")
+
+    preddf = prediction_wrapper(filenames)
+
+    preddf.to_csv(output_csv, index=False)
+
+    print(f"Done, results saved in {output_csv}")
+
+    assert preddf.shape[0] == 5
+

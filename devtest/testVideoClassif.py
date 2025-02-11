@@ -11,7 +11,6 @@ BATCH_SIZE=8
 
 #######################
 #######################
-import numpy as np
 from detectTools import Detector
 detector = Detector()
 from classifTools import Classifier, CROP_SIZE

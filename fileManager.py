@@ -70,12 +70,12 @@ def isLagUnderMaxlag(date1, date2, maxlag):
 
 def getDateFromMetadata(filename):
     date = "NA"  # default
-    if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):  # Image file
+    if str(filename).lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):  # Image file
         try:
             date = Image.open(filename)._getexif()[36867]
         except: # TypeError
             pass
-    elif filename.lower().endswith(('.mov', '.mp4', '.mkv')):  # Video file
+    elif str(filename).lower().endswith(('.mov', '.mp4', '.mkv')):  # Video file
         try:
             date = extractMetadata(createParser(filename)).get('creation_date')
         except: # KeyError

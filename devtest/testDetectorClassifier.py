@@ -36,7 +36,7 @@ import os
 
 import numpy as np
 
-from classifTools import Classifier, txt_classes
+from classifTools import Classifier, txt_animalclasses
 
 curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
 sys.path.append(curdir+'/../')
@@ -62,7 +62,7 @@ if(category):
     batch = classifier.preprocessImage(croppedimage)
     print(batch.shape)
     scores = classifier.predictOnBatch(batch)
-    print("Prediction :", txt_classes[LANG][np.argmax(scores[0,:])])
+    print("Prediction :", txt_animalclasses[LANG][np.argmax(scores[0,:])])
 else:
     print("Prediction : vide/empty") 
 
