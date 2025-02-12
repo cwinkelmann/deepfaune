@@ -33,29 +33,7 @@
 
 import sys
 import os
-import time
-import typing
 from pathlib import Path
-import pandas as pd
-from loguru import logger
-
-from predictTools import PredictorImage
-
-
-def find_images(images_dir: Path):
-    """
-    Find all images in the test directory
-    """
-    assert images_dir.exists(), f"Directory {images_dir} does not exist"
-
-    return sorted(
-        [f for f in images_dir.rglob('*.[Jj][Pp][Gg]')] +
-        [f for f in images_dir.rglob('*.[Jj][Pp][Ee][Gg]')] +
-        [f for f in images_dir.rglob('*.[Bb][Mm][Pp]')] +
-        [f for f in images_dir.rglob('*.[Tt][Ii][Ff]')] +
-        [f for f in images_dir.rglob('*.[Gg][Ii][Ff]')] +
-        [f for f in images_dir.rglob('*.[Pp][Nn][Gg]')]
-    )
 
 # if (len(sys.argv)!=3):
 #     print("Usage: python testPredictor.py <IMAGEPATH> <CSVFILENAME>")
@@ -66,73 +44,6 @@ curdir = os.path.abspath(os.path.dirname(sys.argv[0]))
 curdir = Path("/Users/christian/PycharmProjects/hnee/deepfaune_software/demo")
 # sys.path.append(curdir+'/../') # to add the deepfaune path
 
-def prediction_wrapper(filenames: typing.List[Path])->pd.DataFrame:
-    """
-    wrap the prediction logic into a one liner
-    """
-
-    ## PREDICTOR OBJECT
-    LANG = 'en'
-    maxlag = 20
-    threshold = 0.5
-    BATCH_SIZE = 16
-
-    predictor = PredictorImage(filenames, threshold, maxlag, LANG, BATCH_SIZE=BATCH_SIZE)
-    ## RUNNING BATCHES OF PREDICTION
-    ## ONE AT A TIME
-    while True:
-        batch_start_time = time.time()  # Start timing the batch
-
-        batch, k1, k2, k1seq, k2seq = predictor.nextBatch()
-        if k1 == len(filenames): break
-        print(f"current batch: {batch} out of {len(filenames)//BATCH_SIZE}")
-        batch_end_time = time.time()  # Start timing the batch
-        print(f"Batch time: {batch_end_time - batch_start_time:.3f} seconds. Time per image: {(batch_end_time - batch_start_time) / BATCH_SIZE:.3f} seconds")
 
 
-    ## OR ALL TOGETHER
-    # predictor.allBatch()
-
-    ## GETTING THE RESULTS
-    ## without using the sequences
-    # predictedclass_base, predictedscore_base, best_boxes, count = predictor.getPredictionsBase()
-    # or using the sequences
-    predictedclass, predictedscore, best_boxes, count = predictor.getPredictions()
-    ## OUTPUT
-    dates = predictor.getDates()
-    seqnum = predictor.getSeqnums()
-    preddf = pd.DataFrame({'filename': predictor.getFilenames(),
-                           'dates': predictor.getDates(),
-                           'seqnum': seqnum,
-                           # 'predictionbase': predictedclass_base,
-                           #'scorebase': predictedscore_base,
-                           'prediction': predictedclass,
-                           'score': predictedscore,
-                           'count': count,
-                           "getPredictedTop1": predictor.getPredictedTop1()
-                           })
-    return preddf
-
-def test_find_images():
-    images_dir = Path("/Users/christian/PycharmProjects/hnee/deepfaune_software/demo")
-    filenames = find_images(images_dir)
-    print(filenames)
-    assert len(filenames) == 3
-
-def test_predictor():
-    ## IMAGE FILES
-    images_dir = Path("/Users/christian/PycharmProjects/hnee/deepfaune_software/demo")
-    output_csv = Path("/Users/christian/PycharmProjects/hnee/deepfaune_software/demo/predictions.csv")
-
-
-    filenames = find_images(images_dir)
-    logger.debug(f"Found {len(filenames)} images in {images_dir}")
-
-    preddf = prediction_wrapper(filenames)
-
-    preddf.to_csv(output_csv, index=False)
-
-    print(f"Done, results saved in {output_csv}")
-
-    assert preddf.shape[0] == 5
 

@@ -83,18 +83,28 @@ For some users, it may be necessary to install `python-tk` or `python3-tk` as we
 **Setting up your Python environment:**
 
 On Linux, it can be recommended to create a virtual environement with:
-```
+Use the requirements.txt file to install the dependencies
+```shell
 python3 -m venv envdeepfaune
 source env/bin/activatedeepfaune
-pip install XXX
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
 ```
 
 On Mac (& Linux) it is also recommended to use Anaconda:
-```
+```shell
 conda create -n deepfaune
 conda activate deepfaune
-pip install XXX
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
+
+Run the tests to know if everything is alright:
+```shell
+PYTHONPATH=./:PYTHONPATH pytest tests
+```
+
 
 On Windows, install these dependencies using **[Anaconda Individual Edition](https://www.anaconda.com/products/individual)** (WARNING: during installation of Anaconda, you will be asked to choose a path to install Ananconda files. It will be `C:\Users\yourname\anaconda3` by default. PLEASE REMEMBER THIS PATH FOR FURTHER USE).
 

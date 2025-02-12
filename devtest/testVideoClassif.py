@@ -51,6 +51,6 @@ pred = np.sum(pred,axis=0)/len(idxnonempty)
 import pandas as pd
 df_filename = pd.DataFrame({'filename':["/home/vmiele/Developpement/deepfaunegui-modular/devtest/video.mp4"]})
 from predictTools import PredictorVideo
-from classifTools import txt_classes
-predictor = PredictorVideo(df_filename, 0.25, txt_classes["fr"]+["vide"], "indéfini")
+from classifTools import txt_animalclasses
+predictor = PredictorVideo(df_filename, 0.25, txt_animalclasses["fr"]+["vide"], "indéfini")
 predictor.nextBatch()

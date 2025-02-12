@@ -1,6 +1,5 @@
 import sys
 import cv2
-import numpy as np
 imagecv = cv2.imread(sys.argv[1])
 
 
