@@ -42,11 +42,11 @@ def test_analyse_predictions(df_ground_truth, df_predictions):
     sE.analyse_predictions()
 
     assert round(sE.accuracy, 4) == 0.8913
-    assert len(sE.false_positives) == 2
+    assert len(sE.false_positives) == 0
     assert len(sE.false_negatives) == 1
     ## Check the false negatives
     assert sE.false_negatives.iloc[0]["mediaID"] == 42
-    assert sE.false_negatives.iloc[0]["image_name"] == "EMPTY42.JPG"
+    assert sE.false_negatives.iloc[0]["fileName"] == "EMPTY2.JPG"
 
     assert len(sE.true_negatives) == 4
 

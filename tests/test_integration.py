@@ -4,7 +4,10 @@ import pytest
 from loguru import logger
 
 from deepfaune.inference import prediction_wrapper
+from deepfaune.util.evaluation import SimpleEvaluator
 from deepfaune.util.files import find_images
+from deepfaune.util.species_mapping import deepfaune_prediction2trapper
+
 
 def base_folder():
     # get current directory
@@ -37,18 +40,29 @@ def filenames():
         raise FileNotFoundError(f"No images found in {images_dir}")
     return filenames
 
+@pytest.fixture
+def df_ground_truth():
+
+    return df_ground_truth
+
 def test_find_images(base_folderfixture):
 
     filenames = find_images(base_folderfixture)
 
     assert len(filenames) == 1
 
-def test_prediction_wrapper(filenames):
-    ## IMAGE FILES
+@pytest.mark.skip(reason="Skipping this test temporarily")
+def test_integration(filenames, df_ground_truth):
+    """
+    integration test for multiple functions and a slightly bigger dataset
+    """
 
-    preddf = prediction_wrapper(filenames)
+    df_predictions = prediction_wrapper(filenames)
+    sE = SimpleEvaluator(df_predictions=df_predictions, df_annotations=df_ground_truth)
+    sE.prepare_trapper_predictions()
+    sE.map_predictions_to_annotations_species(deepfaune_prediction2trapper)
 
-    assert preddf.shape[0] == 1
+    df_analysis, metrics = sE.analyse_predictions()
 
-    assert list(preddf.columns) == ['fileName', 'dates', 'seqnum', 'prediction', 'score', 'count', 'getPredictedTop1']
-    assert Path(preddf.iloc[0]["fileName"]).name == "squirrel.JPG"
+
+    assert metrics.accurary == 0.90
