@@ -55,7 +55,7 @@ class Detector:
         
     def bestBoxDetection(self, filename_or_imagecv, threshold=YOLO_THRES):
         try:
-            results = self.yolo.predict(filename_or_imagecv, verbose=False, imgsz=YOLO_WIDTH, device='cpu')
+            results = self.yolo.predict(filename_or_imagecv, verbose=False, imgsz=YOLO_WIDTH)
         except FileNotFoundError:
             return None, 0, np.zeros(4), 0, []
         except Exception as err:

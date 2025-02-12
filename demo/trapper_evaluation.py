@@ -10,7 +10,7 @@ from loguru import logger
 from demo.testPredictor import find_images, prediction_wrapper
 
 
-def main():
+def main(images_dir: Path):
     filenames = find_images(images_dir)
     logger.debug(f"Found {len(filenames)} images in {images_dir}")
 
@@ -36,13 +36,15 @@ def analyse_predictions(df_predictions: pd.DataFrame,
     return df_merged
 
 if __name__ == "__main__":
-    images_dir = Path(
-        "/Users/christian/data/camera_trapping/trapper/trapper_photos_6")
-    annotations_path = Path(
-        "/Users/christian/data/camera_trapping/trapper_photos_6/metadata.csv")
+    # images_dir = Path("/Users/christian/data/camera_trapping/trapper_photos_6")
+    images_dir = Path('/Users/christian/Library/CloudStorage/GoogleDrive-christian.winkelmann@gmail.com/My Drive/Datasets/trapper/trapper_photos_2')
+
+    # annotations_path = Path("/Users/christian/data/camera_trapping/trapper_photos_6/metadata.csv")
+    annotations_path = Path('/Users/christian/Library/CloudStorage/GoogleDrive-christian.winkelmann@gmail.com/My Drive/Datasets/trapper/observations_0_2.csv')
+
     output_csv = Path(f"/Users/christian/PycharmProjects/hnee/deepfaune_software/demo/{images_dir.name}.csv")
 
-    # main()
+    main(images_dir)
     df_merged = analyse_predictions(df_predictions=pd.read_csv(output_csv),
                         df_annotations=pd.read_csv(annotations_path))
 
