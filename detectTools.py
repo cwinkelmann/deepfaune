@@ -56,6 +56,7 @@ class Detector:
     def bestBoxDetection(self, filename_or_imagecv, threshold=YOLO_THRES):
         try:
             results = self.yolo.predict(filename_or_imagecv, verbose=False, imgsz=YOLO_WIDTH)
+            # results = self.yolo.predict([filename_or_imagecv, filename_or_imagecv], verbose=False, imgsz=YOLO_WIDTH, batch=16) # Would it be faster to use batching here for prediction?
         except FileNotFoundError:
             return None, 0, np.zeros(4), 0, []
         except Exception as err:

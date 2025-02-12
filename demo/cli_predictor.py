@@ -43,6 +43,8 @@ def predict(images_dir, output_csv):
 
     click.echo(f"Found {len(filenames)} images. Running prediction...")
     preddf = prediction_wrapper(filenames)
+
+    Path(output_csv.parent).mkdir(parents=True, exist_ok=True)
     preddf.to_csv(output_csv, index=False)
     click.echo(f"Done! Results saved in {output_csv}")
 

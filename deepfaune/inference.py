@@ -18,7 +18,7 @@ def prediction_wrapper(filenames: typing.List[Path]) -> pd.DataFrame:
     LANG = 'en'
     maxlag = 20
     threshold = 0.5
-    BATCH_SIZE = 16
+    BATCH_SIZE = 48
 
     predictor = PredictorImage(filenames, threshold, maxlag, LANG, BATCH_SIZE=BATCH_SIZE)
     ## RUNNING BATCHES OF PREDICTION

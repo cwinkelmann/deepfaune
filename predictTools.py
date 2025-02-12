@@ -207,11 +207,11 @@ class PredictorImageBase(PredictorBase):
         self.detector = None
 
     def nextBatch(self):
-        if self.k1>=self.fileManager.nbFiles():
+        if self.k1 >= self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, self.k1, self.k2
         else:
             rangeanimal = []
-            for k in range(self.k1,self.k2):
+            for k in range(self.k1, self.k2):
                 croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(self.fileManager.getFilename(k), self.detectionthreshold)
                 self.bestboxes[k] = box
                 self.count[k] = count
@@ -228,7 +228,7 @@ class PredictorImageBase(PredictorBase):
                     self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
                     self.humancount[k] = len(humanboxes)
             if len(rangeanimal): # predicting species in images with animal 
-                self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
+                self.prediction[rangeanimal, 0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
             k1_batch = self.k1
             k2_batch = self.k2
             k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
