@@ -24,5 +24,7 @@ python cli_evaluator.py --help
 # evaluate the predictions
 python cli_evaluator.py --predictions-csv ./prediction_testdata.csv --groundtruth-csv ../testdata/groundtruth.csv
 
+
+python cli_evaluator.py --predictions-csv trapper_photos_2.csv --annotations-csv observations_0_2.csv
 ```
 

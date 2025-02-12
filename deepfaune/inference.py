@@ -44,7 +44,7 @@ def prediction_wrapper(filenames: typing.List[Path]) -> pd.DataFrame:
     ## OUTPUT
     dates = predictor.getDates()
     seqnum = predictor.getSeqnums()
-    preddf = pd.DataFrame({'filename': predictor.getFilenames(),
+    preddf = pd.DataFrame({'fileName': predictor.getFilenames(),
                            'dates': predictor.getDates(),
                            'seqnum': seqnum,
                            # 'predictionbase': predictedclass_base,

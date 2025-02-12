@@ -49,3 +49,6 @@ def test_prediction_wrapper(filenames):
     preddf = prediction_wrapper(filenames)
 
     assert preddf.shape[0] == 1
+
+    assert preddf.keys() == ['fileName', 'dates', 'seqnum', 'prediction', 'score', 'count', 'getPredictedTop1']
+    assert preddf.iloc[0]["fileName"] == "test.jpg"
