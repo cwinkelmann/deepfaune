@@ -9,6 +9,7 @@ sys.path.append(curdir+'/../')
 #######################
 #######################
 import cv2
+import numpy as np
 image = cv2.imread('testdata/cerf_neige.jpg')
 #image = cv2.resize(image, (1200,800))
 threshold = 0.25
@@ -20,7 +21,6 @@ from detectTools import Detector
 detector = Detector()
 croppedimage, nonempty = detector.bestBoxDetection(image, 0.25)
 croppedimage = np.asarray(croppedimage) # from PIL to cv2
-print(category)
 
 #######################
 #######################
