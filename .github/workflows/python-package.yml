@@ -44,25 +44,30 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 
-    - name: Cache Downloaded Models
+    - name: Cache deepfaune-yolov8s_960.pt
       uses: actions/cache@v3
       with:
-        path: models/  # Cache the entire models directory
-        key: models-${{ runner.os }}-deepfaune-v1  # Unique cache key
+        path: deepfaune-yolov8s_960.pt
+        key: deepfaune-yolov8s_960-${{ runner.os }}
+
+    - name: Cache deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt
+      uses: actions/cache@v3
+      with:
+        path: deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt
+        key: deepfaune-vit_large-${{ runner.os }}
 
     - name: Download Models if Not Cached
       run: |
-        mkdir -p models
-        if [ ! -f models/deepfaune-yolov8s_960.pt ]; then
+        if [ ! -f deepfaune-yolov8s_960.pt ]; then
           echo "Downloading deepfaune-yolov8s_960.pt..."
-          wget -q -O models/deepfaune-yolov8s_960.pt https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.2/deepfaune-yolov8s_960.pt
+          wget -q -O deepfaune-yolov8s_960.pt https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.2/deepfaune-yolov8s_960.pt
         else
           echo "deepfaune-yolov8s_960.pt found in cache."
         fi
         
-        if [ ! -f models/deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt ]; then
+        if [ ! -f deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt ]; then
           echo "Downloading deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt..."
-          wget -q -O models/deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.3/deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt
+          wget -q -O deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt https://pbil.univ-lyon1.fr/software/download/deepfaune/v1.3/deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt
         else
           echo "deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt found in cache."
         fi
@@ -70,3 +75,4 @@ jobs:
     - name: Test with pytest
       run: |
         PYTHONPATH=./:PYTHONPATH pytest tests
+
