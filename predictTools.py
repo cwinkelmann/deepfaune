@@ -47,6 +47,7 @@ txt_classes = {'fr': txt_animalclasses['fr']+["humain","vehicule"],
                'it': txt_animalclasses['it']+["umano","veicolo"],
                'de': txt_animalclasses['de']+["Mensch","Fahrzeug"]
                }
+
 txt_empty = {'fr':"vide", 'en':"empty", 'it':"vuoto", 'de':"Leer"}
 txt_undefined = {'fr':"indéfini", 'en':"undefined", 'it':"indeterminato", 'de':"Undefiniert"}
 
@@ -206,11 +207,11 @@ class PredictorImageBase(PredictorBase):
         self.detector = None
 
     def nextBatch(self):
-        if self.k1>=self.fileManager.nbFiles():
+        if self.k1 >= self.fileManager.nbFiles():
             return self.batch, self.k1, self.k2, self.k1, self.k2
         else:
             rangeanimal = []
-            for k in range(self.k1,self.k2):
+            for k in range(self.k1, self.k2):
                 croppedimage, category, box, count, humanboxes = self.detector.bestBoxDetection(self.fileManager.getFilename(k), self.detectionthreshold)
                 self.bestboxes[k] = box
                 self.count[k] = count
@@ -227,7 +228,7 @@ class PredictorImageBase(PredictorBase):
                     self.humanboxes[self.fileManager.getFilename(k)] = humanboxes
                     self.humancount[k] = len(humanboxes)
             if len(rangeanimal): # predicting species in images with animal 
-                self.prediction[rangeanimal,0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
+                self.prediction[rangeanimal, 0:len(txt_animalclasses[self.LANG])] = self.classifier.predictOnBatch(self.cropped_data[[k-self.k1 for k in rangeanimal],:,:,:], withsoftmax=False)
             k1_batch = self.k1
             k2_batch = self.k2
             k1seq_batch, k2seq_batch = self.correctPredictionsInSequenceBatch()
@@ -309,9 +310,11 @@ class PredictorImageBase(PredictorBase):
 ### PREDICTOR IMAGE
 ####################################################################################
 class PredictorImage(PredictorImageBase):
-    ## Predictor performing detections with our own detector, from filenames
+    """
+    Predictor performing detections with our own detector, from filenames
+    """
     def __init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE=8):
-        PredictorImageBase.__init__(self, filenames, threshold, maxlag, LANG, BATCH_SIZE) # inherits all
+        super().__init__(filenames, threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = Detector()
         self.setDetectionThreshold(YOLO_THRES)
         self.humanboxes = dict()
@@ -320,8 +323,14 @@ class PredictorImage(PredictorImageBase):
 ### PREDICTOR JSON
 ####################################################################################
 class PredictorJSON(PredictorImageBase):
-    ## Predictor using MDv5 detections, listed in jsonfilename
+    """
+    Predictor using MDv5 detections, listed in jsonfilename
+    """
     def __init__(self, jsonfilename, threshold, maxlag, LANG, BATCH_SIZE=8):
+        """
+        jsonfilename: name of the json file with detections from Megadetector
+
+        """
         detectorjson = DetectorJSON(jsonfilename)
         PredictorImageBase.__init__(self, detectorjson.getFilenames(), threshold, maxlag, LANG, BATCH_SIZE) # inherits all
         self.detector = detectorjson

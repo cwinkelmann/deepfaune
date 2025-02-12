@@ -1,4 +1,5 @@
 # Copyright CNRS 2024
+from loguru import logger
 
 # simon.chamaille@cefe.cnrs.fr; vincent.miele@univ-lyon1.fr
 
@@ -1168,6 +1169,7 @@ while True:
                 from predictTools import PredictorVideo
             else:
                 from predictTools import PredictorImage
+
             if VIDEO:
                 predictor = PredictorVideo(filenames, threshold, LANG, BATCH_SIZE)
             else:
@@ -1210,7 +1212,10 @@ while True:
                                     'predictionbase':predictedclass_base, 'scorebase':predictedscore_base,
                                     'prediction':predictedclass, 'score':predictedscore, 'top1':predictedtop1,
                                     'humancount':predictor.getHumanCount()})
+
+        logger.info(f"got prediction: {preddf.to_dict()}")
         preddf.sort_values(['seqnum','filename'], inplace=True)
+
         if event == txt_ascsv[LANG]:
             csvpath =  dialog_get_file(txt_savepredictions[LANG], initialdir=testdir, initialfile="deepfaune.csv", defaultextension=".csv")
             if csvpath:

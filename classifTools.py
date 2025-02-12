@@ -36,6 +36,7 @@ import os
 import numpy as np
 import timm
 import torch
+from loguru import logger
 from torch import tensor
 import torch.nn as nn
 from torchvision.transforms import InterpolationMode, transforms
@@ -43,7 +44,16 @@ from torchvision.transforms import InterpolationMode, transforms
 CROP_SIZE = 182
 BACKBONE = "vit_large_patch14_dinov2.lvd142m"
 DFPATH = os.path.abspath(os.path.dirname(__file__))
-weight_path = os.path.join(DFPATH,'deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt')
+weight_path = os.path.join(DFPATH, 'deepfaune-vit_large_patch14_dinov2.lvd142m.v3.pt')
+
+def get_device():
+    """Returns the best available device (MPS, CUDA, or CPU)."""
+    if torch.backends.mps.is_available():
+        return torch.device("cpu")
+    elif torch.cuda.is_available():
+        return torch.device("cuda")
+    else:
+        return torch.device("cpu")
 
 txt_animalclasses = {
     'fr': ['bison', 'blaireau', 'bouquetin', 'castor', 'cerf', 'chamois', 'chat', 'chevre', 'chevreuil', 'chien', 'daim', 'ecureuil', 'elan', 'equide', 'genette', 'glouton', 'herisson', 'lagomorphe', 'loup', 'loutre', 'lynx', 'marmotte', 'micromammifere', 'mouflon', 'mouton', 'mustelide', 'oiseau', 'ours', 'ragondin', 'raton laveur', 'renard', 'renne', 'sanglier', 'vache'],
@@ -86,7 +96,7 @@ class Model(nn.Module):
         super().__init__()
         self.base_model = timm.create_model(BACKBONE, pretrained=False, num_classes=len(txt_animalclasses['fr']),
                                             dynamic_img_size=True)
-        print(f"Using {BACKBONE} with weights at {weight_path}, in resolution {CROP_SIZE}x{CROP_SIZE}")
+        logger.info(f"Using {BACKBONE} with weights at {weight_path}, in resolution {CROP_SIZE}x{CROP_SIZE}")
         self.backbone = BACKBONE
         self.nbclasses = len(txt_animalclasses['fr'])
 
@@ -101,7 +111,7 @@ class Model(nn.Module):
         :return: numpy array of predictions without soft max
         """
         self.eval()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = get_device()
         self.to(device)
         total_output = []
         with torch.no_grad():
@@ -118,7 +128,9 @@ class Model(nn.Module):
         """
         :param path: path of .pt save of model
         """
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = get_device()
+
+        logger.info(f"Using device: {device}")
 
         if path[-3:] != ".pt":
             path += ".pt"
